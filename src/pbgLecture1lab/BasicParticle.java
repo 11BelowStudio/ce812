@@ -9,7 +9,9 @@ import java.awt.Graphics2D;
 public class BasicParticle {
 	private final int RADIUS_OF_PARTICLE_IN_PIXELS;
 
-	private double sx,sy,vx,vy;// HINT: This line needs deleting completely and replacing by two Vect2D variables
+	private Vect2D pos;
+
+	private Vect2D vel;
 	
 	private final double radius;
 	private final Color col;
@@ -19,19 +21,17 @@ public class BasicParticle {
 
 	/**
 	 * The constructor. DO NOT ALTER SIGNATURE, DO NOT ADD NEW CONSTRUCTOR.
-	 * @param sx
-	 * @param sy
-	 * @param vx
-	 * @param vy
-	 * @param radius
-	 * @param improvedEuler
-	 * @param col
+	 * @param sx x pos
+	 * @param sy y pos
+	 * @param vx x velocity
+	 * @param vy y velocity
+	 * @param radius radius of it
+	 * @param improvedEuler whether or not we're using improvedEuler
+	 * @param col colour of the particle
 	 */
 	public BasicParticle(double sx, double sy, double vx, double vy, double radius, boolean improvedEuler, Color col) {
-		this.sx=sx;
-		this.sy=sy;
-		this.vx=vx;
-		this.vy=vy;
+		pos = new Vect2D(sx, sy);
+		vel = new Vect2D(vx, vy);
 		this.radius=radius;
 		this.improvedEuler=improvedEuler;
 		this.RADIUS_OF_PARTICLE_IN_PIXELS=Math.max(BasicPhysicsEngine.convertWorldLengthToScreenLength(radius),1);
@@ -39,20 +39,32 @@ public class BasicParticle {
 	}
 
 	public void update() {
+
+		final Vect2D grav = new Vect2D(0, -BasicPhysicsEngine.GRAVITY);
+
 		if (improvedEuler) {
-			// improved Euler
-			//TODO
+			// improved euler stuff
+			Vect2D trialVel = vel.addScaled(grav, DELTA_T);
+
+			Vect2D dist = vel.add(trialVel);
+
+			pos = pos.addScaled(dist, DELTA_T * 0.5);
+
+			vel = vel.addScaled(grav, DELTA_T);
+
 		} else {
-			// basic Euler: TODO extend this to include BasicPhysicsEngine.GRAVITY
-			sx+=vx*DELTA_T;
-			sy+=vy*DELTA_T;
+			// basic Euler stuff
+			pos = pos.addScaled(vel, DELTA_T);
+			vel = vel.addScaled(grav, DELTA_T);
 		}
+
+
 	}
 
 
 	public void draw(Graphics2D g) {
-		int x = BasicPhysicsEngine.convertWorldXtoScreenX(sx);
-		int y = BasicPhysicsEngine.convertWorldYtoScreenY(sy);
+		int x = BasicPhysicsEngine.convertWorldXtoScreenX(pos.x);
+		int y = BasicPhysicsEngine.convertWorldYtoScreenY(pos.y);
 		g.setColor(col);
 		g.fillOval(x - RADIUS_OF_PARTICLE_IN_PIXELS, y - RADIUS_OF_PARTICLE_IN_PIXELS, 2 * RADIUS_OF_PARTICLE_IN_PIXELS, 2 * RADIUS_OF_PARTICLE_IN_PIXELS);
 	}
@@ -62,9 +74,9 @@ public class BasicParticle {
 	}
 
 	public double getX() {
-		return sx;
+		return pos.x;
 	}
 	public double getY() {
-		return sy;
+		return pos.y;
 	}
 }

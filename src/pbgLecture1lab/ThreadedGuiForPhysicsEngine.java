@@ -1,16 +1,12 @@
 package pbgLecture1lab;
 
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.DecimalFormat;
 
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-
+import javax.swing.*;
+import javax.swing.text.NumberFormatter;
 
 
 public class ThreadedGuiForPhysicsEngine {
@@ -22,6 +18,10 @@ public class ThreadedGuiForPhysicsEngine {
 	private static JButton jButton_go;
 	private static Thread theThread;
 
+	private static JFormattedTextField speedField;
+
+	private static JFormattedTextField angleField;
+
 
 	public static void main(String[] args) throws Exception {
 		BasicPhysicsEngine game = new BasicPhysicsEngine ();
@@ -29,16 +29,40 @@ public class ThreadedGuiForPhysicsEngine {
 		JComponent mainPanel = new JPanel();
 		mainPanel.setLayout(new BorderLayout());
 		mainPanel.add(view, BorderLayout.CENTER);
-		JPanel sidePanel=new JPanel();
-		sidePanel.setLayout(new FlowLayout());
-		jButton_go=new JButton("Go");
+		final JPanel sidePanel=new JPanel();
+
+		sidePanel.setLayout(new BoxLayout(sidePanel, BoxLayout.Y_AXIS));
+		//sidePanel.setLayout(new GridLayout(3,1));
+
+
+		sidePanel.add(new JLabel("SPEED:"));
+		speedField = new JFormattedTextField(new NumberFormatter(new DecimalFormat("#####0.####")));
+		sidePanel.add(speedField);
+
+
+		sidePanel.add(new JLabel(" "));
+		sidePanel.add(new JLabel("ANGLE:"));
+		angleField = new JFormattedTextField(new NumberFormatter(new DecimalFormat("#0.####")));
+		sidePanel.add(angleField);
+
+		sidePanel.add(new JLabel(" "));
+		jButton_go=new JButton("Go!");
 		sidePanel.add(jButton_go);
+
+		for (int i = 0; i < 10; i++) {
+			sidePanel.add(new JLabel(" "));
+		}
+
 		mainPanel.add(sidePanel, BorderLayout.WEST);
 		// add any new buttons or textfields to side panel here...
+
+		// TODO: launch speed + launch angle input fields
+
+		// TODO: use inputs from those input fields to launch the ball
 		
 		JComponent topPanel=new JPanel();
 		topPanel.setLayout(new FlowLayout());
-		topPanel.add(new JLabel("JLabel"));
+		topPanel.add(new JLabel("some fancy GUI I guess"));
 		mainPanel.add(topPanel, BorderLayout.NORTH);
 		
 		new JEasyFrame(mainPanel, "Basic Physics Engine");

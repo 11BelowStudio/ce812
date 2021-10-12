@@ -47,8 +47,7 @@ public final class Vect2D {
 	 * @return a vector equal to this+v
 	 */
 	public Vect2D add(Vect2D v) {
-		// TODO insert code here to return a new vector that is the sum of this vector plus vector v
-		throw new RuntimeException("Not finished");
+		return new Vect2D(x + v.x, y + v.y);
 	}
 
 
@@ -60,8 +59,7 @@ public final class Vect2D {
 	 * @return a vector equal to this + (v * fac)
 	 */
 	public Vect2D addScaled(Vect2D v, double fac) {
-		// TODO insert code here to return a new vector equal to "this + v * fac"
-		throw new RuntimeException("Not finished");
+		return new Vect2D(x + (v.x * fac), y + (v.y * fac));
 	}
 
 	/**
@@ -70,8 +68,7 @@ public final class Vect2D {
 	 * @return result of this * fac
 	 */
 	public Vect2D mult(double fac) {
-		// TODO insert code here to return a new vector equal to "this * fac"
-		throw new RuntimeException("Not finished");
+		return new Vect2D(x * fac, y * fac);
 	}
 
 }
