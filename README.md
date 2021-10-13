@@ -10,6 +10,9 @@ I'm planning on putting every lab (and the assignment) into their own branches i
 repository, so, if you want to find each lab's stuff, please go to the branch for that
 lab/the assignment
 
+Also to see the exact range and distance stuff,
+please launch 'ExactRangeInfoGuiForPhysicsEngine.java'
+
 Thank you for your understanding.
 
 Rachel Lowe

@@ -138,14 +138,14 @@ public class ThreadedGuiForPhysicsEngine {
 
 	    			ballToStringLabel.setText(ballPos.toString());
 
-	    			if (ballPos.x < 0){
+	    			if (ballPos.x <= 0){
 	    				keepGoing = false;
 					} else if (ballPos.x > maxX){
 	    				maxX = ballPos.x;
 	    				maxDistLabel.setText(String.valueOf(maxX));
 					}
 
-					if (ballPos.y < 0){
+					if (ballPos.y <= 0){
 						keepGoing = false;
 					} else if (ballPos.y > maxY){
 						maxY = ballPos.y;

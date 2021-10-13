@@ -1,8 +1,6 @@
 package pbgLecture1lab;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +21,12 @@ public class BasicPhysicsEngine implements IHaveAPosition {
 	public static final int NUM_EULER_UPDATES_PER_SCREEN_REFRESH=10;
 	// estimate for time between two frames in seconds 
 	public static final double DELTA_T = DELAY / 1000.0 / NUM_EULER_UPDATES_PER_SCREEN_REFRESH ;
+
+	private double localGravity = GRAVITY;
+
+	private double localDelta = DELTA_T;
+
+	private int localDelay = DELAY;
 	
 	
 	public static int convertWorldXtoScreenX(double worldX) {
@@ -61,6 +65,8 @@ public class BasicPhysicsEngine implements IHaveAPosition {
 
 		final Vect2D ballVect = Vect2D.POLAR_VECT(Math.toRadians(launchAngle), launchSpeed);
 
+		System.out.println(localDelta);
+
 		particles = new ArrayList<>();
 		double r=.2;
 		boolean improvedEuler = false;
@@ -68,6 +74,25 @@ public class BasicPhysicsEngine implements IHaveAPosition {
 		theParticle = new BasicParticle(r,r, ballVect.x, ballVect.y, r, improvedEuler, Color.GREEN);
 
 		particles.add(theParticle);
+	}
+
+	/**
+	 * A constructor for the BasicPhysicsEngine that launches a ball at a given speed and angle, with given gravity and deltaT
+	 * @param launchSpeed the speed at which the ball is to be launched at
+	 * @param launchAngle the angle (in degrees) at which the ball is to be launched at
+	 * @param overrideGravity gravity value to use instead
+	 * @param overrideDelta deltaT value to use instead
+	 */
+	public BasicPhysicsEngine(double launchSpeed, double launchAngle, double overrideGravity, double overrideDelta){
+
+		this(launchSpeed, launchAngle);
+
+		localGravity = overrideGravity;
+
+		localDelta = overrideDelta;
+
+		localDelay = (int)(localDelta * NUM_EULER_UPDATES_PER_SCREEN_REFRESH * 1000.00);
+		System.out.println(localDelay);
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -88,17 +113,61 @@ public class BasicPhysicsEngine implements IHaveAPosition {
 	}
 	public void update() {
 		for (BasicParticle p : particles) {
-			p.update(GRAVITY, DELTA_T); // tell each particle to move
+			p.update(localGravity, localDelta); // tell each particle to move
 		}
 	}
 
+	/**
+	 * Renders the game (rectangle under the ball area, then draws the particles)
+	 * @param g the graphics2D thing we're using for the drawing
+	 */
+	public void draw(Graphics2D g){
 
+		g.setColor(Color.RED);
+		g.fillRect(
+				BasicPhysicsEngine.convertWorldXtoScreenX(0),
+				BasicPhysicsEngine.convertWorldYtoScreenY(0),
+				BasicPhysicsEngine.convertWorldXtoScreenX(1000),
+				BasicPhysicsEngine.convertWorldYtoScreenY(-1)
+		);
+		for (BasicParticle p : particles) {
+			p.draw(g);
+		}
+
+	}
+
+	/**
+	 * obtains the gravity value we're using
+	 * @return the gravity we're using
+	 */
+	public double getLocalGravity(){
+		return localGravity;
+	}
+
+	/**
+	 * obtains the delta value we're using
+	 * @return the delta we're using.
+	 */
+	public double getLocalDelta(){
+		return localDelta;
+	}
+
+	public int getLocalDelay(){
+		return localDelay;
+	}
+
+
+	/**
+	 * Returns the position of the ball (minus its radius)
+	 * @return position of ball (minus radius), or a new Vect2D if no ball exists.
+	 */
 	@Override
 	public Vect2D getPosition() {
 		if (theParticle == null){
 			return new Vect2D();
 		} else{
-			return theParticle.getPosition();
+			double radius = theParticle.getRadius();
+			return theParticle.getPosition().add(new Vect2D(-radius, -radius));
 		}
 	}
 }

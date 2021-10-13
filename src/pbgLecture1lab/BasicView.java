@@ -27,6 +27,7 @@ public class BasicView extends JComponent {
 		// paint the background
 		g.setColor(BG_COLOR);
 		g.fillRect(0, 0, getWidth(), getHeight());
+		game.draw(g);
 		for (BasicParticle p : game.particles)
 			p.draw(g);
 	}
