@@ -66,9 +66,6 @@ public class ThreadedGuiForPhysicsEngine {
 		mainPanel.add(sidePanel, BorderLayout.WEST);
 		// add any new buttons or textfields to side panel here...
 
-		// TODO: launch speed + launch angle input fields
-
-		// TODO: use inputs from those input fields to launch the ball
 		
 		JComponent topPanel=new JPanel();
 		topPanel.setLayout(new FlowLayout());
