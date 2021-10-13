@@ -8,7 +8,7 @@ import java.util.List;
 
 
 
-public class BasicPhysicsEngine {
+public class BasicPhysicsEngine implements IHaveAPosition {
 	// frame dimensions
 	public static final int SCREEN_HEIGHT = 680;
 	public static final int SCREEN_WIDTH = 640;
@@ -36,19 +36,38 @@ public class BasicPhysicsEngine {
 		return (int) (worldLength/WORLD_WIDTH*SCREEN_WIDTH);
 	}
 	
-	
-	
 	public List<BasicParticle> particles;
+
+	private BasicParticle theParticle;
 
 	public static final boolean includeInbuiltCollisionDetection=false;
 
-
 	public BasicPhysicsEngine() {
 		// empty particles array, so that when a new thread starts it clears current particle state:
-		particles = new ArrayList<BasicParticle>();
+		particles = new ArrayList<>();
 		double r=.2;
 		boolean improvedEuler = false;
-		particles.add(new BasicParticle(r,r,1.5,3, r,improvedEuler, Color.GREEN));
+		theParticle = new BasicParticle(r,r,1.5,3, r, improvedEuler, Color.GREEN);
+		particles.add(theParticle);
+		//particles.add(new BasicParticle(r,r,1.5,3, r, improvedEuler, Color.GREEN));
+	}
+
+	/**
+	 * A constructor for the BasicPhysicsEngine that launches a ball at a given speed and angle
+	 * @param launchSpeed the speed at which the ball is to be launched at
+	 * @param launchAngle the angle (in degrees) at which the ball is to be launched at
+	 */
+	public BasicPhysicsEngine(double launchSpeed, double launchAngle){
+
+		final Vect2D ballVect = Vect2D.POLAR_VECT(Math.toRadians(launchAngle), launchSpeed);
+
+		particles = new ArrayList<>();
+		double r=.2;
+		boolean improvedEuler = false;
+
+		theParticle = new BasicParticle(r,r, ballVect.x, ballVect.y, r, improvedEuler, Color.GREEN);
+
+		particles.add(theParticle);
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -69,13 +88,19 @@ public class BasicPhysicsEngine {
 	}
 	public void update() {
 		for (BasicParticle p : particles) {
-			p.update(); // tell each particle to move
+			p.update(GRAVITY, DELTA_T); // tell each particle to move
 		}
 	}
-	
-	
-	
 
+
+	@Override
+	public Vect2D getPosition() {
+		if (theParticle == null){
+			return new Vect2D();
+		} else{
+			return theParticle.getPosition();
+		}
+	}
 }
 
 

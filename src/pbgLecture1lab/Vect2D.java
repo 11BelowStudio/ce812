@@ -71,4 +71,27 @@ public final class Vect2D {
 		return new Vect2D(x * fac, y * fac);
 	}
 
+	/**
+	 * rotate by angle given in radians
+	 * (basically scalar rotation)
+	 * @param angleRadians the angle to rotate this Vect2D by
+	 * @return this Vect2D, rotated by angle radians.
+	 */
+	public Vect2D rotate(double angleRadians) {
+		return new Vect2D(
+				(x * Math.cos(angleRadians) - (y * Math.sin(angleRadians))),
+				(x * Math.sin(angleRadians)) + (y * Math.cos(angleRadians))
+		);
+	}
+
+	/**
+	 * Returns a polar vector with given angle (in radians) and magnitude
+	 * @param angleRadians the angle for the vector
+	 * @param mag the length of the vector
+	 * @return that polar vector.
+	 */
+	public static Vect2D POLAR_VECT(double angleRadians, double mag){
+		return new Vect2D(mag*Math.cos(angleRadians),mag*Math.sin(angleRadians));
+	}
+
 }

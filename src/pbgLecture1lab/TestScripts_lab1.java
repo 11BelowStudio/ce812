@@ -29,6 +29,22 @@ public class TestScripts_lab1 {
 		assertEquals("y_coordinate", 5.008, p.getY(), 1e-6);//DO NOT CHANGE THIS LINE!
 	}
 
+	/**
+	 * A version of the above using the function with parameters instead of globals
+	 */
+	@Test
+	public void test1A_ConstantVelocityMotion() {
+		double grav = 0;
+		double delta = 0.002;
+
+		BasicParticle p = new BasicParticle(5.0,5.0,-0.3,0.4,1, false,Color.BLACK);
+		for (int i=0;i<10;i++)
+			p.update(grav, delta);
+		System.out.println("x="+p.getX()+", y="+p.getY());
+		assertEquals("x_coordinate", 4.994, p.getX(),1e-6);
+		assertEquals("y_coordinate", 5.008, p.getY(), 1e-6);//DO NOT CHANGE THIS LINE!
+	}
+
 	@Test
 	public void test2_EulerMethodAccelerationGravity() {
 		BasicPhysicsEngine.GRAVITY=9.8;
@@ -41,6 +57,23 @@ public class TestScripts_lab1 {
 		assertEquals("x_coordinate", 4.994, p.getX(),1e-6);
 		assertEquals("y_coordinate", 5.006236, p.getY(), 1e-6);//DO NOT CHANGE THIS LINE!
 	}
+
+	/**
+	 * A version of the above using the function with parameters instead of globals
+	 */
+	@Test
+	public void test2A_EulerMethodAccelerationGravity() {
+		final double grav = 9.8;
+		final double delta = 0.002;
+
+		final boolean improvedEuler=false;
+		BasicParticle p = new BasicParticle(5.0,5.0,-0.3,0.4,1, improvedEuler,Color.BLACK);
+		for (int i=0;i<10;i++)
+			p.update(grav, delta);
+		System.out.println("x="+p.getX()+", y="+p.getY());
+		assertEquals("x_coordinate", 4.994, p.getX(),1e-6);
+		assertEquals("y_coordinate", 5.006236, p.getY(), 1e-6);//DO NOT CHANGE THIS LINE!
+	}
 	@Test
 	public void test3_ImprovedEulerMethodAccelerationGravity() {
 		BasicPhysicsEngine.GRAVITY=9.8;
@@ -49,6 +82,23 @@ public class TestScripts_lab1 {
 		BasicParticle p = new BasicParticle(5.0,5.0,-0.3,0.4,1, improvedEuler,Color.BLACK);
 		for (int i=0;i<10;i++)
 			p.update();
+		System.out.println("x="+p.getX()+", y="+p.getY());
+		assertEquals("x_coordinate", 4.994, p.getX(),1e-6);
+		assertEquals("y_coordinate", 5.00604, p.getY(), 1e-6);//DO NOT CHANGE THIS LINE!
+	}
+
+	/**
+	 * A version of the above using the function with parameters instead of globals
+	 */
+	@Test
+	public void test3A_ImprovedEulerMethodAccelerationGravity_signature() {
+		final double grav = 9.8;
+		final double delta = 0.002;
+
+		final boolean improvedEuler=true;
+		BasicParticle p = new BasicParticle(5.0,5.0,-0.3,0.4,1, improvedEuler,Color.BLACK);
+		for (int i=0;i<10;i++)
+			p.update(grav, delta);
 		System.out.println("x="+p.getX()+", y="+p.getY());
 		assertEquals("x_coordinate", 4.994, p.getX(),1e-6);
 		assertEquals("y_coordinate", 5.00604, p.getY(), 1e-6);//DO NOT CHANGE THIS LINE!

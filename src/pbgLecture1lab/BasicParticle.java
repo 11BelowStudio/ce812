@@ -6,7 +6,7 @@ import static pbgLecture1lab.BasicPhysicsEngine.DELTA_T;
 import java.awt.Color;
 import java.awt.Graphics2D;
 
-public class BasicParticle {
+public class BasicParticle implements IHaveAPosition {
 	private final int RADIUS_OF_PARTICLE_IN_PIXELS;
 
 	private Vect2D pos;
@@ -39,7 +39,9 @@ public class BasicParticle {
 	}
 
 	public void update() {
+		update(BasicPhysicsEngine.GRAVITY, DELTA_T);
 
+		/*
 		final Vect2D grav = new Vect2D(0, -BasicPhysicsEngine.GRAVITY);
 
 		if (improvedEuler) {
@@ -58,8 +60,39 @@ public class BasicParticle {
 			vel = vel.addScaled(grav, DELTA_T);
 		}
 
+		 */
+
 
 	}
+
+
+	/**
+	 * A version of update with a given gravity and deltaT time step
+	 * @param gravity the amount of gravity that we're using
+	 * @param deltaT timestep stuff
+	 */
+	public void update(double gravity, double deltaT) {
+		// Paste in the contents of your update function into this gap so that it can be verified by the Moodle CodeRunnerVect2D acc=new Vect2D(0,-gravity);
+		// Note that your function should be exactly the same as the function which you implemented in lab1, and it should update the value of this.pos
+		final Vect2D grav = new Vect2D(0, -gravity);
+
+		if (improvedEuler) {
+			Vect2D trialVel = vel.addScaled(grav, deltaT);
+
+			Vect2D dist = vel.add(trialVel);
+
+			pos = pos.addScaled(dist, deltaT * 0.5);
+
+			vel = vel.addScaled(grav, deltaT);
+
+		} else {
+
+			pos = pos.addScaled(vel, deltaT);
+			vel = vel.addScaled(grav, deltaT);
+		}
+
+	}
+
 
 
 	public void draw(Graphics2D g) {
@@ -78,5 +111,9 @@ public class BasicParticle {
 	}
 	public double getY() {
 		return pos.y;
+	}
+
+	public Vect2D getPosition(){
+		return pos;
 	}
 }
