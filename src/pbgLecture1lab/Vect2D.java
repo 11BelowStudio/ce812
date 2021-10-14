@@ -94,4 +94,18 @@ public final class Vect2D {
 		return new Vect2D(mag*Math.cos(angleRadians),mag*Math.sin(angleRadians));
 	}
 
+	/**
+	 * Compares this to another object to see if it's equal
+	 * @param o the other object
+	 * @return true if the other object is also a Vect2D and has equal x and y
+	 */
+	@Override
+	public boolean equals(Object o){
+		if (o instanceof Vect2D){
+			final Vect2D v = (Vect2D) o;
+			return ((x == v.x) && (y == v.y));
+		}
+		return false;
+	}
+
 }
