@@ -90,9 +90,10 @@ public final class Vect2D implements Serializable {
 	}
 
 	/**
-	 * Adds a vector equal to this - v
-	 * @param v vector being subtracted from a copy of this vector
-	 * @return a vector equal to this-v
+	 * Adds a vector equal to v1 - v2
+	 * @param v1 the initial vector
+	 * @param v2 the vector being subtracted
+	 * @return a vector equal to v1 - v2
 	 */
 	public static Vect2D minus(Vect2D v1, Vect2D v2) {
 		// returns v1-v2
@@ -105,7 +106,7 @@ public final class Vect2D implements Serializable {
 	 * @return this dot v
 	 */
 	public double scalarProduct(Vect2D v) {
-		throw new RuntimeException("Not implemented");
+		return (x * v.x) + (y * v.y);
 	}
 
 	/**
@@ -113,8 +114,11 @@ public final class Vect2D implements Serializable {
 	 * @return normalized version of this vector. if this vector is 0,0, returns this vector.
 	 */
 	public Vect2D normalise() {
-		// TODO: return a normalised version of this vector (but don't modify this vector)
-		throw new RuntimeException("Not implemented");
+		final double mag = mag();
+		if (mag == 0){  // avoiding division by 0
+			return this;
+		}
+		return new Vect2D(x/mag, y/mag);
 	}
 
 	/**
@@ -122,7 +126,7 @@ public final class Vect2D implements Serializable {
 	 * @return magnitude of this vector
 	 */
 	public double mag() {
-		throw new RuntimeException("Not implemented");
+		return Math.hypot(x, y);
 	}
 
 	/**
@@ -131,6 +135,7 @@ public final class Vect2D implements Serializable {
 	 */
 	public Vect2D rotate90degreesAnticlockwise() {
 		// Note: this is meant to create a new vector and not modify the current vector
-		throw new RuntimeException("Not implemented");
+		//noinspection SuspiciousNameCombination
+		return new Vect2D(-y, x);
 	}
 }

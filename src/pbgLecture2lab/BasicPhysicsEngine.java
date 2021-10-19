@@ -41,12 +41,16 @@ public class BasicPhysicsEngine {
 	public List<AnchoredBarrier> barriers;
 	
 	public static enum LayoutMode {CONVEX_ARENA, CONCAVE_ARENA, CONVEX_ARENA_WITH_CURVE, PINBALL_ARENA, RECTANGLE};
+
 	public BasicPhysicsEngine() {
 		barriers = new ArrayList<AnchoredBarrier>();
 		// empty particles array, so that when a new thread starts it clears current particle state:
 		particles = new ArrayList<BasicParticle>();
 		
 		LayoutMode layout=LayoutMode.CONVEX_ARENA;
+
+		//LayoutMode layout = LayoutMode.CONCAVE_ARENA;
+
 		if (layout==LayoutMode.PINBALL_ARENA) {
 			double pinballradius=0.2;
 			particles.add(new BasicParticle(WORLD_WIDTH-pinballradius*1.01,pinballradius,0,14, pinballradius,true, Color.RED, 2));
