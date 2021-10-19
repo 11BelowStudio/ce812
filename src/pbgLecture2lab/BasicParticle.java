@@ -15,6 +15,8 @@ public class BasicParticle {
 
 	private final boolean improvedEuler;
 
+	private final double drag = 1;//1 - 1e-09;
+
 	
 
 	public BasicParticle(double sx, double sy, double vx, double vy, double radius, boolean improvedEuler, Color col, double mass) {
@@ -42,6 +44,7 @@ public class BasicParticle {
 			setPos(getPos().addScaled(getVel(), deltaT));
 			setVel(getVel().addScaled(acc, deltaT));
 		}
+		setVel(getVel().mult(drag));
 	}
 
 	public void draw(Graphics2D g) {

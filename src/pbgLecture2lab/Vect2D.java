@@ -143,4 +143,17 @@ public final class Vect2D implements Serializable {
 		//noinspection SuspiciousNameCombination
 		return new Vect2D(-y, x);
 	}
+
+	/**
+	 * rotate by angle given in radians
+	 * (basically scalar rotation)
+	 * @param angleRadians the angle to rotate this Vect2D by
+	 * @return this Vect2D, rotated by angle radians.
+	 */
+	public Vect2D rotate(double angleRadians) {
+		return new Vect2D(
+				(x * Math.cos(angleRadians) - (y * Math.sin(angleRadians))),
+				(x * Math.sin(angleRadians)) + (y * Math.cos(angleRadians))
+		);
+	}
 }

@@ -1,10 +1,11 @@
 package pbgLecture2lab;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Toolkit;
+import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
 
 
 public class BasicPhysicsEngine {
@@ -39,19 +40,26 @@ public class BasicPhysicsEngine {
 	
 	public List<BasicParticle> particles;
 	public List<AnchoredBarrier> barriers;
+
+	public List<Flipper> flippers;
 	
 	public static enum LayoutMode {CONVEX_ARENA, CONCAVE_ARENA, CONVEX_ARENA_WITH_CURVE, PINBALL_ARENA, RECTANGLE};
 
-	public BasicPhysicsEngine() {
-		barriers = new ArrayList<AnchoredBarrier>();
+	private final Controller control;
+
+	public BasicPhysicsEngine(Controller ctrl) {
+		control = ctrl;
+
+		barriers = new ArrayList<>();
 		// empty particles array, so that when a new thread starts it clears current particle state:
-		particles = new ArrayList<BasicParticle>();
+		particles = new ArrayList<>();
+
+		flippers = new ArrayList<>();
 		
 		//LayoutMode layout=LayoutMode.CONVEX_ARENA;
-
 		//LayoutMode layout = LayoutMode.CONCAVE_ARENA;
-
-		LayoutMode layout = LayoutMode.CONVEX_ARENA_WITH_CURVE;
+		//LayoutMode layout = LayoutMode.CONVEX_ARENA_WITH_CURVE;
+		LayoutMode layout = LayoutMode.PINBALL_ARENA;
 
 		if (layout==LayoutMode.PINBALL_ARENA) {
 			double pinballradius=0.2;
@@ -63,7 +71,7 @@ public class BasicPhysicsEngine {
 		}
 
 		
-		barriers = new ArrayList<AnchoredBarrier>();
+		barriers = new ArrayList<>();
 		
 		switch (layout) {
 			case RECTANGLE: {
@@ -114,6 +122,26 @@ public class BasicPhysicsEngine {
 				barriers.add(new AnchoredBarrier_Curve(WORLD_WIDTH/2, WORLD_HEIGHT*3/4, WORLD_WIDTH/15, -0.0, 360.0,false, Color.WHITE));
 				barriers.add(new AnchoredBarrier_Curve(WORLD_WIDTH*1/3, WORLD_HEIGHT*1/2, WORLD_WIDTH/15, -0.0, 360.0,false, Color.WHITE));
 				barriers.add(new AnchoredBarrier_Curve(WORLD_WIDTH*2/3, WORLD_HEIGHT*1/2, WORLD_WIDTH/15, -0.0, 360.0,false, Color.WHITE));
+				
+				flippers.add(
+						new Flipper(
+								new Vect2D(WORLD_WIDTH/8, WORLD_HEIGHT/4.5),
+								new Vect2D(WORLD_WIDTH/2.5, WORLD_HEIGHT/5.5),
+								0.5,
+								0.25,
+								false
+						)
+				);
+				flippers.add(
+						new Flipper(
+								new Vect2D(WORLD_WIDTH * 7/8, WORLD_HEIGHT/4.5),
+								new Vect2D(WORLD_WIDTH - (WORLD_WIDTH/2.5), WORLD_HEIGHT/5.5),
+								0.5,
+								0.25,
+								true
+						)
+				);
+				
 				break;
 			}
 		}
@@ -121,9 +149,20 @@ public class BasicPhysicsEngine {
 			
 	}
 	public static void main(String[] args) throws Exception {
-		final BasicPhysicsEngine game = new BasicPhysicsEngine();
+
+		final JFrame theFrame = new JFrame("Basic Physics Engine");
+		final Controller control = new Controller();
+		theFrame.addKeyListener(control);
+		theFrame.setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+		final BasicPhysicsEngine game = new BasicPhysicsEngine(control);
 		final BasicView view = new BasicView(game);
-		new JEasyFrame(view, "Basic Physics Engine");
+		theFrame.getContentPane().add(BorderLayout.CENTER, view);
+		theFrame.pack();
+		theFrame.setVisible(true);
+		theFrame.repaint();
+
+		//new JEasyFrame(view, "Basic Physics Engine");
 		game.startThread(view);
 	}
 	private void startThread(final BasicView view) throws InterruptedException {
@@ -145,16 +184,36 @@ public class BasicPhysicsEngine {
 
 
 	public void update() {
+		ActionView currentAction = control.getAction();
 		for (BasicParticle p : particles) {
 			p.update(GRAVITY, DELTA_T); // tell each particle to move
+		}
+		for (Flipper f: flippers){
+			f.update(DELTA_T, currentAction);
 		}
 		for (BasicParticle particle : particles) {
 			for (AnchoredBarrier b : barriers) {
 				if (b.isCircleCollidingBarrier(particle.getPos(), particle.getRadius())) {
-					Vect2D bouncedVel=b.calculateVelocityAfterACollision(particle.getPos(), particle.getVel(), 1.0);
+					Vect2D bouncedVel=b.calculateVelocityAfterACollision(particle.getPos(), particle.getVel(), 0.9);// 1.0);
 					particle.setVel(bouncedVel);
 				}
 			}
+			for (Flipper f: flippers){
+				if (f.isCircleCollidingBarrier(particle.getPos(), particle.getRadius())) {
+					Vect2D bouncedVel=f.calculateVelocityAfterACollision(particle.getPos(), particle.getVel(), 1.2);// 1.0);
+					particle.setVel(bouncedVel);
+				}
+			}
+		}
+	}
+
+	public void draw(Graphics2D g){
+		for (BasicParticle p : particles)
+			p.draw(g);
+		for (AnchoredBarrier b : barriers)
+			b.draw(g);
+		for (Flipper f: flippers){
+			f.draw(g);
 		}
 	}
 	

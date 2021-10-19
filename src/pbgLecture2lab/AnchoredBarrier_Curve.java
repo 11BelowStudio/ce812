@@ -31,6 +31,25 @@ public class AnchoredBarrier_Curve extends AnchoredBarrier {
 		this.col=col;
 	}
 
+	public AnchoredBarrier_Curve(
+			Vect2D middle,
+			double radiusOfBarrier,
+			double startAngle,
+			double deltaAngle,
+			boolean normalPointsInwards,
+			Double barrierDepth,
+			Color col
+	) {
+		centreOfCircleBarrierArc = middle;
+		this.barrierDepth=barrierDepth;
+		this.deltaAngle=deltaAngle;
+		this.startAngle=startAngle;
+		this.radiusOfBarrier=radiusOfBarrier;
+		this.radiusInScreenCoordinates=BasicPhysicsEngine.convertWorldLengthToScreenLength(radiusOfBarrier);
+		this.normalPointsInwards=normalPointsInwards;
+		this.col=col;
+	}
+
 	@Override
 	public void draw(Graphics2D g) {
 		int x1 = BasicPhysicsEngine.convertWorldXtoScreenX(centreOfCircleBarrierArc.x);
