@@ -47,9 +47,11 @@ public class BasicPhysicsEngine {
 		// empty particles array, so that when a new thread starts it clears current particle state:
 		particles = new ArrayList<BasicParticle>();
 		
-		LayoutMode layout=LayoutMode.CONVEX_ARENA;
+		//LayoutMode layout=LayoutMode.CONVEX_ARENA;
 
 		//LayoutMode layout = LayoutMode.CONCAVE_ARENA;
+
+		LayoutMode layout = LayoutMode.CONVEX_ARENA_WITH_CURVE;
 
 		if (layout==LayoutMode.PINBALL_ARENA) {
 			double pinballradius=0.2;

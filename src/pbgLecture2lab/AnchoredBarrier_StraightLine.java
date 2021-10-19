@@ -43,16 +43,28 @@ public class AnchoredBarrier_StraightLine extends AnchoredBarrier {
 	public boolean isCircleCollidingBarrier(Vect2D circleCentre, double circleRadius) {
 		Vect2D ap=Vect2D.minus(circleCentre, startPos);
 		double distOnCorrectSideOfBarrierToCentre=ap.scalarProduct(unitNormal);
+
+		// length check
+		double proj = ap.scalarProduct(unitTangent);
+		if ((proj < 0) || (barrierLength< proj)) {
+			return false;
+		}
+
 		// Note barrierDepth is type Double declared in constructor.  
 		// barrierDepth null indicates infinite barrierDepth
 		// barrierLength is ||AB||, declared in constructor.
-		return distOnCorrectSideOfBarrierToCentre<=circleRadius && (barrierDepth==null || distOnCorrectSideOfBarrierToCentre>=-(barrierDepth+circleRadius));
+		return (
+				distOnCorrectSideOfBarrierToCentre<=circleRadius &&
+				(barrierDepth==null ||
+				distOnCorrectSideOfBarrierToCentre>=-(barrierDepth+circleRadius))
+		);
+
 	}
 
 	@Override
 	public Vect2D calculateVelocityAfterACollision(Vect2D pos, Vect2D vel, double e) {
 		double vParallel=vel.scalarProduct(unitTangent);
-		double vNormal=vel.scalarProduct(unitNormal);
+		double vNormal=vel.scalarProduct(unitNormal) * e;
 		if (vNormal<0) // assumes normal points AWAY from wall... 
 			vNormal=-vNormal;
 		Vect2D result=unitTangent.mult(vParallel);

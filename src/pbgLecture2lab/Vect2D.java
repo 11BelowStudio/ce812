@@ -2,6 +2,11 @@ package pbgLecture2lab;
 
 import java.io.Serializable;
 
+/**
+ * A 2D Vector
+ *
+ * Based on the CE218 Vector2D class, but modified for PBG course to be IMMUTABLE
+ */
 public final class Vect2D implements Serializable {
 	// Based on the Vector2D class, but modified for PBG course to be IMMUTABLE
 

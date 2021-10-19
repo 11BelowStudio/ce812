@@ -61,7 +61,38 @@ public class AnchoredBarrier_Curve extends AnchoredBarrier {
 	
 	@Override
 	public Vect2D calculateVelocityAfterACollision(Vect2D pos, Vect2D vel, double e) {
-		throw new RuntimeException("Not implemented");
+		// calculate vector PC
+		// flip it if normal faces outwards
+		// normalize it to get normal
+		// rotate by 90 degrees to get tangent
+
+		Vect2D norm =  Vect2D.minus(centreOfCircleBarrierArc, pos).normalise();
+		if (normalPointsInwards){
+			norm = norm.mult(-1);
+		}
+		final Vect2D tan = norm.rotate90degreesAnticlockwise();
+
+		// TIME FOR SOME ILLEGAL MATHS!
+		// dot product of two identical unit vectors = 1
+		// dot product of two unit vectors at 90 degrees from each other: 0
+		// dot product of opposite unit vectors = -1
+		final double similarity = norm.scalarProduct(vel.normalise());
+
+		// so, if the dot of normalized velocity and normalized normal is negative
+		// that means the angle between them is more than 90 degrees
+		// this means that the object is going away from the normal (and away from the wall)
+		// so it won't collide with the wall, and velocity is untouched.
+		if (similarity < 0){
+			return vel;
+		}
+
+		final double vParallel=vel.scalarProduct(tan);
+		final double vNormal= -vel.scalarProduct(norm) * e;
+
+		Vect2D result=tan.mult(vParallel);
+		result=result.addScaled(norm, vNormal);
+		return result;
+
 	}
 
 
