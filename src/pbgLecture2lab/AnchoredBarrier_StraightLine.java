@@ -41,6 +41,10 @@ public class AnchoredBarrier_StraightLine extends AnchoredBarrier {
 		int y2 = BasicPhysicsEngine.convertWorldYtoScreenY(endPos.y);
 		g.setColor(col);
 		g.drawLine(x1, y1, x2, y2);
+
+		// rendering the normal
+		// g.drawLine(x1, y1, x1 + (int)(unitNormal.x * 10), y1 - (int)(unitNormal.y * 10));
+
 	}
 
 	@Override	

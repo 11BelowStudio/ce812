@@ -133,6 +133,17 @@ public final class Vect2D implements Serializable {
 		return (x * v.x) + (y * v.y);
 	}
 
+
+	/**
+	 * https://stackoverflow.com/a/3838398
+	 * @param line the vector that's being used as the line
+	 * @param point the point that we're seeing is above or below that line
+	 * @return a scalar version of the cross product of this vector and the other vector
+	 */
+	public static double CROSS_PRODUCT(Vect2D line, Vect2D point){
+		return (line.x*point.y) - (line.y * point.x);
+	}
+
 	/**
 	 * Normalization
 	 * @return normalized version of this vector. if this vector is 0,0, returns this vector.

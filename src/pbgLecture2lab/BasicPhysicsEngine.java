@@ -63,7 +63,9 @@ public class BasicPhysicsEngine {
 
 		if (layout==LayoutMode.PINBALL_ARENA) {
 			double pinballradius=0.2;
-			particles.add(new BasicParticle(WORLD_WIDTH-pinballradius*1.01,pinballradius,0,14, pinballradius,true, Color.RED, 2));
+			particles.add(new BasicParticle(WORLD_WIDTH-pinballradius*1.01,pinballradius,0,15, pinballradius,true, Color.RED, 2));
+			particles.add(new BasicParticle((WORLD_WIDTH/2)-pinballradius*1.01,pinballradius,0,15, pinballradius,true, Color.BLUE, 2));
+			particles.add(new BasicParticle((WORLD_WIDTH/4)-pinballradius*1.01,pinballradius,0,15, pinballradius,true, Color.GREEN, 2));
 		} else {
 			double r=.2;
 			particles.add(new BasicParticle(3*r+WORLD_WIDTH/2+1,WORLD_HEIGHT/2-2,-3*2,9.7*2, 0.4,true, Color.BLUE, 2*4));
@@ -150,7 +152,7 @@ public class BasicPhysicsEngine {
 	}
 	public static void main(String[] args) throws Exception {
 
-		final JFrame theFrame = new JFrame("Basic Physics Engine");
+		final JFrame theFrame = new JFrame("Barrier moment.");
 		final Controller control = new Controller();
 		theFrame.addKeyListener(control);
 		theFrame.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -200,7 +202,7 @@ public class BasicPhysicsEngine {
 			}
 			for (Flipper f: flippers){
 				if (f.isCircleCollidingBarrier(particle.getPos(), particle.getRadius())) {
-					Vect2D bouncedVel=f.calculateVelocityAfterACollision(particle.getPos(), particle.getVel(), 1.2);// 1.0);
+					Vect2D bouncedVel=f.calculateVelocityAfterACollision(particle.getPos(), particle.getVel(), 1.0);// 1.0);
 					particle.setVel(bouncedVel);
 				}
 			}

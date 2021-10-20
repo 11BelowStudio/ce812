@@ -136,12 +136,15 @@ public class Flipper extends AnchoredBarrier{
                 Color.RED
         );
 
+        final double spineDegrees = Math.toDegrees(spine.angle());
+
+        //System.out.println(Math.abs(spineDegrees));
+
         default_end_curve = new AnchoredBarrier_Curve(
-                //end,
-                pivot.add(spine),
+                end,
                 end_radius,
-                0,
-                360,
+                270 + spineDegrees,
+                180,
                 false,
                 end_radius,
                 Color.RED
@@ -151,28 +154,28 @@ public class Flipper extends AnchoredBarrier{
 
         final Vect2D sp90 = spine.normalise().rotate90degreesAnticlockwise();
 
-        // This barrier is at the top if we're going clockwise.
-        AnchoredBarrier_StraightLine clockwise_upper_barrier = new AnchoredBarrier_StraightLine(
+        // This barrier is at the top if we're going anticlockwise.
+        AnchoredBarrier_StraightLine anticlockwise_upper_barrier = new AnchoredBarrier_StraightLine(
                 pivot.addScaled(sp90, start_radius),
                 pivot.add(spine).addScaled(sp90, end_radius),
-                Color.GREEN,
+                Color.RED,//Color.GREEN,
                 end_radius
         );
 
         // This barrier is at the top if we're going anticlockwise
-        AnchoredBarrier_StraightLine clockwise_lower_barrier = new AnchoredBarrier_StraightLine(
+        AnchoredBarrier_StraightLine anticlockwise_lower_barrier = new AnchoredBarrier_StraightLine(
                 pivot.add(spine).addScaled(sp90, -end_radius),
                 pivot.addScaled(sp90, -start_radius),
-                Color.BLUE,
+                Color.RED, //Color.BLUE,
                 end_radius
         );
 
         if (clockwise){
-            default_upper_barrier = clockwise_upper_barrier;
-            default_lower_barrier = clockwise_lower_barrier;
+            default_upper_barrier = anticlockwise_upper_barrier;
+            default_lower_barrier = anticlockwise_lower_barrier;
         } else{
-            default_upper_barrier = clockwise_lower_barrier;
-            default_lower_barrier = clockwise_upper_barrier;
+            default_upper_barrier = anticlockwise_lower_barrier;
+            default_lower_barrier = anticlockwise_upper_barrier;
         }
 
 
@@ -186,16 +189,29 @@ public class Flipper extends AnchoredBarrier{
 
     }
 
+    /**
+     * Attempts to calculate the position of the given object (with known position and velocity) after colliding
+     * with this flipper.
+     *
+     * If this flipper in the 'ready' or 'flipped_fully_out' state, or if the other object hit the pivot collider,
+     * the velocity of the other object is manipulated as if it just collided with the collider it hit, as normal.
+     *
+     * But, if this flipper is in the process of flipping in/flipping out, and the pivot collider isn't what was
+     * hit, it performs stuff on the relative velocity of that other object to the moving parts of this flipper.
+     * @param pos object position
+     * @param vel object velocity
+     * @param e barrier elasticity
+     * @return velocity of the other object after hitting this flipper.
+     */
     @Override
     public Vect2D calculateVelocityAfterACollision(Vect2D pos, Vect2D vel, double e) {
-
 
 
         switch (flipperState){
             case READY:
             case FLIPPED_FULLY_OUT:
                 // in these cases, the flipper has stopped moving, so there's no relative velocity to factor in
-                return pivot_curve.calculateVelocityAfterACollision(pos, vel, 1);
+                return collidedWith.calculateVelocityAfterACollision(pos, vel, e);
             case FLIP_IN:
             case FLIP_OUT:
                 // in these cases, the flipper is moving. This is the tricky one.
@@ -203,10 +219,12 @@ public class Flipper extends AnchoredBarrier{
 
                 if (collidedWith == pivot_curve){
                     // if we hit the pivot curve (stationary), there's no relative velocity to factor in
-                    return pivot_curve.calculateVelocityAfterACollision(pos, vel, 1);
+                    return pivot_curve.calculateVelocityAfterACollision(pos, vel, e);
                 }
 
                 // radians per second * distance to contact point
+
+                // distance to contact point is pb.spine
 
                 //
                 //        b              b
@@ -220,35 +238,85 @@ public class Flipper extends AnchoredBarrier{
                 // add rotational velocity to it
 
                 // a to b = -a + b
-                Vect2D fromPivotToBall = Vect2D.minus(pos, pivot);
-                System.out.println(fromPivotToBall);
+                final Vect2D fromPivotToBall = Vect2D.minus(pos, pivot);
+                //System.out.println(fromPivotToBall);
 
-                // angle  end-pivot-b
-                double spineToBallAngle = fromPivotToBall.angle(spine);
-                System.out.println(spineToBallAngle);
+                final double collisionDist = fromPivotToBall.scalarProduct(spine);
+
+                //final Vect2D collisionLocation = pivot.addScaled(spine.normalise(), collisionDist);
+
+                //System.out.println("pivot, collision dist, collision location, cross info, contact velocity");
+                //System.out.println(pivot);
+                //System.out.println(collisionDist);
+                //System.out.println(collisionLocation);
+
+                // check if ball is above flipper
+
+                Vect2D spineTangent = getSpineTangent();
+
+                final double crossInfo = Vect2D.CROSS_PRODUCT(spineTangent, fromPivotToBall);
+                // if greater than 0, ball hit the 'above' area of the flipper
+                // if less than 0, ball hit the 'below' area of the flipper
+                //System.out.println(crossInfo);
+
+                int movementScale = 0; // how much to multiply the flipper's relative movement to the ball by
+
+                if (crossInfo > 0){ // if ball above flipper
+                    if (flipperState == FlipperEnum.FLIP_OUT){
+                        // if it's going out, the flipper's moving to the ball
+                        movementScale = 1;
+                    } else {
+                        // otherwise, it's going away from the ball
+                        movementScale = -1;
+                    }
+                } else if (crossInfo < 0){ // if ball below flipper
+                    if (flipperState == FlipperEnum.FLIP_IN){
+                        // if it's going in, the flipper's moving to the ball below it
+                        movementScale = 1;
+                    } else {
+                        // going away from the ball above it
+                        movementScale = -1;
+                    }
+                }
+
+                final double contactSpeed = Math.toRadians(ROTATION_SPEED) * collisionDist * movementScale;
+
+                //System.out.println(contactSpeed);
 
                 // line pivot-b is known
 
-                // TODO: height of triangle
-                // TODO: distance of the ball along the spine base
-                // TODO: distance * angle to get velocity of that point of the flipper
-                // TODO: use that to work out relative velocity of ball
-                // TODO: use relative velocity of the ball to affect the ball's velocity.
+                // relative velocity of b in respect to A
+                //      v(b/a) = vb - va
+                //      vb = va + v(b/a)
+
+                final Vect2D barrierVel = getSpineNormal().mult(contactSpeed);
+
+                final Vect2D ballVel = Vect2D.minus(barrierVel, vel);
+
+                return collidedWith.calculateVelocityAfterACollision(pos, ballVel, e);
+
         }
 
-        /**
-         * https://research.ncl.ac.uk/game/mastersdegree/gametechnologies/previousinformation/physics6collisionresponse/2017%20Tutorial%206%20-%20Collision%20Response.pdf
-         */
-
-        return collidedWith.calculateVelocityAfterACollision(pos, vel, 1.1);
+        return collidedWith.calculateVelocityAfterACollision(pos, vel, e);
     }
 
     /**
-     * Computes and returns the normal of the current spine
+     * Computes and returns the normal of the current spine.
+     * Forced to point 'up' (towards the 'upper' barrier)
      * @return the normal of the current spine
      */
     private Vect2D getSpineNormal(){
+        if (rotates_clockwise){
+            return spine.normalise().mult(-1).rotate90degreesAnticlockwise();
+        }
         return spine.normalise().rotate90degreesAnticlockwise();
+    }
+
+    private Vect2D getSpineTangent(){
+        if (rotates_clockwise){
+            return spine.normalise().mult(-1);
+        }
+        return spine.normalise();
     }
 
     /**
@@ -263,7 +331,7 @@ public class Flipper extends AnchoredBarrier{
      */
     @Override
     public boolean isCircleCollidingBarrier(Vect2D circleCentre, double radius) {
-        for(AnchoredBarrier b: new AnchoredBarrier[]{upperBarrier, lowerBarrier, end_curve, pivot_curve}){
+        for(AnchoredBarrier b: new AnchoredBarrier[]{lowerBarrier, upperBarrier, end_curve, pivot_curve}){
             if (b.isCircleCollidingBarrier(circleCentre, radius)){
                 collidedWith = b;
                 return true;
@@ -274,36 +342,37 @@ public class Flipper extends AnchoredBarrier{
 
     @Override
     public void draw(Graphics2D g) {
-        //System.out.println("flip it!");
-
 
         for (AnchoredBarrier b: components) {
             b.draw(g);
         }
-        g.setColor(Color.RED);
-        int x1 = BasicPhysicsEngine.convertWorldXtoScreenX(pivot.x);
-        int x2 = BasicPhysicsEngine.convertWorldXtoScreenX(end_point.x);
-        int y1 = BasicPhysicsEngine.convertWorldYtoScreenY(pivot.y);
-        int y2 = BasicPhysicsEngine.convertWorldYtoScreenY(end_point.y);
-
-        g.drawLine(
-                x1,
-                y1,
-                x2,
-                y2
-        );
-        //g.fillRect(
-        //        (int)x1,
-        //        (int)y1,
-                //x2,
-                //y2-y1
-        //        BasicPhysicsEngine.convertWorldXtoScreenX(spine.x),
-        //        BasicPhysicsEngine.convertWorldYtoScreenY(spine.y)
-        //);
-
         pivot_curve.draw(g);
+
+        /*
+        g.setColor(Color.RED);
+        final int x1 = BasicPhysicsEngine.convertWorldXtoScreenX(pivot.x);
+        final int y1 = BasicPhysicsEngine.convertWorldYtoScreenY(pivot.y);
+
+        // rendering line that shows the default spine of the flipper
+        g.drawLine(x1, y1, BasicPhysicsEngine.convertWorldXtoScreenX(end_point.x), BasicPhysicsEngine.convertWorldYtoScreenY(end_point.y));
+
+
+        // rendering the normal for the current spine
+        Vect2D spineNormal = getSpineNormal().mult(10);
+        g.drawLine(x1, y1, x1 + (int)spineNormal.x, y1 - (int)spineNormal.y);
+
+        g.setColor(Color.BLUE);
+        // rendering the tangent of the current spine
+        Vect2D spineTangent = getSpineTangent().mult(10);
+        g.drawLine(x1, y1, x1 + (int)spineTangent.x, y1 - (int)spineTangent.y);
+         */
     }
 
+    /**
+     * Updates the flipper
+     * @param delta length of the current timestep
+     * @param currentAction read-only interface for the current controller action
+     */
     public void update(double delta, ActionView currentAction){
 
         switch (flipperState){
@@ -391,15 +460,16 @@ public class Flipper extends AnchoredBarrier{
 
         spine = initial_spine.rotate(turnRads);
 
+        final double spineDegrees = Math.toDegrees(spine.angle());
+
         end_curve = new AnchoredBarrier_Curve(
-                //end,
                 pivot.add(spine),
                 end_radius,
-                0,
-                360,
+                270 + spineDegrees,//0,
+                180, //360,
                 false,
                 end_radius,
-                Color.RED
+                Color.ORANGE //Color.RED
         );
 
         components.add(end_curve);
@@ -407,26 +477,27 @@ public class Flipper extends AnchoredBarrier{
 
         Vect2D sp90 = spine.normalise().rotate90degreesAnticlockwise();
 
-        AnchoredBarrier_StraightLine clockwise_up = new AnchoredBarrier_StraightLine(
+        AnchoredBarrier_StraightLine anticlockwise_up = new AnchoredBarrier_StraightLine(
                 pivot.addScaled(sp90, start_radius),
                 pivot.add(spine).addScaled(sp90, end_radius),
-                Color.red,
+                Color.ORANGE, //Color.red,
                 end_radius
         );
 
-        AnchoredBarrier_StraightLine clockwise_down = new AnchoredBarrier_StraightLine(
+        AnchoredBarrier_StraightLine anticlockwise_down = new AnchoredBarrier_StraightLine(
                 pivot.add(spine).addScaled(sp90, -end_radius),
                 pivot.addScaled(sp90, -start_radius),
-                Color.red,
+                Color.ORANGE, //Color.RED,
                 end_radius
         );
 
         if (rotates_clockwise){
-            upperBarrier = clockwise_up;
-            lowerBarrier = clockwise_down;
+            upperBarrier = anticlockwise_down;
+            lowerBarrier = anticlockwise_up;
         } else{
-            upperBarrier = clockwise_down;
-            lowerBarrier = clockwise_up;
+            upperBarrier = anticlockwise_up;
+            lowerBarrier = anticlockwise_down;
+
         }
 
         components.add(upperBarrier);
@@ -434,9 +505,26 @@ public class Flipper extends AnchoredBarrier{
     }
 }
 
+/**
+ * The possible states for the flipper.
+ */
 enum FlipperEnum{
+    /**
+     * Ready to flip (no rotation, button not held)
+     */
     READY,
+    /**
+     * Flipping out (button held), hasn't fully rotated yet.
+     */
     FLIP_OUT,
+    /**
+     * It has flipped out.
+     * Reached full rotation, player still holding the flip button.
+     */
     FLIPPED_FULLY_OUT,
+    /**
+     * Flipping back in
+     * Player has released the flip button, rotating back to default
+     */
     FLIP_IN
 }
