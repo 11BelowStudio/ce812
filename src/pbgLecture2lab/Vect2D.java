@@ -59,6 +59,25 @@ public final class Vect2D implements Serializable {
 		return Math.atan2(y, x);
 	}
 
+	/**
+	 * Gets angle between this vector and another vector in range [-PI,PI]
+	 * @param other the other vector
+	 * @return angle between this vector and another vector in range [-PI,PI]
+	 */
+	public double angle(Vect2D other) {
+		//finding difference between the angles
+		double result = other.angle() - this.angle();
+		//wrapping the result around if it's outside range [-PI,PI] to keep it in range
+		if (result < -Math.PI){
+			result += 2*Math.PI;
+			//2pi added if it's below -pi
+		} else if (result > Math.PI){
+			result -= 2* Math.PI;
+			//2pi removed if it's above pi
+		}
+		return result;
+	}
+
 
 	public String toString() {
 		return "(" + String.format("%.01f", x) + "," + String.format("%.01f", y)
