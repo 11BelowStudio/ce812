@@ -193,7 +193,8 @@ public class BasicPhysicsEngine {
 		for (Flipper f: flippers){
 			f.update(DELTA_T, currentAction);
 		}
-		for (BasicParticle particle : particles) {
+		for (int i = 0; i < particles.size(); i++) {
+			final BasicParticle particle = particles.get(i);
 			for (AnchoredBarrier b : barriers) {
 				if (b.isCircleCollidingBarrier(particle.getPos(), particle.getRadius())) {
 					Vect2D bouncedVel=b.calculateVelocityAfterACollision(particle.getPos(), particle.getVel(), 0.9);// 1.0);
@@ -206,7 +207,25 @@ public class BasicPhysicsEngine {
 					particle.setVel(bouncedVel);
 				}
 			}
+			for (int j = i + 1; j < particles.size(); j++){
+				CollidaBall other = particles.get(j);
+				if (other.collidesWith(particle)){
+					CollidaBall.implementElasticCollision(other, particle, 0.9);
+				}
+			}
+
 		}
+		/*
+		for (int i = 0; i < particles.size(); i++) {
+			final BasicParticle particle = particles.get(i);
+			for (int j = i + 1; j < particles.size(); j++){
+				CollidaBall other = particles.get(j);
+				if (other.collidesWith(particle)){
+					CollidaBall.implementElasticCollision(other, particle, 1.0);
+				}
+			}
+		}
+		 */
 	}
 
 	public void draw(Graphics2D g){
