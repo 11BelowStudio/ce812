@@ -1,4 +1,4 @@
-package pbgLecture2lab;
+package pbgLecture3lab;
 
 /**
  * An interface for balls that are collidable with each other
@@ -63,19 +63,10 @@ public interface CollidaBall {
      */
     double getMass();
 
-    /**
-     * Returns the next position of the CollidaBall, expressed as quarter steps.
-     * [1/4 step, 2/4 step, 3/4 step, next pos]
-     *
-     * CollidaBall implementations are responsible for coming up with their own method of updating
-     * this array.
-     * @return the next 4 predicted quarter-steps for this CollidaBall
-     */
-    Vect2D[] getQuarterSteps();
 
 
     /**
-     * Attempts to implement an elastic collision between two CollidaBalls
+     * Attempts to implement an elastic collision between two CollidaBalls, using the really nice time scale stuff
      * @param a the first CollidaBall
      * @param b the other CollidaBall
      * @param e the restitution coefficient we're using
