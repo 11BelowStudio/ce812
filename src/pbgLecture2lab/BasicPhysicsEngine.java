@@ -49,7 +49,7 @@ public class BasicPhysicsEngine {
 	 * Set this to true if you want to see lines connecting each particle.
 	 * They're blue if the particles are far enough away from each other, red if they're intersecting.
 	 */
-	private final boolean SHOWING_LINES_CONNECTING_PARTICLES_TO_SEE_IF_THEYRE_TOO_CLOSE = true;
+	private final boolean SHOWING_LINES_CONNECTING_PARTICLES_TO_SEE_IF_THEYRE_TOO_CLOSE = false;
 
 	private final Controller control;
 
@@ -175,9 +175,16 @@ public class BasicPhysicsEngine {
 		theFrame.setVisible(true);
 		theFrame.repaint();
 
+		JOptionPane.showMessageDialog(theFrame,
+				"press ok to start",
+				"insert funny message here",
+				JOptionPane.INFORMATION_MESSAGE
+		);
+
 		//new JEasyFrame(view, "Basic Physics Engine");
 		game.startThread(view);
 	}
+
 	private void startThread(final BasicView view) throws InterruptedException {
 		final BasicPhysicsEngine game=this;
 		while (true) {
