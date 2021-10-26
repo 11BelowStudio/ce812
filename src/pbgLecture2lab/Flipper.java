@@ -272,26 +272,26 @@ public class Flipper extends AnchoredBarrier{
 
                 int movementScale = 0; // how much to multiply the flipper's relative movement to the ball by
 
-                if (crossInfo > 0){ // if ball above flipper
-                    if (flipperState == FlipperEnum.FLIP_OUT){
-                        // if it's going out, the flipper's moving to the ball
-                        movementScale = 1;
-                    } else {
-                        // otherwise, it's going away from the ball
-                        movementScale = -1;
-                    }
-                } else if (crossInfo < 0){ // if ball below flipper
-                    if (flipperState == FlipperEnum.FLIP_IN){
-                        // if it's going in, the flipper's moving to the ball below it
-                        movementScale = 1;
-                    } else {
-                        // going away from the ball above it
-                        movementScale = -1;
-                    }
-                }
+                //if (true){
+                if (collidedWith != end_curve) {
 
-                if (true){
-                //if (collidedWith != end_curve) {
+                    if (crossInfo > 0){ // if ball above flipper
+                        if (flipperState == FlipperEnum.FLIP_OUT){
+                            // if it's going out, the flipper's moving to the ball
+                            movementScale = 1;
+                        } else {
+                            // otherwise, it's going away from the ball
+                            movementScale = -1;
+                        }
+                    } else if (crossInfo < 0){ // if ball below flipper
+                        if (flipperState == FlipperEnum.FLIP_IN){
+                            // if it's going in, the flipper's moving to the ball below it
+                            movementScale = 1;
+                        } else {
+                            // going away from the ball above it
+                            movementScale = -1;
+                        }
+                    }
 
                     final double contactSpeed = Math.toRadians(ROTATION_SPEED) * collisionDist * movementScale;
 
@@ -303,16 +303,22 @@ public class Flipper extends AnchoredBarrier{
                     //      v(b/a) = vb - va
                     //      vb = va + v(b/a)
 
-                    final Vect2D barrierVel = getSpineNormal();//.mult(contactSpeed);
+                    final Vect2D barrierVel = getSpineNormal().mult(contactSpeed);
 
                     final Vect2D ballVel = Vect2D.minus(barrierVel, vel);
 
                     return collidedWith.calculateVelocityAfterACollision(pos, ballVel, e*1.1);
                 } else{
 
+                    if (crossInfo > 0){ // if ball above flipper
+                        movementScale = 1;
+                    } else if (crossInfo < 0){ // if ball below flipper
+                        movementScale = -1;
+                    }
+
                     if (movementScale == 0){ movementScale = 1; }
 
-                    final double endPointSpeed = Math.toRadians(ROTATION_SPEED) * spine.mag() * -movementScale;
+                    final double endPointSpeed = Math.toRadians(ROTATION_SPEED) * spine.mag() * movementScale;
 
                     final Vect2D endPointVel = getSpineNormal().mult(endPointSpeed);
 
