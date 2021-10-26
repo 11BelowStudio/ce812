@@ -85,8 +85,12 @@ public class BasicParticle implements CollidaBall {
 	 */
 	@Override
 	public boolean collidesWith(CollidaBall other) {
-		return (Vect2D.minus(other.getPos(), getPos()).mag() - (radius + other.getRadius()) < 0) &&
-				(getVel().normalise().scalarProduct(other.getVel().normalise()) < 0);
+
+		return (
+				Vect2D.minus(other.getPos(), getPos()).mag() <= radius + other.getRadius()
+			) && (
+					getVel().normalise().scalarProduct(other.getVel().normalise()) <= 0
+		);
 
 		/*
 		final double combinedRadius = radius + other.getRadius();

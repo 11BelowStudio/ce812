@@ -45,6 +45,12 @@ public class BasicPhysicsEngine {
 	
 	public static enum LayoutMode {CONVEX_ARENA, CONCAVE_ARENA, CONVEX_ARENA_WITH_CURVE, PINBALL_ARENA, RECTANGLE};
 
+	/**
+	 * Set this to true if you want to see lines connecting each particle.
+	 * They're blue if the particles are far enough away from each other, red if they're intersecting.
+	 */
+	private final boolean SHOWING_LINES_CONNECTING_PARTICLES_TO_SEE_IF_THEYRE_TOO_CLOSE = true;
+
 	private final Controller control;
 
 	public BasicPhysicsEngine(Controller ctrl) {
@@ -62,10 +68,15 @@ public class BasicPhysicsEngine {
 		LayoutMode layout = LayoutMode.PINBALL_ARENA;
 
 		if (layout==LayoutMode.PINBALL_ARENA) {
-			double pinballradius=0.2;
-			particles.add(new BasicParticle(WORLD_WIDTH-pinballradius*1.01,pinballradius,0,15, pinballradius,true, Color.RED, 2));
-			particles.add(new BasicParticle((WORLD_WIDTH/2)-pinballradius*1.01,pinballradius,0,15, pinballradius,true, Color.BLUE, 2));
-			particles.add(new BasicParticle((WORLD_WIDTH/4)-pinballradius*1.01,pinballradius,0,15, pinballradius,true, Color.GREEN, 2));
+			final double pinballradius=0.2;
+			particles.add(new BasicParticle(
+					WORLD_WIDTH-pinballradius*1.01, WORLD_HEIGHT/2,-1,15, pinballradius,false, Color.RED, 2));
+			particles.add(new BasicParticle(
+					(WORLD_WIDTH/2),WORLD_HEIGHT/2,2,15, pinballradius * 2,false, Color.BLUE, 4));
+			particles.add(new BasicParticle(
+					(WORLD_WIDTH/2),WORLD_HEIGHT/2 - 1,2,15, pinballradius * 2,false, Color.CYAN, 4));
+			particles.add(new BasicParticle(
+					(WORLD_WIDTH/4),WORLD_HEIGHT/2,1,15, pinballradius * 2.5,false, Color.GREEN, 5));
 		} else {
 			double r=.2;
 			particles.add(new BasicParticle(3*r+WORLD_WIDTH/2+1,WORLD_HEIGHT/2-2,-3*2,9.7*2, 0.4,true, Color.BLUE, 2*4));
@@ -209,7 +220,7 @@ public class BasicPhysicsEngine {
 			}
 			for (int j = i + 1; j < particles.size(); j++){
 				CollidaBall other = particles.get(j);
-				if (other.collidesWith(particle)){//, DELTA_T)){
+				if (other.collidesWith(particle, DELTA_T)){//, DELTA_T)){
 					CollidaBall.implementElasticCollision(other, particle, 0.9);
 				}
 			}
@@ -228,13 +239,35 @@ public class BasicPhysicsEngine {
 		 */
 	}
 
-	public void draw(Graphics2D g){
-		for (BasicParticle p : particles)
+	public void draw(Graphics2D g) {
+		for (BasicParticle p : particles){
 			p.draw(g);
-		for (AnchoredBarrier b : barriers)
+		}
+		for (AnchoredBarrier b : barriers) {
 			b.draw(g);
+		}
 		for (Flipper f: flippers){
 			f.draw(g);
+		}
+		if (SHOWING_LINES_CONNECTING_PARTICLES_TO_SEE_IF_THEYRE_TOO_CLOSE) {
+			for (int i = 0; i < particles.size(); i++) {
+				Vect2D p1Pos = particles.get(i).getPos();
+				double p1rad = particles.get(i).getRadius();
+				for (int j = i + 1; j < particles.size(); j++) {
+					Vect2D p2Pos = particles.get(j).getPos();
+					if (Vect2D.minus(p2Pos, p1Pos).mag() < p1rad + particles.get(j).getRadius()) {
+						g.setColor(Color.RED);
+					} else {
+						g.setColor(Color.CYAN);
+					}
+					g.drawLine(
+							BasicPhysicsEngine.convertWorldXtoScreenX(p1Pos.x),
+							BasicPhysicsEngine.convertWorldYtoScreenY(p1Pos.y),
+							BasicPhysicsEngine.convertWorldXtoScreenX(p2Pos.x),
+							BasicPhysicsEngine.convertWorldYtoScreenY(p2Pos.y)
+					);
+				}
+			}
 		}
 	}
 	

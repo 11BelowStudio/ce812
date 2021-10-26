@@ -15,7 +15,7 @@ public interface CollidaBall {
     public boolean collidesWith(CollidaBall other);
 
     /**
-     * Whether or not this collidaball is colliding with the other CollidaBall
+     * Whether or not this collidaball is colliding with the other CollidaBall, using some fancy maths and such
      * @param other the other collidaball
      * @param delta the length of the timestep
      * @return true if they're colliding, otherwise returns false.
@@ -24,7 +24,12 @@ public interface CollidaBall {
         // bad implementation at a default method
 
         final double t = getExactCollisionTime(this, other);
-        return (t >= -delta) && (t <= 0) && (getVel().normalise().scalarProduct(other.getVel().normalise()) < 0);
+        return (
+                (t >= -delta) && // make sure it happened in the most recent timestep
+                (t <= 0) && // and not in the future
+                (Vect2D.minus(other.getVel(), getVel()).scalarProduct(Vect2D.minus(other.getPos(), getPos())) <= 0)
+                // and make sure the two objects were actually moving towards each other
+        );
     }
 
     /**
@@ -79,17 +84,25 @@ public interface CollidaBall {
         final double t = getExactCollisionTime(a, b);
         // that's when the collision actually happened.
 
+        // move a back to where it was when it collided
         final Vect2D aCollidePos = a.getPos().addScaled(a.getVel(),t);
+
+        // move b back to where it was when it collided
         final Vect2D bCollidePos = b.getPos().addScaled(b.getVel(),t);
 
+        // calculate the AB vector (a to b) normalize it to get collision normal
         final Vect2D norm = Vect2D.minus(bCollidePos, aCollidePos).normalise();
+
+        // jb = (e+1) * (Ua.norm - Ub.norm) / (1/Ma + 1/Mb)
 
         final double jb = ((e+1) * (a.getVel().scalarProduct(norm) - b.getVel().scalarProduct(norm)))/
                 ((1/a.getMass()) + (1/b.getMass()));
 
+        // vb = ub + norm*(jb/mb)
         b.setVel(b.getVel().addScaled(norm, jb/b.getMass()));
 
-        a.setVel(a.getVel().addScaled(norm, jb/a.getMass()));
+        // va = ua + norm * (-jb/ma)
+        a.setVel(a.getVel().addScaled(norm, -jb/a.getMass()));
 
     }
 
@@ -122,6 +135,8 @@ public interface CollidaBall {
         //  b (c.v)
         //  c (c.c - d^2)
 
+        // (-b +- sqrt(b^2 - 4ac))/2a
+
         final Vect2D c = Vect2D.minus(b.getPos(), a.getPos());
         final Vect2D v = Vect2D.minus(b.getVel(), a.getVel());
         final double d = a.getRadius() + b.getRadius();
@@ -130,6 +145,12 @@ public interface CollidaBall {
         final double cv = c.scalarProduct(v);
         final double ccd = c.scalarProduct(c) - Math.pow(d,2);
 
-        return (-cv - Math.sqrt(Math.pow(cv,2) - (vv * ccd)))/vv;
+        // sqrt(b^2 - 4ac)
+        final double theThingThatHasThePlusMinus = Math.sqrt(Math.pow(cv,2) - (vv * ccd));
+
+        return Math.min(
+                (-cv - theThingThatHasThePlusMinus)/vv,
+                (-cv + theThingThatHasThePlusMinus)/vv
+        );
     }
 }
