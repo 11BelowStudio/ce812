@@ -85,6 +85,10 @@ public class BasicParticle implements CollidaBall {
 	 */
 	@Override
 	public boolean collidesWith(CollidaBall other) {
+		return (Vect2D.minus(other.getPos(), getPos()).mag() - (radius + other.getRadius()) < 0) &&
+				(getVel().normalise().scalarProduct(other.getVel().normalise()) < 0);
+
+		/*
 		final double combinedRadius = radius + other.getRadius();
 
 		// double dist = Vect2D.minus(other.getPos(), getPos()).mag()
@@ -108,9 +112,12 @@ public class BasicParticle implements CollidaBall {
 			return false;
 		}
 
+
 		// use the scalar product of the normalized collision vectors to see if they're travelling towards each other.
 		// if the angle between them is greater than 90 degrees, the result will be negative.
 		return getVel().normalise().scalarProduct(other.getVel().normalise()) < 0;
+
+		 */
 	}
 
 

@@ -203,13 +203,13 @@ public class BasicPhysicsEngine {
 			}
 			for (Flipper f: flippers){
 				if (f.isCircleCollidingBarrier(particle.getPos(), particle.getRadius())) {
-					Vect2D bouncedVel=f.calculateVelocityAfterACollision(particle.getPos(), particle.getVel(), 1.0);// 1.0);
+					Vect2D bouncedVel=f.calculateVelocityAfterACollision(particle.getPos(), particle.getVel(), 0.9);// 1.0);
 					particle.setVel(bouncedVel);
 				}
 			}
 			for (int j = i + 1; j < particles.size(); j++){
 				CollidaBall other = particles.get(j);
-				if (other.collidesWith(particle)){
+				if (other.collidesWith(particle)){//, DELTA_T)){
 					CollidaBall.implementElasticCollision(other, particle, 0.9);
 				}
 			}

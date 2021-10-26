@@ -12,12 +12,20 @@ public interface CollidaBall {
      * @param other the other collidaball
      * @return true if they're colliding, otherwise returns false.
      */
-    public boolean collidesWith(CollidaBall other);//{
+    public boolean collidesWith(CollidaBall other);
+
+    /**
+     * Whether or not this collidaball is colliding with the other CollidaBall
+     * @param other the other collidaball
+     * @param delta the length of the timestep
+     * @return true if they're colliding, otherwise returns false.
+     */
+    public default boolean collidesWith(CollidaBall other, double delta){//};//{
         // bad implementation at a default method
 
-        //final double t = getExactCollisionTime(this, other);
-        //return (t >= 0) && (t < 1) && (getVel().normalise().scalarProduct(other.getVel().normalise()) < 0);
-    //}
+        final double t = getExactCollisionTime(this, other);
+        return (t >= -delta) && (t <= 0) && (getVel().normalise().scalarProduct(other.getVel().normalise()) < 0);
+    }
 
     /**
      * Obtains position
