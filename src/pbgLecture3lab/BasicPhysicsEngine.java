@@ -69,12 +69,12 @@ public class BasicPhysicsEngine {
 		
 		particles.add(new BasicParticle(r+WORLD_WIDTH/2-1,WORLD_HEIGHT/2,3.5,5.2, r,true, Color.RED, 2));
 		particles.add(new BasicParticle(r+WORLD_WIDTH/2-2,WORLD_HEIGHT/2,-3.5,5.2, r*2,true, Color.PINK, 4));		
-		particles.add(new BasicParticle(r+WORLD_WIDTH/2,WORLD_HEIGHT/2,3.5,-5.2, r*3,true, Color.BLUE, 10));
-		
-		
-		
-		
-		
+		particles.add(new BasicParticle(r+WORLD_WIDTH/2,WORLD_HEIGHT/2 + 3,3.5,-5.2, r*4,true, Color.BLUE, 10));
+
+
+
+
+
 		
 
 		
@@ -108,6 +108,10 @@ public class BasicPhysicsEngine {
 				barriers.add(new AnchoredBarrier_StraightLine(0, WORLD_HEIGHT*2/3, WORLD_WIDTH/2, WORLD_HEIGHT*1/2, Color.WHITE,width/10));
 				barriers.add(new AnchoredBarrier_StraightLine(WORLD_WIDTH/2, WORLD_HEIGHT*1/2, WORLD_WIDTH/2, WORLD_HEIGHT*1/2-width, Color.WHITE,width/10));
 				barriers.add(new AnchoredBarrier_StraightLine(WORLD_WIDTH/2, WORLD_HEIGHT*1/2-width, 0, WORLD_HEIGHT*2/3-width, Color.WHITE,width/10));
+
+
+				barriers.add(new AnchoredBarrier_Point(WORLD_WIDTH/2, WORLD_HEIGHT/2));
+				barriers.add(new AnchoredBarrier_Point(WORLD_WIDTH/2, (WORLD_HEIGHT/2)-width));
 				break;
 			}
 			case CONVEX_ARENA_WITH_CURVE: {
