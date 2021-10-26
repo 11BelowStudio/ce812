@@ -303,11 +303,11 @@ public class Flipper extends AnchoredBarrier{
                     //      v(b/a) = vb - va
                     //      vb = va + v(b/a)
 
-                    final Vect2D barrierVel = getSpineNormal().mult(contactSpeed);
+                    final Vect2D barrierVel = getSpineNormal();//.mult(contactSpeed);
 
                     final Vect2D ballVel = Vect2D.minus(barrierVel, vel);
 
-                    return collidedWith.calculateVelocityAfterACollision(pos, ballVel, e);
+                    return collidedWith.calculateVelocityAfterACollision(pos, ballVel, e*1.1);
                 } else{
 
                     if (movementScale == 0){ movementScale = 1; }
@@ -317,7 +317,7 @@ public class Flipper extends AnchoredBarrier{
                     final Vect2D endPointVel = getSpineNormal().mult(endPointSpeed);
 
                     // calculate the AB vector (a to b) normalize it to get collision normal
-                    final Vect2D norm = Vect2D.minus(pos, end_point).normalise();
+                    final Vect2D norm = Vect2D.minus(pos, end_point).normalise();//.mult(movementScale);
 
                     // jb = (e+1) * (Ua.norm - Ub.norm) / (1/Ma + 1/Mb)
 

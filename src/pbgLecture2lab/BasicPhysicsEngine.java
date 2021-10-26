@@ -228,7 +228,7 @@ public class BasicPhysicsEngine {
 			for (int j = i + 1; j < particles.size(); j++){
 				CollidaBall other = particles.get(j);
 				if (other.collidesWith(particle, DELTA_T)){//, DELTA_T)){
-					CollidaBall.implementElasticCollision(other, particle, 0.9);
+					CollidaBall.implementElasticCollision(other, particle, 1);
 				}
 			}
 
