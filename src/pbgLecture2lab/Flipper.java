@@ -106,6 +106,16 @@ public class Flipper extends AnchoredBarrier{
      */
     private FlipperEnum flipperState;
 
+    /**
+     * Where the end curve was last frame (for precise collision detection timestep stuff)
+     */
+    private Vect2D lastFrameEndCurvePos;
+
+    /**
+     * Radius of the ball that most recently collided with this
+     */
+    private double radiusOfTheBallThatCollidedWithThis = 0;
+
     public Flipper(final Vect2D start, final Vect2D end, final double startRadius, final double endRadius, final boolean clockwise){
 
         flipperState = FlipperEnum.READY;
@@ -116,6 +126,7 @@ public class Flipper extends AnchoredBarrier{
         pivot = start;
         System.out.println(pivot);
         end_point = end;
+        lastFrameEndCurvePos = end;
         System.out.println(end_point);
         spine = start.mult(-1).add(end);
         initial_spine = spine;
@@ -279,21 +290,56 @@ public class Flipper extends AnchoredBarrier{
                     }
                 }
 
-                final double contactSpeed = Math.toRadians(ROTATION_SPEED) * collisionDist * movementScale;
+                if (true){
+                //if (collidedWith != end_curve) {
 
-                //System.out.println(contactSpeed);
+                    final double contactSpeed = Math.toRadians(ROTATION_SPEED) * collisionDist * movementScale;
 
-                // line pivot-b is known
+                    //System.out.println(contactSpeed);
 
-                // relative velocity of b in respect to A
-                //      v(b/a) = vb - va
-                //      vb = va + v(b/a)
+                    // line pivot-b is known
 
-                final Vect2D barrierVel = getSpineNormal().mult(contactSpeed);
+                    // relative velocity of b in respect to A
+                    //      v(b/a) = vb - va
+                    //      vb = va + v(b/a)
 
-                final Vect2D ballVel = Vect2D.minus(barrierVel, vel);
+                    final Vect2D barrierVel = getSpineNormal().mult(contactSpeed);
 
-                return collidedWith.calculateVelocityAfterACollision(pos, ballVel, e);
+                    final Vect2D ballVel = Vect2D.minus(barrierVel, vel);
+
+                    return collidedWith.calculateVelocityAfterACollision(pos, ballVel, e);
+                } else{
+
+                    if (movementScale == 0){ movementScale = 1; }
+
+                    final double endPointSpeed = Math.toRadians(ROTATION_SPEED) * spine.mag() * -movementScale;
+
+                    final Vect2D endPointVel = getSpineNormal().mult(endPointSpeed);
+
+                    // calculate the AB vector (a to b) normalize it to get collision normal
+                    final Vect2D norm = Vect2D.minus(pos, end_point).normalise();
+
+                    // jb = (e+1) * (Ua.norm - Ub.norm) / (1/Ma + 1/Mb)
+
+                    final double jb = ((e+1) * (endPointVel.scalarProduct(norm) - vel.scalarProduct(norm)))/
+                            ((1) + (1));
+
+                    // vb = ub + norm*(jb/mb)
+                    return vel.addScaled(norm, jb);
+                    //p2.setVel(p2.getVel().addScaled(norm, jb/p2.getMass()));
+
+                    // va = ua + norm * (-jb/ma)
+                    //p1.setVel(p1.getVel().addScaled(norm, -jb/p1.getMass()));
+
+                    /*
+                    return CollidaBall.CollideWithAnonymousObjectsGetVelocity(
+                            pos, vel, radiusOfTheBallThatCollidedWithThis,
+                            end_curve.getPos(), endPointVel, end_curve.getRadius(),
+                            e
+                    );
+
+                     */
+                }
 
         }
 
@@ -334,6 +380,7 @@ public class Flipper extends AnchoredBarrier{
         for(AnchoredBarrier b: new AnchoredBarrier[]{lowerBarrier, upperBarrier, end_curve, pivot_curve}){
             if (b.isCircleCollidingBarrier(circleCentre, radius)){
                 collidedWith = b;
+                radiusOfTheBallThatCollidedWithThis = radius;
                 return true;
             }
         }
@@ -374,7 +421,7 @@ public class Flipper extends AnchoredBarrier{
      * @param currentAction read-only interface for the current controller action
      */
     public void update(double delta, ActionView currentAction){
-
+        lastFrameEndCurvePos = end_curve.getPos();
         switch (flipperState){
             case READY:
                 if(rotates_clockwise){
@@ -439,7 +486,7 @@ public class Flipper extends AnchoredBarrier{
 
     private void resetFlipper(){
         components.clear();
-
+        end_curve = default_end_curve;
         components.add(default_end_curve);
         spine = initial_spine;
 

@@ -19,8 +19,6 @@ public class BasicParticle implements CollidaBall {
 
 	private final Vect2D[] quarterSteps = new Vect2D[4];
 
-	
-
 	public BasicParticle(double sx, double sy, double vx, double vy, double radius, boolean improvedEuler, Color col, double mass) {
 		setPos(new Vect2D(sx,sy));
 		setVel(new Vect2D(vx,vy));
@@ -146,8 +144,6 @@ public class BasicParticle implements CollidaBall {
 		return mass;
 	}
 
-	@Override
-	public Vect2D[] getQuarterSteps() {
-		return quarterSteps.clone();
-	}
+
+	public Vect2D[] getQuarterSteps() {return quarterSteps.clone();}
 }

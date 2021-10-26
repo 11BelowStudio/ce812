@@ -4,6 +4,7 @@ package pbgLecture2lab;
  * An interface for balls that are collidable with each other
  * (the name's supposed to be a pun on the adjective 'collidable' and 'ball')
  * (yes, I know, it's a terrible pun)
+ * @author Rachel Lowe
  */
 public interface CollidaBall {
 
@@ -61,16 +62,6 @@ public interface CollidaBall {
      * @return mass of the CollidaBall
      */
     double getMass();
-
-    /**
-     * Returns the next position of the CollidaBall, expressed as quarter steps.
-     * [1/4 step, 2/4 step, 3/4 step, next pos]
-     *
-     * CollidaBall implementations are responsible for coming up with their own method of updating
-     * this array.
-     * @return the next 4 predicted quarter-steps for this CollidaBall
-     */
-    Vect2D[] getQuarterSteps();
 
 
     /**
@@ -153,4 +144,62 @@ public interface CollidaBall {
                 (-cv + theThingThatHasThePlusMinus)/vv
         );
     }
+
+    static Vect2D CollideWithAnonymousObjectsGetVelocity(Vect2D pos, Vect2D vel, double rad, Vect2D otherPos, Vect2D otherVel, double otherRad, double e){
+        final CollidaBall a = new AnonymousCollidaBall(pos, vel, rad, 1);
+        final CollidaBall b = new AnonymousCollidaBall(otherPos, otherVel, otherRad, 1);
+        implementElasticCollision(a, b, e);
+        return a.getVel();
+    }
+}
+
+
+class AnonymousCollidaBall implements CollidaBall{
+
+    final double radius;
+    final double mass;
+    Vect2D pos;
+    Vect2D vel;
+
+    AnonymousCollidaBall(Vect2D pos, Vect2D vel, double radius, double mass){
+        this.pos = pos;
+        this.vel = vel;
+        this.radius = radius;
+        this.mass = mass;
+    }
+
+    @Override
+    public boolean collidesWith(CollidaBall other) {
+        return (
+                Vect2D.minus(other.getPos(), getPos()).mag() <= radius + other.getRadius()
+        ) && (
+                getVel().normalise().scalarProduct(other.getVel().normalise()) <= 0
+        );
+    }
+
+    @Override
+    public Vect2D getPos() {
+        return pos;
+    }
+
+    @Override
+    public Vect2D getVel() {
+        return vel;
+    }
+
+    @Override
+    public double getRadius() {
+        return radius;
+    }
+
+    @Override
+    public void setVel(Vect2D newVel) {
+        vel = newVel;
+    }
+
+    @Override
+    public double getMass() {
+        return mass;
+    }
+
 }

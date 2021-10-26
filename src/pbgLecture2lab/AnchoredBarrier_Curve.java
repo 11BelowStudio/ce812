@@ -114,5 +114,13 @@ public class AnchoredBarrier_Curve extends AnchoredBarrier {
 
 	}
 
+	public Vect2D getPos(){
+		return centreOfCircleBarrierArc;
+	}
+
+	public double getRadius(){
+		return radiusOfBarrier;
+	}
+
 
 }
