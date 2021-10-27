@@ -230,7 +230,7 @@ public class BasicPhysicsEngine {
 				final Color RED = new Color(253,0,1);
 				final Color VIOLET = new Color(75,0,129);
 				final Color ORANGE = new Color(253,69,1);
-				final Color GREEN = new Color(43, 43, 43);
+				final Color GREEN = new Color(34, 139, 34);
 				final Color MAROON = new Color(126, 0, 1);
 				particles.add(new BasicSnookerBall(
 						new Vect2D(halfWidth, threeQuartersHeight), ballRadius, Color.BLACK, 1, 8, false
