@@ -69,7 +69,7 @@ public class BasicPhysicsEngine {
 	private final Controller theController;
 
 	private final LayoutMode layout = LayoutMode.SNOOKER_TABLE;
-	
+
 	public static enum LayoutMode {CONVEX_ARENA, CONCAVE_ARENA, CONVEX_ARENA_WITH_CURVE, PINBALL_ARENA, RECTANGLE, SNOOKER_TABLE};
 
 
@@ -130,6 +130,10 @@ public class BasicPhysicsEngine {
 				barriers.add(new AnchoredBarrier_StraightLine(0, WORLD_HEIGHT*2/3, WORLD_WIDTH/2, WORLD_HEIGHT*1/2, Color.WHITE,width/10));
 				barriers.add(new AnchoredBarrier_StraightLine(WORLD_WIDTH/2, WORLD_HEIGHT*1/2, WORLD_WIDTH/2, WORLD_HEIGHT*1/2-width, Color.WHITE,width/10));
 				barriers.add(new AnchoredBarrier_StraightLine(WORLD_WIDTH/2, WORLD_HEIGHT*1/2-width, 0, WORLD_HEIGHT*2/3-width, Color.WHITE,width/10));
+
+
+				barriers.add(new AnchoredBarrier_Point(WORLD_WIDTH/2, WORLD_HEIGHT/2));
+				barriers.add(new AnchoredBarrier_Point(WORLD_WIDTH/2, (WORLD_HEIGHT/2)-width));
 				break;
 			}
 			case CONVEX_ARENA_WITH_CURVE: {
@@ -280,6 +284,7 @@ public class BasicPhysicsEngine {
 			BasicParticle p1 = particles.get(n);
 
 			for (int m=0;m<n;m++) {// avoids double check by requiring m<n
+				BasicParticle p1 = particles.get(n);
 				BasicParticle p2 = particles.get(m);
 				if (p1.collidesWith(p2)) {
 					BasicParticle.implementElasticCollision(p1, p2, e);
@@ -297,7 +302,7 @@ public class BasicPhysicsEngine {
 			b.draw(g);
 		}
 	}
-	
+
 	
 	
 
