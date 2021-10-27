@@ -20,19 +20,33 @@ public class BasicParticle implements CollidaBall {
 
 	private final boolean improvedEuler;
 
+	private final boolean improvedCollisionDetection;
+
+	private final static double drag = 1 - 1e-05;
+
 	
 
 	public BasicParticle(double sx, double sy, double vx, double vy, double radius, boolean improvedEuler, Color col, double mass) {
-		setPos(new Vect2D(sx,sy));
-		setVel(new Vect2D(vx,vy));
+		this(new Vect2D(sx,sy), new Vect2D(vx,vy), radius, improvedEuler, col, mass, false);
+	}
+
+	public BasicParticle(double sx, double sy, double vx, double vy, double radius, boolean improvedEuler, Color col, double mass, boolean improvedCollisions){
+		this(new Vect2D(sx,sy), new Vect2D(vx,vy), radius, improvedEuler, col, mass, improvedCollisions);
+	}
+
+	public BasicParticle(Vect2D pos, Vect2D vel, double radius, boolean improvedEuler, Color col, double mass, boolean improvedCollisions){
+		setPos(pos);
+		setVel(vel);
 		this.radius=radius;
 		this.mass=mass;
 		this.improvedEuler=improvedEuler;
 		this.SCREEN_RADIUS=Math.max(BasicPhysicsEngine.convertWorldLengthToScreenLength(radius),1);
 		this.col=col;
+		improvedCollisionDetection = improvedCollisions;
 	}
 
 	public void update(double gravity, double deltaT) {
+
 		Vect2D acc=new Vect2D(0,-gravity);
 		if (improvedEuler) {
 			Vect2D pos2=getPos().addScaled(getVel(), deltaT);// in theory this could be used,e.g. if acc2 depends on pos - but in this constant gravity field it will not be relevant
@@ -47,6 +61,8 @@ public class BasicParticle implements CollidaBall {
 			setPos(getPos().addScaled(getVel(), deltaT));
 			setVel(getVel().addScaled(acc, deltaT));
 		}
+
+		setVel(getVel().mult(drag));
 	}
 
 
@@ -102,6 +118,11 @@ public class BasicParticle implements CollidaBall {
 	 */
 	public static void implementElasticCollision(BasicParticle p1, BasicParticle p2, double e) {
 		if (!p1.collidesWith(p2)) throw new IllegalArgumentException();
+
+		if (p1.improvedCollisionDetection || p2.improvedCollisionDetection){
+			CollidaBall.implementElasticCollision(p1, p2, e);
+			return;
+		}
 
 		final Vect2D p1Pos = p1.getPos();
 

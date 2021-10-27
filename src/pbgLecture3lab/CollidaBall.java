@@ -13,7 +13,27 @@ public interface CollidaBall {
      * @param other the other collidaball
      * @return true if they're colliding, otherwise returns false.
      */
-    public boolean collidesWith(CollidaBall other);
+    public default boolean collidesWith(CollidaBall other){
+        return (
+                Vect2D.minus(other.getPos(), getPos()).mag() <= getRadius() + other.getRadius()
+        ) && (
+                getVel().normalise().scalarProduct(other.getVel().normalise()) <= 0
+        );
+    }
+
+    /**
+     * Static version of the above 'collidesWith' method
+     * @param a first CollidaBall
+     * @param b other CollidaBall
+     * @return true if they collided, false otherwise
+     */
+    static boolean collidesWith(CollidaBall a, CollidaBall b){
+        return (
+                Vect2D.minus(b.getPos(), a.getPos()).mag() <= a.getRadius() + b.getRadius()
+        ) && (
+                a.getVel().normalise().scalarProduct(b.getVel().normalise()) <= 0
+        );
+    }
 
     /**
      * Whether or not this collidaball is colliding with the other CollidaBall, using some fancy maths and such
@@ -29,6 +49,25 @@ public interface CollidaBall {
                 (t >= -delta) && // make sure it happened in the most recent timestep
                 (t <= 0) && // and not in the future
                 (Vect2D.minus(other.getVel(), getVel()).scalarProduct(Vect2D.minus(other.getPos(), getPos())) <= 0)
+                // and make sure the two objects were actually moving towards each other
+        );
+    }
+
+    /**
+     * static version of the precise collideswith that has delta
+     * @param a first collidaball
+     * @param b second collidaball
+     * @param delta timestep
+     * @return true if they collided, otherwise false
+     */
+    static boolean collidesWith(CollidaBall a, CollidaBall b, double delta){//};//{
+        // bad implementation at a default method
+
+        final double t = getExactCollisionTime(a, b);
+        return (
+                (t >= -delta) && // make sure it happened in the most recent timestep
+                        (t <= 0) && // and not in the future
+                        (Vect2D.minus(b.getVel(), a.getVel()).scalarProduct(Vect2D.minus(b.getPos(), a.getPos())) <= 0)
                 // and make sure the two objects were actually moving towards each other
         );
     }

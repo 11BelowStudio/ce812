@@ -11,9 +11,10 @@ public class BasicView extends JComponent {
 	/* Author: Michael Fairbank
 	 * Creation Date: 2016-01-28
 	 * Significant changes applied:
+	 * 		game is drawn by a draw method belonging to the game class (which this calls)
 	 */
 	// background colour
-	public static final Color BG_COLOR = Color.BLACK;
+	public static final Color BG_COLOR = new Color(0,64,32);
 
 	private BasicPhysicsEngine game;
 
@@ -31,10 +32,8 @@ public class BasicView extends JComponent {
 		// paint the background
 		g.setColor(BG_COLOR);
 		g.fillRect(0, 0, getWidth(), getHeight());
-		for (BasicParticle p : game.particles)
-			p.draw(g);
-		for (AnchoredBarrier b : game.barriers)
-			b.draw(g);
+		// renders the game
+		game.draw(g);
 	}
 
 	@Override
