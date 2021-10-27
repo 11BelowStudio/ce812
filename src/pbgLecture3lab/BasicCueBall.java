@@ -2,16 +2,27 @@ package pbgLecture3lab;
 
 import java.awt.*;
 
-public class BasicCueBall extends BasicParticle{
+public class BasicCueBall extends BasicParticle implements Pottable{
 
     Vect2D launchVector;
 
+    final Vect2D resetPosition;
+
     private boolean upcomingLaunch;
 
-    public BasicCueBall(Vect2D pos, double radius, boolean improvedEuler, double mass) {
-        super(pos, new Vect2D(), radius, improvedEuler, Color.WHITE, mass, true);
+    public BasicCueBall(Vect2D pos, double radius, double mass) {
+        super(pos, new Vect2D(), radius, true, Color.WHITE, mass, true);
 
+        resetPosition = pos;
         launchVector = new Vect2D(0,0);
+        upcomingLaunch = false;
+
+    }
+
+    public void reset(){
+        setPos(resetPosition);
+        setVel(new Vect2D());
+        setActive(true);
         upcomingLaunch = false;
     }
 
@@ -25,7 +36,7 @@ public class BasicCueBall extends BasicParticle{
                 System.out.println(getVel());
                 System.out.println(launchVector);
 
-                setVel(getVel().addScaled(launchVector,1));
+                setVel(getVel().addScaled(launchVector,5));
 
                 System.out.println(getVel());
 
@@ -49,6 +60,9 @@ public class BasicCueBall extends BasicParticle{
 
     @Override
     public void draw(Graphics2D g) {
+        if (inactive){
+            return;
+        }
         super.draw(g);
 
         if (upcomingLaunch){
@@ -56,8 +70,8 @@ public class BasicCueBall extends BasicParticle{
             final int posX = BasicPhysicsEngine.convertWorldXtoScreenX(getPos().x);
             final int posY = BasicPhysicsEngine.convertWorldYtoScreenY(getPos().y);
 
-            final int launchX = BasicPhysicsEngine.convertWorldXtoScreenX(launchVector.x) + posX;
-            final int launchY = BasicPhysicsEngine.convertWorldYtoScreenY(launchVector.y) - posY;
+            final int launchX = BasicPhysicsEngine.convertWorldXtoScreenX(launchVector.x + getPos().x);
+            final int launchY = BasicPhysicsEngine.convertWorldYtoScreenY(launchVector.y + getPos().y);
 
             g.setColor(Color.RED);
             g.drawLine(posX, posY, launchX, launchY);
@@ -65,4 +79,6 @@ public class BasicCueBall extends BasicParticle{
         }
 
     }
+
+
 }

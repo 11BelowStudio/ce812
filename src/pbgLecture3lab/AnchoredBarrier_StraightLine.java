@@ -20,10 +20,14 @@ public class AnchoredBarrier_StraightLine extends AnchoredBarrier {
 		this(startx, starty, endx, endy, col, null);
 	}
 
-	public AnchoredBarrier_StraightLine(double startx, double starty, double endx, double endy, Color col, Double barrierWidth) {
-		startPos=new Vect2D(startx,starty);
-		endPos=new Vect2D(endx,endy);
-		
+	public AnchoredBarrier_StraightLine(Vect2D start, Vect2D end, Color col){
+		this(start, end, col, null);
+	}
+
+	public AnchoredBarrier_StraightLine(Vect2D start, Vect2D end, Color col, Double barrierWidth){
+		startPos= start;
+		endPos= end;
+
 		Vect2D temp=Vect2D.minus(endPos,startPos);
 		this.barrierLength=temp.mag();
 		temp=temp.normalise();
@@ -31,6 +35,10 @@ public class AnchoredBarrier_StraightLine extends AnchoredBarrier {
 		this.unitNormal = unitTangent.rotate90degreesAnticlockwise();
 		this.col=col;
 		this.barrierDepth=barrierWidth;
+	}
+
+	public AnchoredBarrier_StraightLine(double startx, double starty, double endx, double endy, Color col, Double barrierWidth) {
+		this(new Vect2D(startx,starty),new Vect2D(endx,endy), col, barrierWidth);
 	}
 
 	@Override

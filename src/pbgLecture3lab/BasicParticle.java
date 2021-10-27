@@ -3,7 +3,7 @@ package pbgLecture3lab;
 import java.awt.Color;
 import java.awt.Graphics2D;
 
-public class BasicParticle implements CollidaBall {
+public class BasicParticle implements CollidaBall, Pottable {
 	/* Author: Michael Fairbank
 	 * Creation Date: 2016-01-28
 	 * Significant changes applied:
@@ -22,7 +22,12 @@ public class BasicParticle implements CollidaBall {
 
 	private final boolean improvedCollisionDetection;
 
-	private final static double drag = 1 - 1e-05;
+	private final static double drag = 0.999; //1 - 1e-03;
+
+	boolean inactive;
+
+	private final Vect2D startPos;
+	private final Vect2D startVel;
 
 	
 
@@ -37,15 +42,28 @@ public class BasicParticle implements CollidaBall {
 	public BasicParticle(Vect2D pos, Vect2D vel, double radius, boolean improvedEuler, Color col, double mass, boolean improvedCollisions){
 		setPos(pos);
 		setVel(vel);
+		startPos = pos;
+		startVel = vel;
 		this.radius=radius;
 		this.mass=mass;
 		this.improvedEuler=improvedEuler;
 		this.SCREEN_RADIUS=Math.max(BasicPhysicsEngine.convertWorldLengthToScreenLength(radius),1);
 		this.col=col;
 		improvedCollisionDetection = improvedCollisions;
+		inactive = false;
+	}
+
+	public void reset(){
+		pos = startPos;
+		vel = startVel;
+		inactive = false;
 	}
 
 	public void update(double gravity, double deltaT) {
+
+		if (inactive){
+			return;
+		}
 
 		Vect2D acc=new Vect2D(0,-gravity);
 		if (improvedEuler) {
@@ -63,10 +81,29 @@ public class BasicParticle implements CollidaBall {
 		}
 
 		setVel(getVel().mult(drag));
+		// just stop it if the velocity is super low
+		if (vel.mag() <= 0.1){
+			setVel(new Vect2D());
+		}
+	}
+
+	public boolean isMoving(){
+		return !vel.equals(new Vect2D());
+	}
+
+	public int getValue(){
+		return -1;
+	}
+
+	public boolean isStriped(){
+		return false;
 	}
 
 
 	public void draw(Graphics2D g) {
+		if (inactive){
+			return;
+		}
 		int x = BasicPhysicsEngine.convertWorldXtoScreenX(getPos().x);
 		int y = BasicPhysicsEngine.convertWorldYtoScreenY(getPos().y);
 		g.setColor(col);
@@ -93,12 +130,26 @@ public class BasicParticle implements CollidaBall {
 		this.vel = vel;
 	}
 
+	public boolean isActive(){
+		return !inactive;
+	}
+
+	public void setActive(boolean newActive){
+		inactive = !newActive;
+		if (inactive){
+			setVel(new Vect2D(0,0));
+		}
+	}
+
 	@Override
 	public double getMass() {
 		return mass;
 	}
 
 	public boolean collidesWith(CollidaBall p2) {
+		if (inactive){
+			return false;
+		}
 		Vect2D vecFrom1to2 = Vect2D.minus(p2.getPos(), getPos());
 		boolean movingTowardsEachOther = Vect2D.minus(p2.getVel(), getVel()).scalarProduct(vecFrom1to2)<0;
 		return vecFrom1to2.mag()<getRadius()+p2.getRadius() && movingTowardsEachOther;
@@ -118,6 +169,10 @@ public class BasicParticle implements CollidaBall {
 	 */
 	public static void implementElasticCollision(BasicParticle p1, BasicParticle p2, double e) {
 		if (!p1.collidesWith(p2)) throw new IllegalArgumentException();
+
+		if (p1.inactive || p2.inactive){
+			return;
+		}
 
 		if (p1.improvedCollisionDetection || p2.improvedCollisionDetection){
 			CollidaBall.implementElasticCollision(p1, p2, e);

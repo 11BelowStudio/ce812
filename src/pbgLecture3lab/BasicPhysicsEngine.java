@@ -58,11 +58,16 @@ public class BasicPhysicsEngine {
 		// this means rearranging the equation z= (SCREEN_HEIGHT-(worldY/WORLD_HEIGHT*SCREEN_HEIGHT)) to make 
 		// worldY the subject, and then returning worldY
 	}
-	
+
+	public static int convertWorldRadiusToScreenRadius(double worldRadius){
+		return Math.max(BasicPhysicsEngine.convertWorldLengthToScreenLength(worldRadius),1);
+	}
 	
 	
 	public List<BasicParticle> particles;
 	public List<AnchoredBarrier> barriers;
+
+	public List<BasicSnookerHole> holes;
 
 	private BasicCueBall theCueBall;
 
@@ -73,6 +78,43 @@ public class BasicPhysicsEngine {
 	public static enum LayoutMode {CONVEX_ARENA, CONCAVE_ARENA, CONVEX_ARENA_WITH_CURVE, PINBALL_ARENA, RECTANGLE, SNOOKER_TABLE};
 
 
+	final double snookerTableHeight=WORLD_HEIGHT;
+	final double pocketSize=0.6;
+	final double cushionDepth=0.2;
+	final double cushionLength = snookerTableHeight/2-pocketSize-cushionDepth;
+	final double snookerTableWidth=cushionLength+cushionDepth*2+pocketSize*2;
+
+	private List<BasicParticle> particlesThatNeedResetting;
+
+	private boolean allowInputs;
+
+	private int pottedSpots;
+
+	private int pottedStripes;
+
+	private final Vect2D[] spotDisplayPositions = new Vect2D[]{
+			new Vect2D( snookerTableWidth + 1, (3*WORLD_HEIGHT/4) + 0.5),
+			new Vect2D( snookerTableWidth + 1.5, (3*WORLD_HEIGHT/4) + 0.5),
+			new Vect2D( snookerTableWidth + 2, (3*WORLD_HEIGHT/4) + 0.5),
+			new Vect2D( snookerTableWidth + 2.5, (3*WORLD_HEIGHT/4) + 0.5),
+			new Vect2D( snookerTableWidth + 1, (3*WORLD_HEIGHT/4) + 0.2),
+			new Vect2D( snookerTableWidth + 1.5, (3*WORLD_HEIGHT/4) + 0.2),
+			new Vect2D( snookerTableWidth + 2, (3*WORLD_HEIGHT/4) + 0.2),
+			new Vect2D( snookerTableWidth + 2.5, (3*WORLD_HEIGHT/4) + 0.2)
+	};
+
+	private final Vect2D[] stripeDisplayPositions = new Vect2D[]{
+			new Vect2D( snookerTableWidth + 1, (3*WORLD_HEIGHT/4) - 0.5),
+			new Vect2D( snookerTableWidth + 1.5, (3*WORLD_HEIGHT/4) - 0.5),
+			new Vect2D( snookerTableWidth + 2, (3*WORLD_HEIGHT/4) - 0.5),
+			new Vect2D( snookerTableWidth + 2.5, (3*WORLD_HEIGHT/4) - 0.5),
+			new Vect2D( snookerTableWidth + 1, (3*WORLD_HEIGHT/4) - 0.8),
+			new Vect2D( snookerTableWidth + 1.5, (3*WORLD_HEIGHT/4) - 0.8),
+			new Vect2D( snookerTableWidth + 2, (3*WORLD_HEIGHT/4) - 0.8),
+			new Vect2D( snookerTableWidth + 2.5, (3*WORLD_HEIGHT/4) - 0.8)
+	};
+
+
 	public BasicPhysicsEngine(Controller control) {
 
 		theController = control;
@@ -81,12 +123,22 @@ public class BasicPhysicsEngine {
 		// empty particles array, so that when a new thread starts it clears current particle state:
 		particles = new ArrayList<>();
 
+		particlesThatNeedResetting = new ArrayList<>();
+
+		pottedSpots = 0;
+
+		pottedStripes = 0;
+
+		holes = new ArrayList<>();
+
 
 		double r=.2;
 
+		allowInputs = true;
+
 		
 		particles.add(new BasicParticle(r+WORLD_WIDTH/2-1,WORLD_HEIGHT/2,3.5,5.2, r,true, Color.RED, 2));
-		particles.add(new BasicParticle(r+WORLD_WIDTH/2-2,WORLD_HEIGHT/2,-3.5,5.2, r*2,true, Color.PINK, 4));		
+		particles.add(new BasicParticle(r+WORLD_WIDTH/2-2,WORLD_HEIGHT/2,-3.5,5.2, r*2,true, Color.PINK, 4));
 		particles.add(new BasicParticle(r+WORLD_WIDTH/2,WORLD_HEIGHT/2,3.5,-5.2, r*3,true, Color.BLUE, 10));
 		
 		
@@ -162,26 +214,117 @@ public class BasicPhysicsEngine {
 
 				particles.clear();
 
+				final double halfWidth = snookerTableWidth/2;
 
-				double snookerTableHeight=WORLD_HEIGHT;
-				double pocketSize=0.6;
-				double cushionDepth=0.45;
-				double cushionLength = snookerTableHeight/2-pocketSize-cushionDepth;
-				double snookerTableWidth=cushionLength+cushionDepth*2+pocketSize*2;
+				final double ballRadius = 0.2;
 
 				theCueBall = new BasicCueBall(
-						new Vect2D(snookerTableWidth/2, snookerTableHeight/2), 0.2, true, 1
+						new Vect2D(halfWidth, snookerTableHeight/4), ballRadius, 1
 				);
-
 				particles.add(theCueBall);
 
-				createCushion(barriers, snookerTableWidth-cushionDepth/2, snookerTableHeight*0.25,0, cushionLength, cushionDepth); 
-				createCushion(barriers, snookerTableWidth-cushionDepth/2, snookerTableHeight*0.75,0, cushionLength, cushionDepth); 
-				createCushion(barriers, snookerTableWidth/2, snookerTableHeight-cushionDepth/2, Math.PI/2, cushionLength, cushionDepth); 
-				createCushion(barriers, cushionDepth/2, snookerTableHeight*0.25,Math.PI, cushionLength, cushionDepth); 
-				createCushion(barriers, cushionDepth/2, snookerTableHeight*0.75,Math.PI, cushionLength, cushionDepth); 
-				createCushion(barriers, snookerTableWidth/2, cushionDepth/2, Math.PI*3/2, cushionLength, cushionDepth); 
-				
+				final double threeQuartersHeight = 3 * snookerTableHeight/4;
+
+				final Color YELLOW = new Color(255,215,0);
+				final Color BLUE = new Color(0,0,255);
+				final Color RED = new Color(253,0,1);
+				final Color VIOLET = new Color(75,0,129);
+				final Color ORANGE = new Color(253,69,1);
+				final Color GREEN = new Color(43, 43, 43);
+				final Color MAROON = new Color(126, 0, 1);
+				particles.add(new BasicSnookerBall(
+						new Vect2D(halfWidth, threeQuartersHeight), ballRadius, Color.BLACK, 1, 8, false
+				));
+
+				particles.add(new BasicSnookerBall(
+						new Vect2D(halfWidth - (ballRadius * 2.2), threeQuartersHeight), ballRadius, YELLOW, 1, 1, false
+				));
+				particles.add(new BasicSnookerBall(
+						new Vect2D(halfWidth + (ballRadius * 2.2), threeQuartersHeight), ballRadius, MAROON, 1, 7, true
+				));
+
+				particles.add(new BasicSnookerBall(
+						new Vect2D(halfWidth - (ballRadius * 1.1), threeQuartersHeight - (ballRadius * 1.1)), ballRadius, VIOLET, 1, 4, true
+				));
+				particles.add(new BasicSnookerBall(
+						new Vect2D(halfWidth + (ballRadius * 1.1), threeQuartersHeight- (ballRadius * 1.1)), ballRadius, MAROON, 1, 7, false
+				));
+
+				particles.add(new BasicSnookerBall(
+						new Vect2D(halfWidth, threeQuartersHeight - (ballRadius * 2.2)), ballRadius, YELLOW, 1, 1, true
+				));
+
+				particles.add(new BasicSnookerBall(
+						new Vect2D(halfWidth - (ballRadius * 1.1), threeQuartersHeight + (ballRadius * 1.1)), ballRadius, RED, 1, 3, false
+				));
+				particles.add(new BasicSnookerBall(
+						new Vect2D(halfWidth + (ballRadius * 1.1), threeQuartersHeight + (ballRadius * 1.1)), ballRadius, BLUE, 1, 2, true
+				));
+				particles.add(new BasicSnookerBall(
+						new Vect2D(halfWidth - (ballRadius * 3.3), threeQuartersHeight + (ballRadius * 1.1)), ballRadius, GREEN, 1, 6, true
+				));
+				particles.add(new BasicSnookerBall(
+						new Vect2D(halfWidth + (ballRadius * 3.3), threeQuartersHeight + (ballRadius * 1.1)), ballRadius, GREEN, 1, 6, false
+				));
+
+
+				particles.add(new BasicSnookerBall(
+						new Vect2D(halfWidth - (ballRadius * 2.2), threeQuartersHeight + (ballRadius * 2.2)), ballRadius, VIOLET, 1, 4, false
+				));
+				particles.add(new BasicSnookerBall(
+						new Vect2D(halfWidth - (ballRadius * 4.4), threeQuartersHeight + (ballRadius * 2.2)), ballRadius, ORANGE, 1, 5, false
+				));
+				particles.add(new BasicSnookerBall(
+						new Vect2D(halfWidth, threeQuartersHeight + (ballRadius * 2.2)), ballRadius, ORANGE, 1, 5, true
+				));
+				particles.add(new BasicSnookerBall(
+						new Vect2D(halfWidth + (ballRadius * 2.2), threeQuartersHeight + (ballRadius * 2.2)), ballRadius, BLUE, 1, 2, false
+				));
+				particles.add(new BasicSnookerBall(
+						new Vect2D(halfWidth + (ballRadius * 4.4), threeQuartersHeight + (ballRadius * 2.2)), ballRadius, RED, 1, 3, true
+				));
+
+				// listing edges anticlockwise, so normals point inwards
+				barriers.add(
+						new AnchoredBarrier_StraightLine(new Vect2D(0,0), new Vect2D(snookerTableWidth,0), Color.BLACK)
+				);
+				barriers.add(
+						new AnchoredBarrier_StraightLine(new Vect2D(snookerTableWidth,0), new Vect2D(snookerTableWidth,snookerTableHeight), Color.BLACK)
+				);
+				barriers.add(
+						new AnchoredBarrier_StraightLine(new Vect2D(snookerTableWidth,snookerTableHeight), new Vect2D(0,snookerTableHeight), Color.BLACK)
+				);
+				barriers.add(
+						new AnchoredBarrier_StraightLine(new Vect2D(0,snookerTableHeight), new Vect2D(0,0), Color.BLACK)
+				);
+
+
+
+				createCushion(barriers, snookerTableWidth-cushionDepth/2, snookerTableHeight*0.25,0, cushionLength, cushionDepth);
+				createCushion(barriers, snookerTableWidth-cushionDepth/2, snookerTableHeight*0.75,0, cushionLength, cushionDepth);
+				createCushion(barriers, snookerTableWidth/2, snookerTableHeight-cushionDepth/2, Math.PI/2, cushionLength, cushionDepth);
+				createCushion(barriers, cushionDepth/2, snookerTableHeight*0.25,Math.PI, cushionLength, cushionDepth);
+				createCushion(barriers, cushionDepth/2, snookerTableHeight*0.75,Math.PI, cushionLength, cushionDepth);
+				createCushion(barriers, snookerTableWidth/2, cushionDepth/2, Math.PI*3/2, cushionLength, cushionDepth);
+
+				holes.add(new BasicSnookerHole(
+						new Vect2D((3*cushionDepth)/2, cushionDepth/8), 4*pocketSize/6
+				));
+				holes.add(new BasicSnookerHole(
+						new Vect2D(0, snookerTableHeight/2), pocketSize/2
+				));
+				holes.add(new BasicSnookerHole(
+						new Vect2D((3*cushionDepth)/2, snookerTableHeight - cushionDepth/8), 4*pocketSize/6
+				));
+				holes.add(new BasicSnookerHole(
+						new Vect2D(snookerTableWidth - (3*cushionDepth)/2, cushionDepth/8), 4*pocketSize/6
+				));
+				holes.add(new BasicSnookerHole(
+						new Vect2D(snookerTableWidth, snookerTableHeight/2), pocketSize/2
+				));
+				holes.add(new BasicSnookerHole(
+						new Vect2D(snookerTableWidth - (3*cushionDepth)/2, snookerTableHeight - cushionDepth/8), 4*pocketSize/6
+				));
 				
 				break;
 			}
@@ -189,13 +332,17 @@ public class BasicPhysicsEngine {
 			
 			
 	}
-	private void createCushion(List<AnchoredBarrier> barriers, double centrex, double centrey, double orientation, double cushionLength, double cushionDepth) {
+	private void createCushion(
+			List<AnchoredBarrier> barriers, double centrex, double centrey,
+			double orientation, double cushionLength, double cushionDepth
+	) {
 		// on entry, we require centrex,centrey to be the centre of the rectangle that contains the cushion.
 		Color col=Color.WHITE;
-		Vect2D p1=new Vect2D(cushionDepth/2, -cushionLength/2-cushionDepth/2);
+
+		Vect2D p1=new Vect2D(cushionDepth/2, -cushionLength/2 - cushionDepth/2);
 		Vect2D p2=new Vect2D(-cushionDepth/2, -cushionLength/2);
 		Vect2D p3=new Vect2D(-cushionDepth/2, +cushionLength/2);
-		Vect2D p4=new Vect2D(cushionDepth/2, cushionLength/2+cushionDepth/2);
+		Vect2D p4=new Vect2D(cushionDepth/2, cushionLength/2 + cushionDepth/2);
 		p1=p1.rotate(orientation);
 		p2=p2.rotate(orientation);
 		p3=p3.rotate(orientation);
@@ -211,10 +358,19 @@ public class BasicPhysicsEngine {
 		barriers.add(new AnchoredBarrier_Point(centrex+p4.x, centrey+p4.y));
 		// oops this will have concave corners so will need to fix that some time!
 
+
+
 	}
+
+	private void reset(){
+		for (BasicParticle p: particles) {
+			p.reset();
+		}
+	}
+
 	
 	public static void main(String[] args) throws Exception {
-		final JFrame theFrame = new JFrame("screw JEasyFrame, all my homies hate JEasyFrame");
+		final JFrame theFrame = new JFrame("A somewhat janky implementation of Pool");
 
 		// setting up any of the controllers that I prefer using
 		//final Controller control = new Controller();
@@ -235,6 +391,7 @@ public class BasicPhysicsEngine {
 		theFrame.pack();
 		theFrame.setVisible(true);
 		theFrame.repaint();
+		theFrame.setResizable(false);
 
 		JOptionPane.showMessageDialog(theFrame,
 				"press ok to start",
@@ -264,7 +421,35 @@ public class BasicPhysicsEngine {
 	public void update() {
 
 		if (layout == LayoutMode.SNOOKER_TABLE){
-			theCueBall.updateFromAction(theController.getCurrentAction());
+
+			// if inputs are allowed
+			if (allowInputs) {
+
+				// let the player hit the cue ball
+				theCueBall.updateFromAction(theController.getCurrentAction());
+
+				// if cue ball is now moving, ban inputs.
+				if (theCueBall.isMoving()){
+					allowInputs = false;
+				}
+			} else {
+				// if no balls are moving
+				if(particles.stream().noneMatch(BasicParticle::isMoving)){
+					// check if any balls need resetting
+					if (particlesThatNeedResetting.isEmpty()){
+						// if none need resetting, allow inputs again
+						allowInputs = true;
+					} else {
+						// otherwise, reset the particles that need resetting, and clear that list
+						for (BasicParticle bp: particlesThatNeedResetting) {
+							bp.reset();
+							bp.setActive(true);
+						}
+						particlesThatNeedResetting.clear();
+					}
+				}
+
+			}
 		}
 
 
@@ -274,10 +459,54 @@ public class BasicPhysicsEngine {
 		for (BasicParticle particle : particles) {
 			for (AnchoredBarrier b : barriers) {
 				if (b.isCircleCollidingBarrier(particle.getPos(), particle.getRadius())) {
-					Vect2D bouncedVel=b.calculateVelocityAfterACollision(particle.getPos(), particle.getVel(),1.0);
+					Vect2D bouncedVel=b.calculateVelocityAfterACollision(particle.getPos(), particle.getVel(),0.9);
 					particle.setVel(bouncedVel);
 				}
 			}
+
+			for (BasicSnookerHole h: holes) {
+
+				if (h.checkIfBallIsPotted(particle)){
+
+					particle.setActive(false);
+
+					int particleValue = particle.getValue();
+					if (particleValue == -1){
+						particlesThatNeedResetting.add(particle);
+					} else if (particleValue == 8){
+						if (pottedSpots == 7){
+							particle.setActive(true);
+							particle.setPos(spotDisplayPositions[7]);
+							pottedSpots = 8;
+						} else if (pottedStripes == 7){
+							particle.setActive(true);
+							particle.setPos(stripeDisplayPositions[7]);
+							pottedSpots = 8;
+						} else {
+							particlesThatNeedResetting.add(particle);
+						}
+					} else {
+						if (particle.isStriped()){
+							if (pottedStripes == particleValue -1){
+								particle.setActive(true);
+								particle.setPos(stripeDisplayPositions[particleValue-1]);
+								pottedStripes++;
+							} else {
+								particlesThatNeedResetting.add(particle);
+							}
+						} else if (pottedSpots == particleValue -1){
+							particle.setActive(true);
+							particle.setPos(spotDisplayPositions[particleValue-1]);
+							pottedSpots++;
+						} else {
+							particlesThatNeedResetting.add(particle);
+						}
+					}
+
+				}
+
+			}
+
 		}
 		double e=0.9; // coefficient of restitution for all particle pairs
 		for (int n=0;n<particles.size();n++) {
@@ -294,6 +523,19 @@ public class BasicPhysicsEngine {
 
 
 	public void draw(Graphics2D g){
+
+		for (BasicSnookerHole h: holes){
+			h.draw(g);
+		}
+
+		g.setColor(new Color(0,32,16));
+		g.fillRect(
+				convertWorldXtoScreenX(snookerTableWidth),
+				convertWorldYtoScreenY(snookerTableHeight),
+				SCREEN_WIDTH,
+				SCREEN_HEIGHT
+		);
+
 		for (BasicParticle p : particles){
 			p.draw(g);
 		}
