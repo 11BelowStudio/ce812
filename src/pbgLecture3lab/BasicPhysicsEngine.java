@@ -284,7 +284,6 @@ public class BasicPhysicsEngine {
 			BasicParticle p1 = particles.get(n);
 
 			for (int m=0;m<n;m++) {// avoids double check by requiring m<n
-				BasicParticle p1 = particles.get(n);
 				BasicParticle p2 = particles.get(m);
 				if (p1.collidesWith(p2)) {
 					BasicParticle.implementElasticCollision(p1, p2, e);
