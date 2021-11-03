@@ -82,7 +82,7 @@ public class BasicParticle implements CollidaBall, Pottable {
 
 		setVel(getVel().mult(drag));
 		// just stop it if the velocity is super low
-		if (vel.mag() <= 0.1){
+		if (vel.mag() <= 0.5){
 			setVel(new Vect2D());
 		}
 	}
@@ -149,6 +149,9 @@ public class BasicParticle implements CollidaBall, Pottable {
 	public boolean collidesWith(CollidaBall p2) {
 		if (inactive){
 			return false;
+		}
+		if (Vect2D.minus(p2.getPos(), this.getPos()).mag() < this.getRadius() + p2.getRadius()){
+			System.out.println("oh no");
 		}
 		Vect2D vecFrom1to2 = Vect2D.minus(p2.getPos(), getPos());
 		boolean movingTowardsEachOther = Vect2D.minus(p2.getVel(), getVel()).scalarProduct(vecFrom1to2)<0;

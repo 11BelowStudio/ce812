@@ -74,10 +74,16 @@ public class BasicParticle {
 	}
 
 	public void draw(Graphics2D g) {
-		int x = BasicPhysicsEngine.convertWorldXtoScreenX(getPos().x);
-		int y = BasicPhysicsEngine.convertWorldYtoScreenY(getPos().y);
+		final int x = BasicPhysicsEngine.convertWorldXtoScreenX(getPos().x);
+		final int y = BasicPhysicsEngine.convertWorldYtoScreenY(getPos().y);
 		g.setColor(col);
 		g.fillOval(x - SCREEN_RADIUS, y - SCREEN_RADIUS, 2 * SCREEN_RADIUS, 2 * SCREEN_RADIUS);
+
+		g.setColor(Color.MAGENTA);
+		final int velX = BasicPhysicsEngine.convertWorldXtoScreenX(getVel().x + getPos().x);// + x;
+		final int velY = BasicPhysicsEngine.convertWorldYtoScreenY(getVel().y + getPos().y);// - (y/2);
+
+		g.drawLine(x, y, velX, velY);
 	}
 
 	public double getRadius() {

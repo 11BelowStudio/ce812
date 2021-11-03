@@ -1,5 +1,6 @@
 package pbgLecture4lab;
 
+import javax.swing.*;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -24,7 +25,7 @@ public class BasicPhysicsEngine {
 
 	// sleep time between two drawn frames in milliseconds 
 	public static final int DELAY = 20;
-	public static final int NUM_EULER_UPDATES_PER_SCREEN_REFRESH=10;
+	public static final int NUM_EULER_UPDATES_PER_SCREEN_REFRESH=100;
 	// estimate for time between two frames in seconds 
 	public static final double DELTA_T = DELAY / 1000.0 / NUM_EULER_UPDATES_PER_SCREEN_REFRESH ;
 	
@@ -40,25 +41,18 @@ public class BasicPhysicsEngine {
 		return (int) (worldLength/WORLD_WIDTH*SCREEN_WIDTH);
 	}
 	public static double convertScreenXtoWorldX(int screenX) {
-		throw new RuntimeException("Not implemented");
-		// TODO: For speed, just copy your solution from lab 3 into here
+
+		return ((double)screenX)/SCREEN_WIDTH * WORLD_WIDTH;
 		// to get this to work you need to program the inverse function to convertWorldXtoScreenX
-		// this means rearranging the equation z=(worldX/WORLD_WIDTH*SCREEN_WIDTH) to make worldX the subject, 
+		// this means rearranging the equation z=(worldX/WORLD_WIDTH*SCREEN_WIDTH) to make worldX the subject,
 		// and then returning worldX
-		// Use the UnitTest TestScripts_lab4.java to check your solution
-		// Ask for help if you need it!
-		// Note that a common problem students have found here is that integer truncation happens if you divide two ints in java, e.g. 2/3 is 0!!
-		// To work around this problem, instead of x/y, do "((double)x)/((double)y)" or similar.  (Actually, you only need to cast either one of them to a double, not both).
 	}
 	public static double convertScreenYtoWorldY(int screenY) {
-		throw new RuntimeException("Not implemented");
+
+		return (((double)SCREEN_HEIGHT - screenY)/(double)SCREEN_HEIGHT) * WORLD_HEIGHT;
 		// to get this to work you need to program the inverse function to convertWorldYtoScreenY
-		// this means rearranging the equation z= (SCREEN_HEIGHT-(worldY/WORLD_HEIGHT*SCREEN_HEIGHT)) to make 
+		// this means rearranging the equation z= (SCREEN_HEIGHT-(worldY/WORLD_HEIGHT*SCREEN_HEIGHT)) to make
 		// worldY the subject, and then returning worldY
-		// Use the UnitTest TestScripts_lab4.java to check your solution
-		// Ask for help if you need it!
-		// Note that a common problem students have found here is that integer truncation happens if you divide two ints in java, e.g. 2/3 is 0!!
-		// To work around this problem, instead of x/y, do "((double)x)/((double)y)" or similar.  (Actually, you only need to cast either one of them to a double, not both).
 	}
 
 	
@@ -67,27 +61,28 @@ public class BasicPhysicsEngine {
 	public List<BasicParticle> particles;
 	public List<AnchoredBarrier> barriers;
 	public List<ElasticConnector> connectors;
+
 	
-	public static enum LayoutMode {CONVEX_ARENA, CONCAVE_ARENA, CONVEX_ARENA_WITH_CURVE, PINBALL_ARENA, RECTANGLE, SNOOKER_TABLE};
+	public static enum LayoutMode {CONVEX_ARENA, CONCAVE_ARENA, CONVEX_ARENA_WITH_CURVE, PINBALL_ARENA, RECTANGLE, SNOOKER_TABLE, PENDULUM_DEMO};
+
+
 	public BasicPhysicsEngine() {
 		barriers = new ArrayList<AnchoredBarrier>();
 		// empty particles array, so that when a new thread starts it clears current particle state:
 		particles = new ArrayList<BasicParticle>();
 		connectors=new ArrayList<ElasticConnector>();
-		LayoutMode layout=LayoutMode.RECTANGLE;
+		LayoutMode layout=LayoutMode.PENDULUM_DEMO;
 		// pinball:
 		double r=.2;
 		
 		// Simple pendulum attached under mouse pointer
-		double rollingFriction=.5;
-		double springConstant=10000, springDampingConstant=10;
-		Double hookesLawTruncation=null;
+		double rollingFriction=.75;
+		double springConstant=1000000, springDampingConstant=1000;
+		double hookesLawTruncation = 1000000000;
 		boolean canGoSlack=false;
-		particles.add(new ParticleAttachedToMousePointer(WORLD_WIDTH/2,WORLD_HEIGHT/2,0,0, r, true, 10000));
-		particles.add(new BasicParticle(WORLD_WIDTH/2,WORLD_HEIGHT/2-2,0,0, r,true, Color.BLUE, 2*4, rollingFriction));
+
 		
-		
-			
+
 
 		
 		barriers = new ArrayList<AnchoredBarrier>();
@@ -162,6 +157,51 @@ public class BasicPhysicsEngine {
 				
 				break;
 			}
+			case PENDULUM_DEMO: {
+
+
+				final ParticleAttachedToMousePointer mppart = new ParticleAttachedToMousePointer(WORLD_WIDTH/2,WORLD_HEIGHT/2,0,0, r, true, 10000);
+				final BasicParticle fixedPart = new BasicParticle(WORLD_WIDTH/2, WORLD_HEIGHT/2, 0,0,r, true, Color.YELLOW, 10000, 1);
+				final BasicParticle bp = new BasicParticle(WORLD_WIDTH/2,WORLD_HEIGHT/2-2,0,0, r,true, Color.BLUE, 2*4, rollingFriction);
+				final BasicParticle offsetBP = new BasicParticle(WORLD_WIDTH/2 - (2 * Math.sqrt(2)),WORLD_HEIGHT/2-2 + (2 * Math.sqrt(2)),0,0, r,true, Color.BLUE, 2*4, rollingFriction);
+				particles.add(mppart);
+				particles.add(offsetBP);
+				particles.add(bp);
+
+				final ElasticConnector ec = new ElasticConnector(
+						mppart,
+						//fixedPart,
+						//new BasicParticle(WORLD_WIDTH/2, WORLD_HEIGHT/2,0,0,r, true, Color.YELLOW, 10000, 1),
+						//offsetBP,
+						bp,
+						2,
+						springConstant,
+						springDampingConstant,
+						canGoSlack,
+						Color.RED,
+						hookesLawTruncation
+				);
+				connectors.add(ec);
+
+				final BasicParticle chainPart2 = new BasicParticle(WORLD_WIDTH/2,WORLD_HEIGHT/2-4,0,0, r,true, Color.BLUE, 2*4, rollingFriction);
+				final ElasticConnector ec2 = new ElasticConnector(
+						bp,
+						chainPart2,
+						2,
+						springConstant,
+						springDampingConstant,
+						canGoSlack,
+						Color.RED,
+						hookesLawTruncation
+				);
+				connectors.add(ec2);
+				particles.add(chainPart2);
+				//connectors.add(ec);
+
+				for (BasicParticle p : particles) {
+					p.update(GRAVITY, DELTA_T); // tell each particle to move
+				}
+			}
 		}
 			
 			
@@ -193,6 +233,7 @@ public class BasicPhysicsEngine {
 		JEasyFrame frame = new JEasyFrame(view, "Basic Physics Engine");
 		frame.addKeyListener(new BasicKeyListener());
 		view.addMouseMotionListener(new BasicMouseListener());
+		JOptionPane.showMessageDialog(frame, "press ok to start","ready up",JOptionPane.INFORMATION_MESSAGE);
 		game.startThread(view);
 	}
 	private void startThread(final BasicView view) throws InterruptedException {
@@ -217,7 +258,8 @@ public class BasicPhysicsEngine {
 		for (BasicParticle p : particles) {
 			p.resetTotalForce();// reset to zero at start of time step, so accumulation of forces can begin.
 		}
-		for (ElasticConnector ec: connectors) {
+
+		for (ElasticConnector ec : connectors) {
 			ec.applyTensionForceToBothParticles();
 		}
 		for (BasicParticle p : particles) {
@@ -231,6 +273,7 @@ public class BasicPhysicsEngine {
 				}
 			}
 		}
+
 		double e=0.9; // coefficient of restitution for all particle pairs
 		for (int n=0;n<particles.size();n++) {
 			for (int m=0;m<n;m++) {// avoids double check by requiring m<n

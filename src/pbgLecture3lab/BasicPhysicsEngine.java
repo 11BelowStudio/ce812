@@ -236,52 +236,57 @@ public class BasicPhysicsEngine {
 						new Vect2D(halfWidth, threeQuartersHeight), ballRadius, Color.BLACK, 1, 8, false
 				));
 
+				final double dist1 = 1.5;
+				final double dist2 = dist1 * 2;
+				final double dist3 = dist1 * 3;
+				final double dist4 = dist1 * 4;
+
 				particles.add(new BasicSnookerBall(
-						new Vect2D(halfWidth - (ballRadius * 2.2), threeQuartersHeight), ballRadius, YELLOW, 1, 1, false
+						new Vect2D(halfWidth - (ballRadius * dist2), threeQuartersHeight), ballRadius, YELLOW, 1, 1, false
 				));
 				particles.add(new BasicSnookerBall(
-						new Vect2D(halfWidth + (ballRadius * 2.2), threeQuartersHeight), ballRadius, MAROON, 1, 7, true
+						new Vect2D(halfWidth + (ballRadius * dist2), threeQuartersHeight), ballRadius, MAROON, 1, 7, true
 				));
 
 				particles.add(new BasicSnookerBall(
-						new Vect2D(halfWidth - (ballRadius * 1.1), threeQuartersHeight - (ballRadius * 1.1)), ballRadius, VIOLET, 1, 4, true
+						new Vect2D(halfWidth - (ballRadius * dist1), threeQuartersHeight - (ballRadius * dist1)), ballRadius, VIOLET, 1, 4, true
 				));
 				particles.add(new BasicSnookerBall(
-						new Vect2D(halfWidth + (ballRadius * 1.1), threeQuartersHeight- (ballRadius * 1.1)), ballRadius, MAROON, 1, 7, false
-				));
-
-				particles.add(new BasicSnookerBall(
-						new Vect2D(halfWidth, threeQuartersHeight - (ballRadius * 2.2)), ballRadius, YELLOW, 1, 1, true
+						new Vect2D(halfWidth + (ballRadius * dist1), threeQuartersHeight- (ballRadius * dist1)), ballRadius, MAROON, 1, 7, false
 				));
 
 				particles.add(new BasicSnookerBall(
-						new Vect2D(halfWidth - (ballRadius * 1.1), threeQuartersHeight + (ballRadius * 1.1)), ballRadius, RED, 1, 3, false
+						new Vect2D(halfWidth, threeQuartersHeight - (ballRadius * dist2)), ballRadius, YELLOW, 1, 1, true
+				));
+
+				particles.add(new BasicSnookerBall(
+						new Vect2D(halfWidth - (ballRadius * dist1), threeQuartersHeight + (ballRadius * dist1)), ballRadius, RED, 1, 3, false
 				));
 				particles.add(new BasicSnookerBall(
-						new Vect2D(halfWidth + (ballRadius * 1.1), threeQuartersHeight + (ballRadius * 1.1)), ballRadius, BLUE, 1, 2, true
+						new Vect2D(halfWidth + (ballRadius * dist1), threeQuartersHeight + (ballRadius * dist1)), ballRadius, BLUE, 1, 2, true
 				));
 				particles.add(new BasicSnookerBall(
-						new Vect2D(halfWidth - (ballRadius * 3.3), threeQuartersHeight + (ballRadius * 1.1)), ballRadius, GREEN, 1, 6, true
+						new Vect2D(halfWidth - (ballRadius * dist3), threeQuartersHeight + (ballRadius * dist1)), ballRadius, GREEN, 1, 6, true
 				));
 				particles.add(new BasicSnookerBall(
-						new Vect2D(halfWidth + (ballRadius * 3.3), threeQuartersHeight + (ballRadius * 1.1)), ballRadius, GREEN, 1, 6, false
+						new Vect2D(halfWidth + (ballRadius * dist3), threeQuartersHeight + (ballRadius * dist1)), ballRadius, GREEN, 1, 6, false
 				));
 
 
 				particles.add(new BasicSnookerBall(
-						new Vect2D(halfWidth - (ballRadius * 2.2), threeQuartersHeight + (ballRadius * 2.2)), ballRadius, VIOLET, 1, 4, false
+						new Vect2D(halfWidth - (ballRadius * dist2), threeQuartersHeight + (ballRadius * dist2)), ballRadius, VIOLET, 1, 4, false
 				));
 				particles.add(new BasicSnookerBall(
-						new Vect2D(halfWidth - (ballRadius * 4.4), threeQuartersHeight + (ballRadius * 2.2)), ballRadius, ORANGE, 1, 5, false
+						new Vect2D(halfWidth - (ballRadius * dist4), threeQuartersHeight + (ballRadius * dist2)), ballRadius, ORANGE, 1, 5, false
 				));
 				particles.add(new BasicSnookerBall(
-						new Vect2D(halfWidth, threeQuartersHeight + (ballRadius * 2.2)), ballRadius, ORANGE, 1, 5, true
+						new Vect2D(halfWidth, threeQuartersHeight + (ballRadius * dist2)), ballRadius, ORANGE, 1, 5, true
 				));
 				particles.add(new BasicSnookerBall(
-						new Vect2D(halfWidth + (ballRadius * 2.2), threeQuartersHeight + (ballRadius * 2.2)), ballRadius, BLUE, 1, 2, false
+						new Vect2D(halfWidth + (ballRadius * dist2), threeQuartersHeight + (ballRadius * dist2)), ballRadius, BLUE, 1, 2, false
 				));
 				particles.add(new BasicSnookerBall(
-						new Vect2D(halfWidth + (ballRadius * 4.4), threeQuartersHeight + (ballRadius * 2.2)), ballRadius, RED, 1, 3, true
+						new Vect2D(halfWidth + (ballRadius * dist4), threeQuartersHeight + (ballRadius * dist2)), ballRadius, RED, 1, 3, true
 				));
 
 				// listing edges anticlockwise, so normals point inwards

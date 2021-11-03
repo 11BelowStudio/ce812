@@ -32,13 +32,13 @@ public class BasicCueBall extends BasicParticle implements Pottable{
             if (!theAction.isMousePressed()){
                 upcomingLaunch = false;
 
-                System.out.println("launch!");
-                System.out.println(getVel());
-                System.out.println(launchVector);
+                //System.out.println("launch!");
+                //System.out.println(getVel());
+                //System.out.println(launchVector);
 
                 setVel(getVel().addScaled(launchVector,5));
 
-                System.out.println(getVel());
+                //System.out.println(getVel());
 
             }
         } else if (theAction.isMousePressed()){

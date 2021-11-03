@@ -44,6 +44,10 @@ public interface CollidaBall {
     public default boolean collidesWith(CollidaBall other, double delta){//};//{
         // bad implementation at a default method
 
+        if (Vect2D.minus(this.getPos(), other.getPos()).mag() < this.getRadius() + other.getRadius()){
+            System.out.println("oh no");
+        }
+
         final double t = getExactCollisionTime(this, other);
         return (
                 (t >= -delta) && // make sure it happened in the most recent timestep
@@ -62,6 +66,10 @@ public interface CollidaBall {
      */
     static boolean collidesWith(CollidaBall a, CollidaBall b, double delta){//};//{
         // bad implementation at a default method
+
+        if (Vect2D.minus(a.getPos(), b.getPos()).mag() < a.getRadius() + b.getRadius()){
+            System.out.println("oh no");
+        }
 
         final double t = getExactCollisionTime(a, b);
         return (
