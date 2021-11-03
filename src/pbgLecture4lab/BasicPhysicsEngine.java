@@ -15,13 +15,27 @@ public class BasicPhysicsEngine {
 	 */
 	
 	// frame dimensions
-	public static final int SCREEN_HEIGHT = 680;
+	public static final int SCREEN_HEIGHT = 650;
 	public static final int SCREEN_WIDTH = 640;
 	public static final Dimension FRAME_SIZE = new Dimension(
 			SCREEN_WIDTH, SCREEN_HEIGHT);
 	public static final double WORLD_WIDTH=10;//metres
 	public static final double WORLD_HEIGHT=SCREEN_HEIGHT*(WORLD_WIDTH/SCREEN_WIDTH);// meters - keeps world dimensions in same aspect ratio as screen dimensions, so that circles get transformed into circles as opposed to ovals
-	public static final double GRAVITY=9.8;
+	public static final double GRAVITY= (60.8 /(double)SCREEN_HEIGHT) * WORLD_HEIGHT;
+
+	/*
+	falls ~190px from standstill in ~2.5 seconds
+	s = (u + v/2)*t
+	190 = (0 + v/2)*2.5
+	190 = (v/2)*2.5
+	190/2.5 = 76 = v/2
+	v = 76 * 2 = 152
+	152 = 0 + a*2.5
+	152/2.5 = 60.8 gravity (screen coords)
+	screen roughly 650px high, so we shrink the screen size of this appropriately
+	*/
+
+
 
 	// sleep time between two drawn frames in milliseconds 
 	public static final int DELAY = 20;
@@ -63,7 +77,19 @@ public class BasicPhysicsEngine {
 	public List<ElasticConnector> connectors;
 
 	
-	public static enum LayoutMode {CONVEX_ARENA, CONCAVE_ARENA, CONVEX_ARENA_WITH_CURVE, PINBALL_ARENA, RECTANGLE, SNOOKER_TABLE, PENDULUM_DEMO};
+	public static enum LayoutMode {
+		CONVEX_ARENA, CONCAVE_ARENA, CONVEX_ARENA_WITH_CURVE, PINBALL_ARENA, RECTANGLE, SNOOKER_TABLE,
+		/**
+		 * Set LAYOUT_TO_USE to PENDULUM_DEMO to get the pendulum stuff working
+		 */
+		PENDULUM_DEMO,
+		/**
+		 * Set LAYOUT_TO_USE to THRUST_LAB to get this stuff working
+		 */
+		THRUST_LAB
+	};
+
+	public static final LayoutMode LAYOUT_TO_USE = LayoutMode.THRUST_LAB;
 
 
 	public BasicPhysicsEngine() {
@@ -71,7 +97,6 @@ public class BasicPhysicsEngine {
 		// empty particles array, so that when a new thread starts it clears current particle state:
 		particles = new ArrayList<BasicParticle>();
 		connectors=new ArrayList<ElasticConnector>();
-		LayoutMode layout=LayoutMode.PENDULUM_DEMO;
 		// pinball:
 		double r=.2;
 		
@@ -87,7 +112,7 @@ public class BasicPhysicsEngine {
 		
 		barriers = new ArrayList<AnchoredBarrier>();
 		
-		switch (layout) {
+		switch (LAYOUT_TO_USE) {
 			case RECTANGLE: {
 				// rectangle walls:
 				// anticlockwise listing
@@ -201,6 +226,25 @@ public class BasicPhysicsEngine {
 				for (BasicParticle p : particles) {
 					p.update(GRAVITY, DELTA_T); // tell each particle to move
 				}
+			}
+			case THRUST_LAB:{
+
+
+				// rectangle walls:
+				// anticlockwise listing
+				barriers.add(new AnchoredBarrier_StraightLine(0, 0, WORLD_WIDTH, 0, Color.WHITE));
+				barriers.add(new AnchoredBarrier_StraightLine(WORLD_WIDTH, 0, WORLD_WIDTH, WORLD_HEIGHT, Color.WHITE));
+				barriers.add(new AnchoredBarrier_StraightLine(WORLD_WIDTH, WORLD_HEIGHT, 0, WORLD_HEIGHT, Color.WHITE));
+				barriers.add(new AnchoredBarrier_StraightLine(0, WORLD_HEIGHT, 0, 0, Color.WHITE));
+
+				particles.add(new ControllableSpaceShip(
+						new Vect2D(WORLD_WIDTH/2, WORLD_HEIGHT/2),
+						new Vect2D(),
+						0.1,
+						true,
+						1
+						)
+				);
 			}
 		}
 			

@@ -14,11 +14,25 @@ public class ControllableSpaceShip extends BasicParticle {
 	 */
 	private double angle=0; // direction ship is facing.
 	public static final double STEER_RATE = 2 * Math.PI;
-	public static final double MAGNITUDE_OF_ENGINE_THRUST_FORCE = 500;
+	public static final double MAGNITUDE_OF_ENGINE_THRUST_FORCE = (243.2/(double)BasicPhysicsEngine.SCREEN_HEIGHT) * BasicPhysicsEngine.WORLD_HEIGHT;
+
+	/*
+	Gravity = ~60.8 in world coords.
+	Takes ~4 seconds for the engine to decelerate from max speed
+
+	v = u + at
+	0 = u + (-60.8*4)
+	243.2 = u max speed.
+	 */
 
 	public ControllableSpaceShip(double sx, double sy, double vx, double vy, double radius, boolean improvedEuler,
 			double mass) {
-		super(sx, sy, vx, vy, radius, improvedEuler, Color.CYAN, mass, 0);
+		this(new Vect2D(sx, sy), new Vect2D(vx, vy), radius, improvedEuler, mass);
+	}
+
+	public ControllableSpaceShip(Vect2D pos, Vect2D vel, double radius, boolean improvedEuler,
+								 double mass) {
+		super(pos, vel, radius, improvedEuler, Color.CYAN, mass, 0);
 	}
 	
 	@Override

@@ -21,11 +21,23 @@ public class BasicParticle {
 
 	private final boolean improvedEuler;
 
+	boolean inactive;
+
+	private final Vect2D startPos;
+	private final Vect2D startVel;
 	
 
 	public BasicParticle(double sx, double sy, double vx, double vy, double radius, boolean improvedEuler, Color col, double mass, double dragForce) {
-		setPos(new Vect2D(sx,sy));
-		setVel(new Vect2D(vx,vy));
+		this(new Vect2D(sx,sy), new Vect2D(vx,vy), radius, improvedEuler, col, mass, dragForce);
+	}
+
+
+
+	public BasicParticle(Vect2D pos, Vect2D vel,  double radius, boolean improvedEuler, Color col, double mass, double dragForce){
+		setPos(pos);
+		setVel(vel);
+		startPos = pos;
+		startVel = vel;
 		this.radius=radius;
 		this.dragForce=dragForce;
 		this.mass=mass;
