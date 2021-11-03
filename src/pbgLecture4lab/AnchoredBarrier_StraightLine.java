@@ -21,9 +21,14 @@ public class AnchoredBarrier_StraightLine extends AnchoredBarrier {
 	}
 
 	public AnchoredBarrier_StraightLine(double startx, double starty, double endx, double endy, Color col, Double barrierWidth) {
-		startPos=new Vect2D(startx,starty);
-		endPos=new Vect2D(endx,endy);
-		
+		this(new Vect2D(startx,starty), new Vect2D(endx,endy), col, barrierWidth);
+
+	}
+
+	public AnchoredBarrier_StraightLine(Vect2D start, Vect2D end, Color col, Double barrierWidth){
+		startPos= start;
+		endPos= end;
+
 		Vect2D temp=Vect2D.minus(endPos,startPos);
 		this.barrierLength=temp.mag();
 		temp=temp.normalise();

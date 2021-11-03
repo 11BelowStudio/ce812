@@ -3,7 +3,7 @@ package pbgLecture4lab;
 import java.awt.Color;
 import java.awt.Graphics2D;
 
-public class ElasticConnector {
+public class ElasticConnector implements Drawable {
 	/* Author: Michael Fairbank
 	 * Creation Date: 2016-01-28
 	 * Significant changes applied:
@@ -16,6 +16,7 @@ public class ElasticConnector {
 	private final boolean canGoSlack;
 	private final Color col;
 	private final Double hookesLawTruncation;
+
 	public ElasticConnector(BasicParticle p1, BasicParticle p2, double naturalLength, double springConstant, double motionDampingConstant, 
 			boolean canGoSlack, Color col, Double hookesLawTruncation) {
 		this.particle1 = p1;

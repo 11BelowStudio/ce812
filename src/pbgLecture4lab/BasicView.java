@@ -31,12 +31,7 @@ public class BasicView extends JComponent {
 		// paint the background
 		g.setColor(BG_COLOR);
 		g.fillRect(0, 0, getWidth(), getHeight());
-		for (BasicParticle p : game.particles)
-			p.draw(g);
-		for (ElasticConnector c : game.connectors)
-			c.draw(g);
-		for (AnchoredBarrier b : game.barriers)
-			b.draw(g);
+		game.draw(g);
 	}
 
 	@Override

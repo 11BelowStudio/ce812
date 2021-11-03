@@ -3,8 +3,10 @@ package pbgLecture4lab;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.util.ArrayList;
+import java.util.List;
 
-public class BasicParticle {
+public class BasicParticle implements Drawable, CollidaBall, Updatable {
 	/* Author: Michael Fairbank
 	 * Creation Date: 2016-01-28
 	 * Significant changes applied:
@@ -23,17 +25,25 @@ public class BasicParticle {
 
 	boolean inactive;
 
-	private final Vect2D startPos;
-	private final Vect2D startVel;
+	private final boolean showVelocityLine;
+
+	final Vect2D startPos;
+	final Vect2D startVel;
 	
 
 	public BasicParticle(double sx, double sy, double vx, double vy, double radius, boolean improvedEuler, Color col, double mass, double dragForce) {
 		this(new Vect2D(sx,sy), new Vect2D(vx,vy), radius, improvedEuler, col, mass, dragForce);
 	}
 
-
+	public BasicParticle(double sx, double sy, double vx, double vy, double radius, boolean improvedEuler, Color col, double mass, double dragForce, boolean showVelocityLine) {
+		this(new Vect2D(sx,sy), new Vect2D(vx,vy), radius, improvedEuler, col, mass, dragForce, showVelocityLine);
+	}
 
 	public BasicParticle(Vect2D pos, Vect2D vel,  double radius, boolean improvedEuler, Color col, double mass, double dragForce){
+		this(pos, vel, radius, improvedEuler, col, mass, dragForce, false);
+	}
+
+	public BasicParticle(Vect2D pos, Vect2D vel,  double radius, boolean improvedEuler, Color col, double mass, double dragForce, boolean showVelocityLine){
 		setPos(pos);
 		setVel(vel);
 		startPos = pos;
@@ -45,9 +55,16 @@ public class BasicParticle {
 		this.SCREEN_RADIUS=Math.max(BasicPhysicsEngine.convertWorldLengthToScreenLength(radius),1);
 		this.col=col;
 		this.totalForceThisTimeStep=new Vect2D();
+		inactive = false;
+		this.showVelocityLine = showVelocityLine;
 	}
 
 	public void update(double gravity, double deltaT) {
+
+		if (inactive){
+			return;
+		}
+
 		// Apply forces that always exist on particle:
 		applyParticleWeight(gravity);
 		if (dragForce!=0)
@@ -86,16 +103,23 @@ public class BasicParticle {
 	}
 
 	public void draw(Graphics2D g) {
+
+		if (inactive){
+			return;
+		}
+
 		final int x = BasicPhysicsEngine.convertWorldXtoScreenX(getPos().x);
 		final int y = BasicPhysicsEngine.convertWorldYtoScreenY(getPos().y);
 		g.setColor(col);
 		g.fillOval(x - SCREEN_RADIUS, y - SCREEN_RADIUS, 2 * SCREEN_RADIUS, 2 * SCREEN_RADIUS);
 
-		g.setColor(Color.MAGENTA);
-		final int velX = BasicPhysicsEngine.convertWorldXtoScreenX(getVel().x + getPos().x);// + x;
-		final int velY = BasicPhysicsEngine.convertWorldYtoScreenY(getVel().y + getPos().y);// - (y/2);
+		if (showVelocityLine) {
+			g.setColor(Color.MAGENTA);
+			final int velX = BasicPhysicsEngine.convertWorldXtoScreenX(getVel().x + getPos().x);// + x;
+			final int velY = BasicPhysicsEngine.convertWorldYtoScreenY(getVel().y + getPos().y);// - (y/2);
 
-		g.drawLine(x, y, velX, velY);
+			g.drawLine(x, y, velX, velY);
+		}
 	}
 
 	public double getRadius() {
@@ -118,6 +142,16 @@ public class BasicParticle {
 		this.vel = vel;
 	}
 
+	@Override
+	public double getMass() {
+		return mass;
+	}
+
+	public boolean isInactive(){
+		return inactive;
+	}
+
+	/*
 	public boolean collidesWith(BasicParticle p2) {
 		Vect2D vecFrom1to2 = Vect2D.minus(p2.getPos(), getPos());
 		boolean movingTowardsEachOther = Vect2D.minus(p2.getVel(), getVel()).scalarProduct(vecFrom1to2)<0;
@@ -125,6 +159,11 @@ public class BasicParticle {
 	}
 
 	public static void implementElasticCollision(BasicParticle p1, BasicParticle p2, double e) {
+
+		if (p1.inactive || p2.inactive){
+			return;
+		}
+
 		if (!p1.collidesWith(p2)) throw new IllegalArgumentException();
 		Vect2D vec1to2 = Vect2D.minus(p2.getPos(), p1.getPos());
 		vec1to2=vec1to2.normalise();
@@ -140,6 +179,10 @@ public class BasicParticle {
 		Vect2D v2=p2.getVel().addScaled(vec1to2, j/p2.mass);
 		p2.setVel(v2);
 	}
+	 */
+	public static void implementElasticCollision(BasicParticle p1, BasicParticle p2, double e){
+		CollidaBall.implementElasticCollision(p1, p2, e);
+	}
 	
 	public void applyForceToParticle(Vect2D force) {
 		// To calculate F_net, as used in Newton's Second Law,
@@ -149,6 +192,23 @@ public class BasicParticle {
 	
 	public void resetTotalForce() {
 		totalForceThisTimeStep=new Vect2D(0,0);
+	}
+
+	public List<DecorativeParticle> spawnDebris(){
+		final List<DecorativeParticle> debrisList = new ArrayList<>();
+		for (int i = (int)(Math.random() * 6) + 2; i > 0; i--) {
+			final double debrisOffset = ((Math.random() * 2) - 1) * Math.PI;
+			debrisList.add(new DecorativeParticle(
+							getPos(),
+							getVel().rotate(debrisOffset),
+							0.05,
+							false,
+							col,
+							0.1
+					)
+			);
+		}
+		return debrisList;
 	}
 	
 }

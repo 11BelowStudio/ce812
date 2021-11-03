@@ -26,7 +26,11 @@ public class AnchoredBarrier_Curve extends AnchoredBarrier {
 	}
 
 	public AnchoredBarrier_Curve(double centrex, double centrey, double radiusOfBarrier, double startAngle, double deltaAngle, boolean normalPointsInwards, Double barrierDepth, Color col) {
-		centreOfCircleBarrierArc=new Vect2D(centrex, centrey);
+		this(new Vect2D(centrex, centrey), radiusOfBarrier, startAngle, deltaAngle, normalPointsInwards,barrierDepth, col);
+	}
+
+	public AnchoredBarrier_Curve(Vect2D centre, double radiusOfBarrier, double startAngle, double deltaAngle, boolean normalPointsInwards, Double barrierDepth, Color col) {
+		centreOfCircleBarrierArc= centre;
 		this.barrierDepth=barrierDepth;
 		this.deltaAngle=deltaAngle;
 		this.startAngle=startAngle;

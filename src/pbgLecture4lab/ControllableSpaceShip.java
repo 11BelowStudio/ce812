@@ -6,6 +6,8 @@ import static pbgLecture4lab.BasicPhysicsEngine.DELTA_T;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ControllableSpaceShip extends BasicParticle {
 	/* Author: Michael Fairbank
@@ -25,6 +27,10 @@ public class ControllableSpaceShip extends BasicParticle {
 	243.2 = u max speed.
 	 */
 
+	final static double TOWING_RANGE = 1.5;
+
+	private boolean waitingToReleaseSpace;
+
 	public ControllableSpaceShip(double sx, double sy, double vx, double vy, double radius, boolean improvedEuler,
 			double mass) {
 		this(new Vect2D(sx, sy), new Vect2D(vx, vy), radius, improvedEuler, mass);
@@ -33,10 +39,16 @@ public class ControllableSpaceShip extends BasicParticle {
 	public ControllableSpaceShip(Vect2D pos, Vect2D vel, double radius, boolean improvedEuler,
 								 double mass) {
 		super(pos, vel, radius, improvedEuler, Color.CYAN, mass, 0);
+		waitingToReleaseSpace = false;
 	}
 	
 	@Override
 	public void draw(Graphics2D g) {
+
+		if (isInactive()){
+			return;
+		}
+
 		int x = BasicPhysicsEngine.convertWorldXtoScreenX(getPos().x);
 		int y = BasicPhysicsEngine.convertWorldYtoScreenY(getPos().y);
 		g.setColor(col);
@@ -62,15 +74,47 @@ public class ControllableSpaceShip extends BasicParticle {
 	
 	@Override
 	public void update(double gravity, double deltaT) {
-		if (BasicKeyListener.isRotateLeftKeyPressed()) 
-			angle+=STEER_RATE * DELTA_T;
-		if (BasicKeyListener.isRotateRightKeyPressed()) 
-			angle-=STEER_RATE * DELTA_T;
-		if (BasicKeyListener.isThrustKeyPressed()) {
-			Vect2D force = new Vect2D(0,MAGNITUDE_OF_ENGINE_THRUST_FORCE);
-			force=force.rotate(angle);
-			applyForceToParticle(force);
+
+		if (inactive){ // if waiting to respawn
+			if (waitingToReleaseSpace){
+				// wait for player to release the thrust key if they were holding it when they died.
+				if(!BasicKeyListener.isSpacebarPressed()) {
+					waitingToReleaseSpace = false;
+				}
+			} else if (BasicKeyListener.isSpacebarPressed()){
+				// if player released thrust key, then pressed it again, we reset the ship (reset angle, not inactive)
+				angle = 0;
+				inactive = false;
+				setPos(startPos);
+				setVel(startVel);
+			}
+		} else {
+
+			if (BasicKeyListener.isRotateLeftKeyPressed())
+				angle += STEER_RATE * DELTA_T;
+			if (BasicKeyListener.isRotateRightKeyPressed())
+				angle -= STEER_RATE * DELTA_T;
+			if (BasicKeyListener.isThrustKeyPressed()) {
+				//Vect2D force = new Vect2D(0,MAGNITUDE_OF_ENGINE_THRUST_FORCE);
+				//force=force.rotate(angle);
+				//applyForceToParticle(force);
+				applyForceToParticle(Vect2D.POLAR(angle, MAGNITUDE_OF_ENGINE_THRUST_FORCE));
+			}
+			super.update(gravity, deltaT); // do usual move due to gravity.
 		}
-		super.update(gravity, deltaT); // do usual move due to gravity.
 	}
+
+	public void gotHit(){
+		inactive = true;
+		System.out.println("yes this ship is inactive");
+		if (BasicKeyListener.isSpacebarPressed()){
+			waitingToReleaseSpace = true;
+		}
+	}
+
+	public boolean canThisItemBeTowed(Towable theItem){
+		return getVectorTo(theItem).mag() <= TOWING_RANGE && !(theItem.isTowed() || theItem.isInactive());
+	}
+
+
 }

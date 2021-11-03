@@ -165,4 +165,14 @@ public final class Vect2D implements Serializable {
 	public Vect2D rotate90degreesAnticlockwise() {
 		return new Vect2D(-y,x);
 	}
+
+	/**
+	 * Returns cartesian version of the polar vector with given angle and magnitude
+	 * @param angleRadians angle for the vector (radians)
+	 * @param mag magnitude for the vector
+	 * @return a vector with given angle and magnitude
+	 */
+	public static Vect2D POLAR(double angleRadians, double mag){
+		return new Vect2D(-mag*Math.sin(angleRadians), mag*Math.cos(angleRadians));
+	}
 }

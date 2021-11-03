@@ -1,14 +1,13 @@
 package pbgLecture4lab;
 
 import javax.swing.*;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 
-public class BasicPhysicsEngine {
+public class BasicPhysicsEngine implements Drawable {
 	/* Author: Michael Fairbank
 	 * Creation Date: 2016-01-28
 	 * Significant changes applied:
@@ -73,10 +72,11 @@ public class BasicPhysicsEngine {
 
 	
 	public List<BasicParticle> particles;
+	public List<DecorativeParticle> decorativeParticles;
 	public List<AnchoredBarrier> barriers;
 	public List<ElasticConnector> connectors;
 
-	
+
 	public static enum LayoutMode {
 		CONVEX_ARENA, CONCAVE_ARENA, CONVEX_ARENA_WITH_CURVE, PINBALL_ARENA, RECTANGLE, SNOOKER_TABLE,
 		/**
@@ -86,10 +86,43 @@ public class BasicPhysicsEngine {
 		/**
 		 * Set LAYOUT_TO_USE to THRUST_LAB to get this stuff working
 		 */
-		THRUST_LAB
+		THRUST_SHIP_DEMO,
+		/**
+		 * Set LAYOUT_TO_USE to THRUST_GAME to get the thrust game working.
+		 */
+		THRUST_GAME
 	};
 
-	public static final LayoutMode LAYOUT_TO_USE = LayoutMode.THRUST_LAB;
+	public static final LayoutMode LAYOUT_TO_USE = LayoutMode.THRUST_GAME;
+
+	private final Optional<ControllableSpaceShip> mayOrMayNotHoldTheShip;
+
+	private final List<StringObject> hudStuff;
+
+	private final Optional<AttributeStringObject<Integer>> mayOrMayNotBeTheLifeCounter;
+
+	private final Optional<Payload> mayOrMayNotBeThePayload;
+
+	private Optional<ElasticConnector> mayOrMayNotBeThePayloadHolder;
+
+	private static final int DEFAULT_LIVES = 3;
+
+	private int lives = 3;
+
+	// Simple pendulum attached under mouse pointer
+	private static final double rollingFriction=.75;
+	private static final double springConstant=1000000, springDampingConstant=1000;
+	private static final double hookesLawTruncation = 1000000000;
+	private static final boolean canGoSlack=false;
+
+	private static enum GAME_STATE{
+		ALIVE,
+		DEAD,
+		GAME_OVER,
+		WON
+	};
+
+	private GAME_STATE gameState = GAME_STATE.ALIVE;
 
 
 	public BasicPhysicsEngine() {
@@ -97,14 +130,14 @@ public class BasicPhysicsEngine {
 		// empty particles array, so that when a new thread starts it clears current particle state:
 		particles = new ArrayList<BasicParticle>();
 		connectors=new ArrayList<ElasticConnector>();
+
+		hudStuff = new ArrayList<StringObject>();
+
+		decorativeParticles = new ArrayList<DecorativeParticle>();
+
 		// pinball:
 		double r=.2;
 		
-		// Simple pendulum attached under mouse pointer
-		double rollingFriction=.75;
-		double springConstant=1000000, springDampingConstant=1000;
-		double hookesLawTruncation = 1000000000;
-		boolean canGoSlack=false;
 
 		
 
@@ -186,9 +219,9 @@ public class BasicPhysicsEngine {
 
 
 				final ParticleAttachedToMousePointer mppart = new ParticleAttachedToMousePointer(WORLD_WIDTH/2,WORLD_HEIGHT/2,0,0, r, true, 10000);
-				final BasicParticle fixedPart = new BasicParticle(WORLD_WIDTH/2, WORLD_HEIGHT/2, 0,0,r, true, Color.YELLOW, 10000, 1);
-				final BasicParticle bp = new BasicParticle(WORLD_WIDTH/2,WORLD_HEIGHT/2-2,0,0, r,true, Color.BLUE, 2*4, rollingFriction);
-				final BasicParticle offsetBP = new BasicParticle(WORLD_WIDTH/2 - (2 * Math.sqrt(2)),WORLD_HEIGHT/2-2 + (2 * Math.sqrt(2)),0,0, r,true, Color.BLUE, 2*4, rollingFriction);
+				final BasicParticle fixedPart = new BasicParticle(WORLD_WIDTH/2, WORLD_HEIGHT/2, 0,0,r, true, Color.YELLOW, 10000, 1, true);
+				final BasicParticle bp = new BasicParticle(WORLD_WIDTH/2,WORLD_HEIGHT/2-2,0,0, r,true, Color.BLUE, 2*4, rollingFriction, true);
+				final BasicParticle offsetBP = new BasicParticle(WORLD_WIDTH/2 - (2 * Math.sqrt(2)),WORLD_HEIGHT/2-2 + (2 * Math.sqrt(2)),0,0, r,true, Color.BLUE, 2*4, rollingFriction, true);
 				particles.add(mppart);
 				particles.add(offsetBP);
 				particles.add(bp);
@@ -226,8 +259,10 @@ public class BasicPhysicsEngine {
 				for (BasicParticle p : particles) {
 					p.update(GRAVITY, DELTA_T); // tell each particle to move
 				}
+
+				break;
 			}
-			case THRUST_LAB:{
+			case THRUST_SHIP_DEMO:{
 
 
 				// rectangle walls:
@@ -245,8 +280,167 @@ public class BasicPhysicsEngine {
 						1
 						)
 				);
+
+				break;
+			}
+			case THRUST_GAME: {
+
+				// ship and HUD elements are added later on because they're inside optionals (to allow the pendulum demo to 'work' albeit with the different gravity)
+
+				barriers.add(
+						new AnchoredBarrier_StraightLine(
+								new Vect2D(0, WORLD_HEIGHT/4 * 3),
+								new Vect2D(WORLD_WIDTH/3, WORLD_HEIGHT/4 * 3),
+								Color.WHITE,
+								0.1
+						)
+				);
+				barriers.add(
+						new AnchoredBarrier_Point(
+								new Vect2D(WORLD_WIDTH/3, WORLD_HEIGHT/4 * 3)
+						)
+				);
+
+				barriers.add(
+						new AnchoredBarrier_StraightLine(
+								new Vect2D(WORLD_WIDTH/3, WORLD_HEIGHT/4 * 3),
+								new Vect2D(WORLD_WIDTH/2, WORLD_HEIGHT/2),
+								Color.LIGHT_GRAY,
+								0.1
+						)
+				);
+
+				barriers.add(
+						new AnchoredBarrier_Point(new Vect2D(WORLD_WIDTH/2, WORLD_HEIGHT/2))
+				);
+
+				barriers.add(
+						new AnchoredBarrier_StraightLine(
+								new Vect2D(WORLD_WIDTH/2, WORLD_HEIGHT/2),
+								new Vect2D(WORLD_WIDTH/16 * 3, WORLD_HEIGHT/16 * 7),
+								Color.GRAY,
+								0.1
+						)
+				);
+
+				barriers.add(
+						new AnchoredBarrier_Point(new Vect2D(WORLD_WIDTH/16 * 3, WORLD_HEIGHT/16 * 7))
+				);
+
+				barriers.add(
+						new AnchoredBarrier_StraightLine(
+								new Vect2D(WORLD_WIDTH/16 * 3, WORLD_HEIGHT/16 * 7),
+								new Vect2D(WORLD_WIDTH/8, WORLD_HEIGHT/16),
+								Color.GRAY,
+								0.1
+						)
+				);
+
+				barriers.add(
+						new AnchoredBarrier_Point(new Vect2D(WORLD_WIDTH/8, WORLD_HEIGHT/16))
+				);
+
+
+				// this one is the cavern floor.
+				barriers.add(
+						new AnchoredBarrier_StraightLine(
+								new Vect2D(WORLD_WIDTH/8, WORLD_HEIGHT/16),
+								new Vect2D(WORLD_WIDTH/16*13, WORLD_HEIGHT/8),
+								Color.DARK_GRAY,
+								0.1
+						)
+				);
+
+				barriers.add(
+						new AnchoredBarrier_Point(new Vect2D(WORLD_WIDTH/16*13, WORLD_HEIGHT/8))
+				);
+
+				barriers.add(
+						new AnchoredBarrier_StraightLine(
+								new Vect2D(WORLD_WIDTH/16*13, WORLD_HEIGHT/8),
+								new Vect2D(WORLD_WIDTH/12*10, WORLD_HEIGHT/2),
+								Color.GRAY,
+								0.1
+						)
+				);
+
+				barriers.add(
+						new AnchoredBarrier_Point(new Vect2D(WORLD_WIDTH/12*10, WORLD_HEIGHT/2))
+				);
+
+				barriers.add(
+						new AnchoredBarrier_StraightLine(
+								new Vect2D(WORLD_WIDTH/12*10, WORLD_HEIGHT/2),
+								new Vect2D(WORLD_WIDTH/4*3, WORLD_HEIGHT/4*3),
+								Color.LIGHT_GRAY,
+								0.1
+						)
+				);
+
+				barriers.add(
+						new AnchoredBarrier_Point(new Vect2D(WORLD_WIDTH/4*3, WORLD_HEIGHT/4*3))
+				);
+
+				barriers.add(
+						new AnchoredBarrier_StraightLine(
+								new Vect2D(WORLD_WIDTH/4*3, WORLD_HEIGHT/4*3),
+								new Vect2D(WORLD_WIDTH/2, WORLD_HEIGHT),
+								Color.WHITE,
+								0.1
+						)
+				);
+
+				barriers.add(
+						new AnchoredBarrier_Point(new Vect2D(WORLD_WIDTH/2, WORLD_HEIGHT))
+				);
+
+
+				// floor
+				barriers.add(new AnchoredBarrier_StraightLine(0, 0, WORLD_WIDTH, 0, Color.WHITE));
+
+				// TODO: add the thing that needs to be picked up by the ship
+
+				break;
 			}
 		}
+
+		if (LAYOUT_TO_USE == LayoutMode.THRUST_GAME){
+			mayOrMayNotHoldTheShip = Optional.of(
+					new ControllableSpaceShip(
+							new Vect2D(WORLD_WIDTH/6, WORLD_HEIGHT/8 * 7),
+							new Vect2D(),
+							0.1,
+							true,
+							1
+					)
+			);
+			mayOrMayNotBeTheLifeCounter = Optional.of(
+					new AttributeStringObject<Integer>(
+							new Vect2D(WORLD_WIDTH/16 * 15, WORLD_HEIGHT/16 * 15),
+							new AttributeString<Integer>("Lives: ",lives),
+							StringObject.ALIGNMENT_ENUM.RIGHT_ALIGN
+					)
+			);
+
+			mayOrMayNotBeThePayload = Optional.of(
+					new Payload(
+							new Vect2D(WORLD_WIDTH/4, WORLD_HEIGHT/16 * 3),
+							0.2,
+							true,
+							Color.YELLOW,
+							0.3,
+							0.75
+					)
+			);
+		} else {
+			mayOrMayNotHoldTheShip = Optional.empty();
+			mayOrMayNotBeTheLifeCounter = Optional.empty();
+			mayOrMayNotBeThePayload = Optional.empty();
+		}
+
+		mayOrMayNotBeThePayloadHolder = Optional.empty();
+
+		mayOrMayNotBeTheLifeCounter.ifPresent(hudStuff::add);
 			
 			
 	//	
@@ -295,21 +489,136 @@ public class BasicPhysicsEngine {
 			}
 		}
 	}
-	
+
+
+	@Override
+	public void draw(Graphics2D g) {
+
+		for (Drawable d: decorativeParticles){
+			d.draw(g);
+		}
+
+		mayOrMayNotHoldTheShip.ifPresent(
+				s -> s.draw(g)
+		);
+
+		for (Drawable p : particles) {
+			p.draw(g);
+		}
+
+		mayOrMayNotBeThePayload.ifPresent(
+				p -> p.draw(g)
+		);
+
+		for (Drawable c : connectors) {
+			c.draw(g);
+		}
+
+		mayOrMayNotBeThePayloadHolder.ifPresent(
+				e -> e.draw(g)
+		);
+
+		for (Drawable b : barriers) {
+			b.draw(g);
+		}
+		for (Drawable s: hudStuff){
+			s.draw(g);
+		}
+	}
 
 
 	public void update() {
-		for (BasicParticle p : particles) {
+
+		// TODO: win condition
+
+		for (Updatable p : particles) {
 			p.resetTotalForce();// reset to zero at start of time step, so accumulation of forces can begin.
 		}
+
+		// reset ship forces if the ship is here
+		mayOrMayNotHoldTheShip.ifPresent(ControllableSpaceShip::resetTotalForce);
+
+		mayOrMayNotBeThePayload.ifPresent(Payload::resetTotalForce);
 
 		for (ElasticConnector ec : connectors) {
 			ec.applyTensionForceToBothParticles();
 		}
-		for (BasicParticle p : particles) {
+
+		// payload holder does its thing
+		mayOrMayNotBeThePayloadHolder.ifPresent(ElasticConnector::applyTensionForceToBothParticles);
+
+		for (Updatable p : particles) {
 			p.update(GRAVITY, DELTA_T); // tell each particle to move
 		}
-		for (BasicParticle particle : particles) {
+		// also tell the ship to move
+		//mayOrMayNotHoldTheShip.ifPresent(s1 -> s1.update(GRAVITY, DELTA_T));
+
+
+		mayOrMayNotHoldTheShip.ifPresent(
+				s1 -> {
+					s1.update(GRAVITY, DELTA_T); // update the ship as well
+
+					if (s1.isInactive()){
+						return;
+					} else if (gameState == GAME_STATE.DEAD){
+						// if the gamestate was 'DEAD' but the ship is active again, go back to the 'alive' gamestate.
+						gameState = GAME_STATE.ALIVE;
+						// and make sure the payload has respawned.
+						mayOrMayNotBeThePayload.ifPresent(Payload::respawn);
+					}
+
+					// then check the ship against the barriers
+					for (AnchoredBarrier b: barriers){
+						if (b.isCircleCollidingBarrier(s1.getPos(), s1.getRadius())){
+							System.out.println("Oh no! The ship got hit!");
+							lostALife();
+							break;
+						}
+					}
+				}
+		);
+
+		mayOrMayNotBeThePayload.ifPresent(
+				payload -> {
+					if (payload.isInactive()){
+						return;
+					}
+					assert mayOrMayNotHoldTheShip.isPresent();
+					final ControllableSpaceShip ship = mayOrMayNotHoldTheShip.get();
+					if (ship.isInactive()){
+						return;
+					}
+
+					if (payload.isTowed()) {
+
+						payload.update(GRAVITY, DELTA_T);
+
+						for (AnchoredBarrier b : barriers) {
+							if (b.isCircleCollidingBarrier(payload.getPos(), payload.getRadius())) {
+								System.out.println("Oh no, the payload got hit!");
+								lostALife();
+							}
+						}
+					} else if (BasicKeyListener.isSpacebarPressed() && ship.canThisItemBeTowed(payload)) {
+						payload.setTowed(true);
+						mayOrMayNotBeThePayloadHolder = Optional.of(
+								new ElasticConnector(
+										ship,
+										payload,
+										ship.getVectorTo(payload).mag(),
+										springConstant,
+										springDampingConstant,
+										canGoSlack,
+										Color.GREEN,
+										hookesLawTruncation
+								)
+						);
+					}
+
+				}
+		);
+
+		for (CollidaBall particle : particles) {
 			for (AnchoredBarrier b : barriers) {
 				if (b.isCircleCollidingBarrier(particle.getPos(), particle.getRadius())) {
 					Vect2D bouncedVel=b.calculateVelocityAfterACollision(particle.getPos(), particle.getVel(),1);
@@ -320,18 +629,88 @@ public class BasicPhysicsEngine {
 
 		double e=0.9; // coefficient of restitution for all particle pairs
 		for (int n=0;n<particles.size();n++) {
+			final CollidaBall p1 = particles.get(n);
+
+			mayOrMayNotHoldTheShip.ifPresent(
+				s2 -> {
+					if (p1.collidesWith(s2)){
+						System.out.println("Oh no!");
+						lostALife();
+						// TODO probably could be a bit more elegant, but at the same time this is probably also redundant.
+					}
+				}
+			);
+
 			for (int m=0;m<n;m++) {// avoids double check by requiring m<n
-				BasicParticle p1 = particles.get(n);
-				BasicParticle p2 = particles.get(m);
+				final CollidaBall p2 = particles.get(m);
 				if (p1.collidesWith(p2)) {
-					BasicParticle.implementElasticCollision(p1, p2, e);
+					CollidaBall.implementElasticCollision(p1, p2, e);
 				}
 			}
 		}
+
+		for (Updatable d: decorativeParticles){
+			d.resetTotalForce();
+			d.update(GRAVITY, DELTA_T);
+		}
+		decorativeParticles.removeIf(DecorativeParticle::isInactive);
+		for (int i = 0; i < decorativeParticles.size(); i++){
+			final CollidaBall d1 = decorativeParticles.get(i);
+			for (AnchoredBarrier b: barriers) {
+				if (b.isCircleCollidingBarrier(d1.getPos(), d1.getRadius())) {
+					Vect2D bouncedVel=b.calculateVelocityAfterACollision(d1.getPos(), d1.getVel(),0.5);
+					d1.setVel(bouncedVel);
+				}
+			}
+			for (int j = i + 1; j < decorativeParticles.size(); j++){
+				final CollidaBall d2 = decorativeParticles.get(j);
+				if (d1.collidesWith(d2)) {
+					CollidaBall.implementElasticCollision(d1, d2, e);
+				}
+			}
+		}
+
+
+
+		for (StringObject s: hudStuff){s.update(GRAVITY, DELTA_T);}
 			
 	}
 	
-	
+	private void lostALife(){
+
+		if (mayOrMayNotBeThePayloadHolder.isPresent()){
+			mayOrMayNotBeThePayloadHolder = Optional.empty();
+		}
+
+		assert mayOrMayNotHoldTheShip.isPresent();
+		assert mayOrMayNotBeTheLifeCounter.isPresent();
+		assert mayOrMayNotBeThePayload.isPresent();
+
+		final ControllableSpaceShip theShip = mayOrMayNotHoldTheShip.get();
+		final AttributeStringObject<Integer> lifeCounter = mayOrMayNotBeTheLifeCounter.get();
+		final Payload thePayload = mayOrMayNotBeThePayload.get();
+
+
+		theShip.gotHit();
+		decorativeParticles.addAll(theShip.spawnDebris());
+
+		if (thePayload.isTowed()){
+			thePayload.deactivate();
+			thePayload.setTowed(false);
+			decorativeParticles.addAll(thePayload.spawnDebris());
+		}
+
+		lives -= 1;
+		if (lives < 0){
+			lifeCounter.getTheAttributeString().rename("CONGRATS U LOST!");
+			// TODO: proper game over routine
+			gameState = GAME_STATE.GAME_OVER;
+		} else {
+			lifeCounter.getTheAttributeString().showValue(lives);
+			gameState = GAME_STATE.DEAD;
+		}
+
+	}
 	
 
 }

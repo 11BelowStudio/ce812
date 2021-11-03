@@ -19,9 +19,16 @@ public class AnchoredBarrier_Point extends AnchoredBarrier_Curve {
 	}
 
 	public AnchoredBarrier_Point(double centrex, double centrey,  Double barrierDepth) {
-		super(centrex, centrey, 0, 0, 360, false, barrierDepth, col);
-		this.barrierPointPosition=new Vect2D(centrex,centrey);
+		this(new Vect2D(centrex, centrey), barrierDepth);
+	}
 
+	public AnchoredBarrier_Point(Vect2D centre){
+		this(centre, null);
+	}
+
+	public AnchoredBarrier_Point(Vect2D centre,  Double barrierDepth){
+		super(centre, 0, 0, 360, false, barrierDepth, col);
+		this.barrierPointPosition = centre;
 	}
 
 	@Override
