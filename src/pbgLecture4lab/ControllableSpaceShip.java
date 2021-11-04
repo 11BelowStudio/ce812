@@ -9,7 +9,7 @@ import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ControllableSpaceShip extends BasicParticle {
+public class ControllableSpaceShip extends BasicParticle implements CanBeBannedFromRespawning {
 	/* Author: Michael Fairbank
 	 * Creation Date: 2016-01-28
 	 * Significant changes applied:
@@ -30,6 +30,8 @@ public class ControllableSpaceShip extends BasicParticle {
 	final static double TOWING_RANGE = 1.5;
 
 	private boolean waitingToReleaseSpace;
+
+	private boolean bannedFromRespawning = false;
 
 	public ControllableSpaceShip(double sx, double sy, double vx, double vy, double radius, boolean improvedEuler,
 			double mass) {
@@ -76,6 +78,9 @@ public class ControllableSpaceShip extends BasicParticle {
 	public void update(double gravity, double deltaT) {
 
 		if (inactive){ // if waiting to respawn
+			if (bannedFromRespawning){ // no respawning whilst banned from doing that
+				return;
+			}
 			if (waitingToReleaseSpace){
 				// wait for player to release the thrust key if they were holding it when they died.
 				if(!BasicKeyListener.isSpacebarPressed()) {
@@ -104,6 +109,10 @@ public class ControllableSpaceShip extends BasicParticle {
 		}
 	}
 
+	public void setBannedFromRespawning(boolean ban){
+		bannedFromRespawning = ban;
+	}
+
 	public void gotHit(){
 		inactive = true;
 		System.out.println("yes this ship is inactive");
@@ -113,7 +122,8 @@ public class ControllableSpaceShip extends BasicParticle {
 	}
 
 	public boolean canThisItemBeTowed(Towable theItem){
-		return getVectorTo(theItem).mag() <= TOWING_RANGE && !(theItem.isTowed() || theItem.isInactive());
+		return  !(isInactive() || theItem.isTowed() || theItem.isInactive()) &&
+				getVectorTo(theItem).mag() <= TOWING_RANGE;
 	}
 
 

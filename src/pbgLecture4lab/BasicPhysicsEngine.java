@@ -105,6 +105,10 @@ public class BasicPhysicsEngine implements Drawable {
 
 	private Optional<ElasticConnector> mayOrMayNotBeThePayloadHolder;
 
+	private final Optional<AnchoredBarrier_StraightLine> theFinishLine;
+
+	private final Optional<StringObject> middleOfScreenText;
+
 	private static final int DEFAULT_LIVES = 3;
 
 	private int lives = 3;
@@ -285,7 +289,16 @@ public class BasicPhysicsEngine implements Drawable {
 			}
 			case THRUST_GAME: {
 
+				barriers.add(new AnchoredBarrier_StraightLine(WORLD_WIDTH, WORLD_HEIGHT, 0, WORLD_HEIGHT, Color.BLACK));
+				barriers.add(new AnchoredBarrier_StraightLine(0, WORLD_HEIGHT, 0, 0, Color.BLACK));
+
 				// ship and HUD elements are added later on because they're inside optionals (to allow the pendulum demo to 'work' albeit with the different gravity)
+
+				barriers.add(
+						new AnchoredBarrier_Point(
+								new Vect2D(0, WORLD_HEIGHT/4 * 3)
+						)
+				);
 
 				barriers.add(
 						new AnchoredBarrier_StraightLine(
@@ -432,15 +445,33 @@ public class BasicPhysicsEngine implements Drawable {
 							0.75
 					)
 			);
+
+			theFinishLine = Optional.of(
+					new AnchoredBarrier_StraightLine(
+							new Vect2D(WORLD_WIDTH/2, WORLD_HEIGHT),
+							new Vect2D(WORLD_WIDTH/3, WORLD_HEIGHT/4 * 3),
+							Color.YELLOW,
+							null
+					)
+			);
+
+			middleOfScreenText = Optional.of(
+					new StringObject(
+							new Vect2D(WORLD_WIDTH/2, WORLD_HEIGHT/2),
+							"",
+							StringObject.ALIGNMENT_ENUM.CENTER_ALIGN
+					)
+			);
 		} else {
 			mayOrMayNotHoldTheShip = Optional.empty();
 			mayOrMayNotBeTheLifeCounter = Optional.empty();
 			mayOrMayNotBeThePayload = Optional.empty();
+			theFinishLine = Optional.empty();
+			middleOfScreenText = Optional.empty();
 		}
 
 		mayOrMayNotBeThePayloadHolder = Optional.empty();
 
-		mayOrMayNotBeTheLifeCounter.ifPresent(hudStuff::add);
 			
 			
 	//	
@@ -468,10 +499,19 @@ public class BasicPhysicsEngine implements Drawable {
 	public static void main(String[] args) throws Exception {
 		final BasicPhysicsEngine game = new BasicPhysicsEngine();
 		final BasicView view = new BasicView(game);
-		JEasyFrame frame = new JEasyFrame(view, "Basic Physics Engine");
+		JEasyFrame frame = new JEasyFrame(view, "A Scientific Recreation Of Daily Life In The Space Towing Industry Circa 3516 CE");
 		frame.addKeyListener(new BasicKeyListener());
 		view.addMouseMotionListener(new BasicMouseListener());
-		JOptionPane.showMessageDialog(frame, "press ok to start","ready up",JOptionPane.INFORMATION_MESSAGE);
+		JOptionPane.showMessageDialog(
+				frame,
+				"<html>" +
+						"<p>Bring the yellow ball out of the cave (take it to the yellow line)</p>" +
+						"<p>Press left and right arrow keys to turn, press up to thrust</p>" +
+						"<p>Press spacebar near the yellow ball to turn on your tractor beam</p>" +
+						"<p>And press 'OK' to start</p>"+
+						"</html>",
+				"ok so basically get ready to tow",
+				JOptionPane.INFORMATION_MESSAGE);
 		game.startThread(view);
 	}
 	private void startThread(final BasicView view) throws InterruptedException {
@@ -521,15 +561,27 @@ public class BasicPhysicsEngine implements Drawable {
 		for (Drawable b : barriers) {
 			b.draw(g);
 		}
+
+		theFinishLine.ifPresent(
+				f -> f.draw(g)
+		);
+
 		for (Drawable s: hudStuff){
 			s.draw(g);
+		}
+
+		middleOfScreenText.ifPresent(
+				mid -> mid.draw(g)
+		);
+
+		if (gameState != GAME_STATE.GAME_OVER){
+			mayOrMayNotBeTheLifeCounter.ifPresent(l -> l.draw(g));
 		}
 	}
 
 
 	public void update() {
 
-		// TODO: win condition
 
 		for (Updatable p : particles) {
 			p.resetTotalForce();// reset to zero at start of time step, so accumulation of forces can begin.
@@ -565,6 +617,7 @@ public class BasicPhysicsEngine implements Drawable {
 						gameState = GAME_STATE.ALIVE;
 						// and make sure the payload has respawned.
 						mayOrMayNotBeThePayload.ifPresent(Payload::respawn);
+						middleOfScreenText.ifPresent(s -> s.setText(""));
 					}
 
 					// then check the ship against the barriers
@@ -583,22 +636,33 @@ public class BasicPhysicsEngine implements Drawable {
 					if (payload.isInactive()){
 						return;
 					}
+
+					payload.update(GRAVITY, DELTA_T);
+
 					assert mayOrMayNotHoldTheShip.isPresent();
 					final ControllableSpaceShip ship = mayOrMayNotHoldTheShip.get();
-					if (ship.isInactive()){
-						return;
-					}
 
 					if (payload.isTowed()) {
-
-						payload.update(GRAVITY, DELTA_T);
 
 						for (AnchoredBarrier b : barriers) {
 							if (b.isCircleCollidingBarrier(payload.getPos(), payload.getRadius())) {
 								System.out.println("Oh no, the payload got hit!");
+								payload.deactivate();
+								decorativeParticles.addAll(payload.spawnDebris());
 								lostALife();
 							}
 						}
+						if (gameState == GAME_STATE.ALIVE && !ship.isInactive()) {
+							theFinishLine.ifPresent(
+									b -> {
+										if (b.isCircleCollidingBarrier(payload.getPos(), payload.getRadius())) {
+											System.out.println("congartulation");
+											winnerIsYou();
+										}
+									}
+							);
+						}
+
 					} else if (BasicKeyListener.isSpacebarPressed() && ship.canThisItemBeTowed(payload)) {
 						payload.setTowed(true);
 						mayOrMayNotBeThePayloadHolder = Optional.of(
@@ -633,18 +697,49 @@ public class BasicPhysicsEngine implements Drawable {
 
 			mayOrMayNotHoldTheShip.ifPresent(
 				s2 -> {
-					if (p1.collidesWith(s2)){
+					if (p1.collidesWith(s2, DELTA_T)){
+						CollidaBall.implementElasticCollision(p1, s2, e);
 						System.out.println("Oh no!");
-						lostALife();
+						if (gameState == GAME_STATE.WON){
+							if (mayOrMayNotBeThePayloadHolder.isPresent()){
+								mayOrMayNotBeThePayloadHolder = Optional.empty();
+							}
+							s2.setBannedFromRespawning(true);
+							//s2.gotHit();
+							//decorativeParticles.addAll(s2.spawnDebris());
+
+						} else {
+							lostALife();
+						}
 						// TODO probably could be a bit more elegant, but at the same time this is probably also redundant.
 					}
 				}
 			);
 
-			for (int m=0;m<n;m++) {// avoids double check by requiring m<n
+			mayOrMayNotBeThePayload.ifPresent(
+					pl -> {
+						if (p1.collidesWith(pl, DELTA_T)){
+							CollidaBall.implementElasticCollision(p1, pl, e);
+							System.out.println("Oh no!");
+							if (gameState == GAME_STATE.WON){
+								if (mayOrMayNotBeThePayloadHolder.isPresent()){
+									mayOrMayNotBeThePayloadHolder = Optional.empty();
+								}
+								mayOrMayNotHoldTheShip.ifPresent(s -> s.setBannedFromRespawning(true));
+								//pl.setBannedFromRespawning(true);
+								//pl.deactivate();
+							}
+							else {
+								lostALife();
+							}
+						}
+					}
+			);
+
+			for (int m = n+1; m < particles.size(); m++) {// avoids double check by requiring m<n
 				final CollidaBall p2 = particles.get(m);
-				if (p1.collidesWith(p2)) {
-					CollidaBall.implementElasticCollision(p1, p2, e);
+				if (p2.collidesWith(p1, DELTA_T)) {
+					CollidaBall.implementElasticCollision(p2, p1, e);
 				}
 			}
 		}
@@ -664,7 +759,7 @@ public class BasicPhysicsEngine implements Drawable {
 			}
 			for (int j = i + 1; j < decorativeParticles.size(); j++){
 				final CollidaBall d2 = decorativeParticles.get(j);
-				if (d1.collidesWith(d2)) {
+				if (d1.collidesWith(d2, DELTA_T)) {
 					CollidaBall.implementElasticCollision(d1, d2, e);
 				}
 			}
@@ -685,8 +780,16 @@ public class BasicPhysicsEngine implements Drawable {
 		assert mayOrMayNotHoldTheShip.isPresent();
 		assert mayOrMayNotBeTheLifeCounter.isPresent();
 		assert mayOrMayNotBeThePayload.isPresent();
+		assert middleOfScreenText.isPresent();
 
 		final ControllableSpaceShip theShip = mayOrMayNotHoldTheShip.get();
+
+		if (theShip.isInactive()){
+			return;
+		}
+
+		final StringObject middleOfScreenWords = middleOfScreenText.get();
+
 		final AttributeStringObject<Integer> lifeCounter = mayOrMayNotBeTheLifeCounter.get();
 		final Payload thePayload = mayOrMayNotBeThePayload.get();
 
@@ -694,21 +797,78 @@ public class BasicPhysicsEngine implements Drawable {
 		theShip.gotHit();
 		decorativeParticles.addAll(theShip.spawnDebris());
 
+		/*
 		if (thePayload.isTowed()){
 			thePayload.deactivate();
 			thePayload.setTowed(false);
 			decorativeParticles.addAll(thePayload.spawnDebris());
 		}
 
-		lives -= 1;
-		if (lives < 0){
-			lifeCounter.getTheAttributeString().rename("CONGRATS U LOST!");
-			// TODO: proper game over routine
-			gameState = GAME_STATE.GAME_OVER;
-		} else {
-			lifeCounter.getTheAttributeString().showValue(lives);
-			gameState = GAME_STATE.DEAD;
+		 */
+
+		if (gameState == GAME_STATE.ALIVE) {
+			lives -= 1;
+			if (lives < 0) {
+				//lifeCounter.getTheAttributeString().rename("CONGRATS U LOST!");
+				gameState = GAME_STATE.GAME_OVER;
+				middleOfScreenWords.setText("GAME OVER!");
+				theShip.setBannedFromRespawning(true);
+				thePayload.setBannedFromRespawning(true);
+			} else {
+				lifeCounter.getTheAttributeString().showValue(lives);
+				gameState = GAME_STATE.DEAD;
+				middleOfScreenWords.setText("PRESS SPACE TO RESPAWN!");
+			}
 		}
+
+	}
+
+	private void winnerIsYou(){
+		gameState = GAME_STATE.WON;
+
+		//assert middleOfScreenText.isPresent();
+		//middleOfScreenText.get().setText("YOU WIN!");
+
+		// This is intended to let the player know that they have won.
+
+		particles.add(
+				new ParticleWithWordsOnIt(
+						new Vect2D(WORLD_WIDTH/4, WORLD_HEIGHT + 0.75),
+						new Vect2D(0,-4),
+						0.75,
+						true,
+						Color.YELLOW,
+						5,
+						0.1,
+						"CONGARTULATION!"
+				)
+		);
+		particles.add(
+				new ParticleWithWordsOnIt(
+						new Vect2D(WORLD_WIDTH/4 - 1.125, WORLD_HEIGHT + 1.2),
+						new Vect2D(0.05, -2),
+						0.375,
+						true,
+						Color.BLUE,
+						3,
+						0.1,
+						"YOU'RE"
+				)
+		);
+		particles.add(
+				new ParticleWithWordsOnIt(
+						new Vect2D(WORLD_WIDTH/4 + 1.125, WORLD_HEIGHT + 1.2),
+						new Vect2D(-0.05, -2),
+						0.375,
+						true,
+						Color.PINK,
+						3,
+						0.1,
+						"WINNER!"
+				)
+		);
+
+
 
 	}
 	

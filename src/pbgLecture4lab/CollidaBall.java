@@ -18,11 +18,16 @@ public interface CollidaBall {
             return false;
         }
 
+        //Vect2D vecFrom1to2 = Vect2D.minus(b.getPos(), getPos());
+        //boolean movingTowardsEachOther = Vect2D.minus(other.getVel(), getVel()).scalarProduct(Vect2D.minus(other.getPos(), getPos()))<0;
+        //return vecFrom1to2.mag()<getRadius()+b.getRadius() && movingTowardsEachOther;
+
         return (
                 getVectorTo(other).mag() <= getRadius() + other.getRadius()
         ) && (
                 //getVel().normalise().scalarProduct(other.getVel().normalise()) <= 0
-                Vect2D.minus(other.getVel(), getVel()).scalarProduct(getVectorTo(other)) <= 0
+                Vect2D.minus(other.getVel(), getVel()).scalarProduct(Vect2D.minus(other.getPos(), getPos())) < 0
+                //Vect2D.minus(other.getVel(), getVel()).scalarProduct(getVectorTo(other)) <= 0
         );
     }
 
@@ -41,8 +46,8 @@ public interface CollidaBall {
         return (
                 a.getVectorTo(b).mag() <= a.getRadius() + b.getRadius()
         ) && (
-                Vect2D.minus(b.getVel(), a.getVel()).scalarProduct(a.getVectorTo(b)) <= 0
-                //a.getVel().normalise().scalarProduct(b.getVel().normalise()) <= 0
+                //Vect2D.minus(b.getVel(), a.getVel()).scalarProduct(a.getVectorTo(b)) <= 0
+                a.getVel().normalise().scalarProduct(b.getVel().normalise()) <= 0
         );
     }
 
@@ -63,8 +68,9 @@ public interface CollidaBall {
         final double t = getExactCollisionTime(this, other);
         return (
                 (t >= -delta) && // make sure it happened in the most recent timestep
-                        (t <= 0) && // and not in the future
-                        (Vect2D.minus(other.getVel(), getVel()).scalarProduct(getVectorTo(other)) <= 0)
+                (t <= 0) && // and not in the future
+                //(Vect2D.minus(other.getVel(), getVel()).scalarProduct(getVectorTo(other)) <= 0)
+                (Vect2D.minus(other.getVel(), getVel()).scalarProduct(Vect2D.minus(other.getPos(), getPos())) <= 0)
                 // and make sure the two objects were actually moving towards each other
         );
     }
@@ -91,7 +97,8 @@ public interface CollidaBall {
         return (
                 (t >= -delta) && // make sure it happened in the most recent timestep
                         (t <= 0) && // and not in the future
-                        (Vect2D.minus(b.getVel(), a.getVel()).scalarProduct(a.getVectorTo(b)) <= 0)
+                        (Vect2D.minus(b.getVel(), a.getVel()).scalarProduct(Vect2D.minus(b.getPos(), a.getPos())) <= 0)
+                        //(Vect2D.minus(b.getVel(), a.getVel()).scalarProduct(a.getVectorTo(b)) <= 0)
                 // and make sure the two objects were actually moving towards each other
         );
     }
