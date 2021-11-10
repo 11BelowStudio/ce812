@@ -13,7 +13,7 @@ public class BasicView extends JComponent {
 	 * Significant changes applied:
 	 */
 	// background colour
-	public static final Color BG_COLOR = Color.BLACK;
+	public static final Color BG_COLOR = new Color(40, 43, 47);
 
 	private BasicPhysicsEngineUsingBox2D game;
 

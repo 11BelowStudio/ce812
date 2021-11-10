@@ -29,7 +29,7 @@ public class BasicMouseListener extends MouseInputAdapter {
 		mouseX=e.getX();
 		mouseY=e.getY();
 		mouseButtonPressed=false;
-		System.out.println("Move event: "+mouseX+","+mouseY);
+		//System.out.println("Move event: "+mouseX+","+mouseY);
 		if (mouseJoint!=null) {
 			// we're obviously not dragging any more, so drop the current mouseJoint
 			linkMouseDragEventToANewMouseJoint(null);
@@ -49,6 +49,7 @@ public class BasicMouseListener extends MouseInputAdapter {
 		mouseX=e.getX();
 		mouseY=e.getY();
 		mouseButtonPressed=true;
+		/*
 		Vec2 worldCoordinatesOfMousePointer = getWorldCoordinatesOfMousePointer();
 		if (mouseJoint!=null) {
 			// we are already dragging a body on the screen
@@ -72,13 +73,17 @@ public class BasicMouseListener extends MouseInputAdapter {
 				// listener to update the target for this mouseJoint, every time the mouse is dragged.
 			}
 
-			
 		}
+
+		 */
 	}
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
+		super.mouseClicked(e);
+		System.out.println("clicked!");
 		mouseButtonClicked = true;
+		mouseButtonPressed = false;
 	}
 
 	/**

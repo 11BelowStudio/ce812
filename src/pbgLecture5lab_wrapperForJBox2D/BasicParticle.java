@@ -11,7 +11,7 @@ import org.jbox2d.dynamics.BodyType;
 import org.jbox2d.dynamics.FixtureDef;
 import org.jbox2d.dynamics.World;
 
-public class BasicParticle implements Drawable {
+public class BasicParticle implements Drawable, IHaveABody {
 	/* Author: Michael Fairbank
 	 * Creation Date: 2016-02-05 (JBox2d version)
 	 * Significant changes applied:
@@ -45,10 +45,12 @@ public class BasicParticle implements Drawable {
 	}
 
 	public void draw(Graphics2D g) {
-		int x = BasicPhysicsEngineUsingBox2D.convertWorldXtoScreenX(body.getPosition().x);
-		int y = BasicPhysicsEngineUsingBox2D.convertWorldYtoScreenY(body.getPosition().y);
-		g.setColor(col);
-		g.fillOval(x - SCREEN_RADIUS, y - SCREEN_RADIUS, 2 * SCREEN_RADIUS, 2 * SCREEN_RADIUS);
+		if (body.isActive()) {
+			int x = BasicPhysicsEngineUsingBox2D.convertWorldXtoScreenX(body.getPosition().x);
+			int y = BasicPhysicsEngineUsingBox2D.convertWorldYtoScreenY(body.getPosition().y);
+			g.setColor(col);
+			g.fillOval(x - SCREEN_RADIUS, y - SCREEN_RADIUS, 2 * SCREEN_RADIUS, 2 * SCREEN_RADIUS);
+		}
 	}
 
 
@@ -58,7 +60,14 @@ public class BasicParticle implements Drawable {
 			dragForce1=dragForce1.mul(-linearDragForce*mass);
 			body.applyForceToCenter(dragForce1);
 		}
-		
+	}
+
+	public boolean isActive(){
+		return body.isActive();
+	}
+
+	public Body getBody(){
+		return body;
 	}
 	
 }

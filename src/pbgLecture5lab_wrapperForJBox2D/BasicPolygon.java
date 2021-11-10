@@ -18,7 +18,7 @@ import org.jbox2d.dynamics.FixtureDef;
 import org.jbox2d.dynamics.World;
 
 
-public class BasicPolygon implements Drawable {
+public class BasicPolygon implements Drawable, IHaveABody, Toppleable {
 	/* Author: Michael Fairbank
 	 * Creation Date: 2016-02-05 (JBox2d version)
 	 * Significant changes applied:
@@ -29,6 +29,16 @@ public class BasicPolygon implements Drawable {
 	public final Color col;
 	protected final Body body;
 	private final Path2D.Float polygonPath;
+
+	private boolean wasToppled; // whether this polygon has been 'toppled' yet
+
+	private final float startX, startY;
+
+	private final float startAngle;
+
+	private static final float topple_dist = 0.45f; // moved 0.45 world units from start = toppled.
+
+	private static final float topple_angle = (float) Math.toRadians(35); // rotated more than 35deg from start = topped.
 
 	public BasicPolygon(float sx, float sy, float vx, float vy, float radius, Color col, float mass, float rollingFriction, int numSides) {
 		this(sx, sy, vx, vy, radius, col, mass, rollingFriction,mkRegularPolygon(numSides, radius),numSides);
@@ -51,6 +61,13 @@ public class BasicPolygon implements Drawable {
 		fixtureDef.restitution = 0.5f;
 		body.createFixture(fixtureDef);
 
+		wasToppled = false;
+
+		startX = sx;
+		startY = sy;
+		startAngle = body.getAngle();
+
+
 //		// code to test adding a second fixture:
 //		PolygonShape shape2 = new PolygonShape();
 //		Vec2[] vertices2 = verticesOfPath2D(polygonPath, numSides);
@@ -67,7 +84,7 @@ public class BasicPolygon implements Drawable {
 		this.rollingFriction=rollingFriction;
 		this.mass=mass;
 		this.ratioOfScreenScaleToWorldScale=BasicPhysicsEngineUsingBox2D.convertWorldLengthToScreenLength(1);
-		System.out.println("Screenradius="+ratioOfScreenScaleToWorldScale);
+		//System.out.println("Screenradius="+ratioOfScreenScaleToWorldScale);
 		this.col=col;
 		this.polygonPath=polygonPath;
 	}
@@ -82,6 +99,10 @@ public class BasicPolygon implements Drawable {
 		af.rotate(angle); 
 		Path2D.Float p = new Path2D.Float (polygonPath,af);
 		g.fill(p);
+		if (wasToppled){
+			g.setColor(Color.RED);
+			g.draw(p);
+		}
 	}
 
 
@@ -92,6 +113,24 @@ public class BasicPolygon implements Drawable {
 			rollingFrictionForce=rollingFrictionForce.mul(-rollingFriction*mass);
 			body.applyForceToCenter(rollingFrictionForce);
 		}
+		if (!wasToppled){
+			//System.out.println(startAngle + ", " + body.getAngle() + ", " +  topple_angle + ", " + Math.abs(startAngle - body.getAngle()));
+			if (Math.abs(startAngle - body.getAngle()) > topple_angle){
+
+				wasToppled = true;
+			} else {
+				final float dist_from_start = body.getPosition().clone().sub(new Vec2(startX, startY)).length();
+				//System.out.println(dist_from_start);
+				if (dist_from_start >= topple_dist) {
+
+					wasToppled = true;
+				}
+			}
+		}
+	}
+
+	public boolean isToppled(){
+		return wasToppled;
 	}
 	
 	// Vec2 vertices of Path2D
@@ -119,6 +158,11 @@ public class BasicPolygon implements Drawable {
 		}
 		p.closePath();
 		return p;
+	}
+
+	@Override
+	public Body getBody() {
+		return body;
 	}
 
 	/**
@@ -167,8 +211,8 @@ public class BasicPolygon implements Drawable {
 
 		final float pillarHeight = archHeight - barHeight;
 
-		final float pillarXOffset = -(pillarWidth/2f);
-		final float pillarYOffset = -(pillarHeight/2f);
+		//final float pillarXOffset = -(pillarWidth/2f);
+		//final float pillarYOffset = -(pillarHeight/2f);
 
 		final float pillarYOrigin = yOrigin + (pillarHeight/2f);
 

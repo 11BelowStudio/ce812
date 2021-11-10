@@ -27,7 +27,7 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 	public static final float WORLD_WIDTH=10;//metres
 	public static final float WORLD_HEIGHT=SCREEN_HEIGHT*(WORLD_WIDTH/SCREEN_WIDTH);// meters - keeps world dimensions in same aspect ratio as screen dimensions, so that circles get transformed into circles as opposed to ovals
 	public static final float GRAVITY=9.8f;
-	public static final boolean ALLOW_MOUSE_POINTER_TO_DRAG_BODIES_ON_SCREEN=true;// There's a load of code in basic mouse listener to process this, if you set it to true
+	public static final boolean ALLOW_MOUSE_POINTER_TO_DRAG_BODIES_ON_SCREEN=false;// There's a load of code in basic mouse listener to process this, if you set it to true
 
 	/**
 	 * Box2D container for all bodies and barriers
@@ -66,13 +66,23 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 	public List<ElasticConnector> connectors;
 	public static MouseJoint mouseJointDef;
 
-	private static final Vec2 PARTICLE_LAUNCH_LOCATION = new Vec2(WORLD_WIDTH/8, WORLD_HEIGHT/2);
+	private static final Vec2 PARTICLE_LAUNCH_LOCATION = new Vec2(WORLD_WIDTH/8, WORLD_HEIGHT/3);
 
 	// Simple pendulum attached under mouse pointer
 	private static final double rollingFriction=.75;
 	private static final double springConstant=1000000, springDampingConstant=1000;
 	private static final double hookesLawTruncation = 1000000000;
 	private static final boolean canGoSlack=false;
+
+	private boolean toppled_all_blocks = false;
+
+	private static final Font victory_text_font = new Font(Font.SANS_SERIF, Font.BOLD,16);
+
+	private static final String instructions_words = "click to shoot a ball at the things!";
+
+	private boolean not_clicked_yet = true;
+
+	private static final String victory_words = "congartulation, you're winner!";
 
 
 
@@ -92,6 +102,7 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 
 
 	public BasicPhysicsEngineUsingBox2D() {
+
 		world = new World(new Vec2(0, -GRAVITY));// create Box2D container for everything
 		world.setContinuousPhysics(true);
 
@@ -330,7 +341,27 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 				// floor
 				barriers.add(
 						new AnchoredBarrier_StraightLine(
-								WORLD_WIDTH, 0.1f, 0, 0.1f, Color.WHITE
+								WORLD_WIDTH + 10, 0.1f, -10, 0.1f, Color.WHITE
+						)
+				);
+
+				// outer box
+
+				barriers.add(
+						new AnchoredBarrier_StraightLine(
+								-10, 0.1f, -10, WORLD_HEIGHT, Color.WHITE
+						)
+				);
+
+				barriers.add(
+						new AnchoredBarrier_StraightLine(
+								-10, WORLD_HEIGHT, WORLD_WIDTH+10, WORLD_HEIGHT, Color.WHITE
+						)
+				);
+
+				barriers.add(
+						new AnchoredBarrier_StraightLine(
+								WORLD_WIDTH+10, WORLD_HEIGHT, WORLD_WIDTH+10, 0.1f, Color.WHITE
 						)
 				);
 
@@ -391,49 +422,63 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 
 				polygons.addAll(
 						BasicPolygon.RECTANGLE_ARCH_FACTORY(
-								5 * WORLD_HEIGHT/8,
+								(float) 5.25 * WORLD_HEIGHT/8,
 								1.5f,
 								Color.GRAY,
 								Color.LIGHT_GRAY,
-								1,
-								(float) rollingFriction,
-								1.0f,
-								1.0f,
-								0.25f,
-								0.25f,
+								10,
+								0.1f,
+								1.25f,
+								1.25f,
+								0.5f,
+								0.5f,
 								3
 						)
 				);
 
 				polygons.addAll(
 						BasicPolygon.RECTANGLE_ARCH_FACTORY(
-								5 * WORLD_HEIGHT/8,
-								2.5f,
+								(float) 5.25 * WORLD_HEIGHT/8,
+								2.75f,
 								Color.GRAY,
 								Color.LIGHT_GRAY,
-								1,
-								(float) rollingFriction,
-								1.0f,
-								1.0f,
-								0.25f,
-								0.25f,
+								7.5f,
+								0.1f,
+								1.125f,
+								1.125f,
+								0.375f,
+								0.375f,
 								2
 						)
 				);
 
 				polygons.addAll(
 						BasicPolygon.RECTANGLE_ARCH_FACTORY(
-								5 * WORLD_HEIGHT/8,
-								3.5f,
+								(float) 5.25 * WORLD_HEIGHT/8,
+								3.875f,
 								Color.GRAY,
 								Color.LIGHT_GRAY,
-								1,
-								(float) rollingFriction,
+								5,
+								0.1f,
 								1.0f,
 								1.0f,
 								0.25f,
 								0.25f,
 								1
+						)
+				);
+
+				polygons.add(
+						new BasicPolygon(
+								(float) (5.25 * WORLD_HEIGHT/8)-0.5f,
+								4.875f,
+								0f,
+								0f,
+								0.25f,
+								Color.YELLOW,
+								2.5f,
+								0f,
+								5
 						)
 				);
 
@@ -450,6 +495,7 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 				break;
 			}
 		}
+
 	}
 	
 	private void createCushion(List<AnchoredBarrier> barriers, float centrex, float centrey, double orientation, float cushionLength, float cushionDepth) {
@@ -481,9 +527,11 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 	public static void main(String[] args) throws Exception {
 		final BasicPhysicsEngineUsingBox2D game = new BasicPhysicsEngineUsingBox2D();
 		final BasicView view = new BasicView(game);
-		JEasyFrame frame = new JEasyFrame(view, "Basic Physics Engine");
+		JEasyFrame frame = new JEasyFrame(view, "It's like that one game where there's the birds that you shoot at the thing");
 		frame.addKeyListener(new BasicKeyListener());
-		view.addMouseMotionListener(new BasicMouseListener());
+		final BasicMouseListener bml = new BasicMouseListener();
+		view.addMouseMotionListener(bml);
+		view.addMouseListener(bml);
 		game.startThread(view);
 	}
 	private void startThread(final BasicView view) throws InterruptedException {
@@ -502,15 +550,64 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 	public void update() {
 		int VELOCITY_ITERATIONS=NUM_EULER_UPDATES_PER_SCREEN_REFRESH;
 		int POSITION_ITERATIONS=NUM_EULER_UPDATES_PER_SCREEN_REFRESH;
+
+		if(layout == LayoutMode.BLOCK_GAME){
+
+			if (BasicMouseListener.isMouseButtonClicked()){
+				if (not_clicked_yet){
+					not_clicked_yet = false;
+				}
+				if (!toppled_all_blocks){
+					// if it's the block game, and not all blocks have been toppled left, and the mouse button was clicked
+					// we fire a particle from the particle launcher
+					particles.add(particle_launcher());
+				}
+			}
+			BasicMouseListener.resetMouseClicked();
+		}
+
+
+
 		for (BasicParticle p:particles) {
 			// give the objects an opportunity to add any bespoke forces, e.g. rolling friction
 			p.notificationOfNewTimestep();
 		}
+
+		particles.removeIf(
+				p -> {
+					if (!p.getBody().isActive()){
+						world.destroyBody(p.getBody());
+						return true;
+					}
+					return false;
+				}
+		);
+
 		for (BasicPolygon p:polygons) {
 			// give the objects an opportunity to add any bespoke forces, e.g. rolling friction
 			p.notificationOfNewTimestep();
 		}
+
 		world.step(DELTA_T, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
+
+		if (layout == LayoutMode.BLOCK_GAME){ // if we're in the block game
+			// and we haven't toppled all blocks yet
+			if (!toppled_all_blocks){
+				toppled_all_blocks = polygons.stream().allMatch(BasicPolygon::isToppled);
+				// we see if there are any blocks left that need toppling.
+			}
+		}
+	}
+
+	private BasicParticle particle_launcher(){
+		return new LaunchedParticle(
+				PARTICLE_LAUNCH_LOCATION,
+				BasicMouseListener.getWorldCoordinatesOfMousePointer().sub(PARTICLE_LAUNCH_LOCATION),
+				0.2f,
+				Color.MAGENTA,
+				0.75f,
+				(float) 0.05f
+		);
 	}
 
 	@Override
@@ -528,16 +625,72 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 			b.draw(g);
 		}
 
-		if (BasicMouseListener.isMouseButtonPressed()){
-			final Vec2 mousePos = BasicMouseListener.getWorldCoordinatesOfMousePointer();
-			g.setColor(Color.RED);
-			g.drawLine(convertWorldXtoScreenX(PARTICLE_LAUNCH_LOCATION.x),
-					convertWorldYtoScreenY(PARTICLE_LAUNCH_LOCATION.y),
-					convertWorldXtoScreenX(mousePos.x),
-					convertWorldYtoScreenY(mousePos.y)
-			);
 
+
+
+
+		if (layout == LayoutMode.BLOCK_GAME) {
+
+			if (not_clicked_yet){
+				final Font oldFont = g.getFont();
+
+				g.setFont(victory_text_font);
+
+				final FontMetrics fm = g.getFontMetrics();
+
+
+				final int draw_x_pos = (SCREEN_WIDTH - fm.stringWidth(instructions_words))/2;
+				final int draw_y_pos = (SCREEN_HEIGHT - fm.getHeight())/2;
+
+				g.setColor(Color.BLACK);
+				g.drawString(instructions_words, draw_x_pos - 1, draw_y_pos - 1);
+				g.drawString(instructions_words, draw_x_pos - 1, draw_y_pos + 1);
+				g.drawString(instructions_words, draw_x_pos + 1, draw_y_pos + 1);
+				g.drawString(instructions_words, draw_x_pos + 1, draw_y_pos - 1);
+
+				g.setColor(Color.WHITE);
+				g.drawString(instructions_words, draw_x_pos, draw_y_pos);
+
+				g.setFont(oldFont);
+			}
+
+			if (toppled_all_blocks){
+
+				final Font oldFont = g.getFont();
+
+				g.setFont(victory_text_font);
+
+				final FontMetrics fm = g.getFontMetrics();
+
+
+				final int draw_x_pos = (SCREEN_WIDTH - fm.stringWidth(victory_words))/2;
+				final int draw_y_pos = (SCREEN_HEIGHT - fm.getHeight())/2;
+
+				g.setColor(Color.BLACK);
+				g.drawString(victory_words, draw_x_pos - 1, draw_y_pos - 1);
+				g.drawString(victory_words, draw_x_pos - 1, draw_y_pos + 1);
+				g.drawString(victory_words, draw_x_pos + 1, draw_y_pos + 1);
+				g.drawString(victory_words, draw_x_pos + 1, draw_y_pos - 1);
+
+				g.setColor(Color.WHITE);
+				g.drawString(victory_words, draw_x_pos, draw_y_pos);
+
+				g.setFont(oldFont);
+
+			} else {
+				if (BasicMouseListener.isMouseButtonPressed()) {
+					final Vec2 mousePos = BasicMouseListener.getWorldCoordinatesOfMousePointer();
+					g.setColor(Color.RED);
+					g.drawLine(convertWorldXtoScreenX(PARTICLE_LAUNCH_LOCATION.x),
+							convertWorldYtoScreenY(PARTICLE_LAUNCH_LOCATION.y),
+							convertWorldXtoScreenX(mousePos.x),
+							convertWorldYtoScreenY(mousePos.y)
+					);
+				}
+
+			}
 		}
+
 
 
 	}
