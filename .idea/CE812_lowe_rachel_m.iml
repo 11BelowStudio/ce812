@@ -17,5 +17,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="jbox2d.library" level="project" />
   </component>
 </module>
