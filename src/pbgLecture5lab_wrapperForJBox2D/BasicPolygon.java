@@ -5,6 +5,9 @@ import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Vec2;
@@ -15,7 +18,7 @@ import org.jbox2d.dynamics.FixtureDef;
 import org.jbox2d.dynamics.World;
 
 
-public class BasicPolygon  {
+public class BasicPolygon implements Drawable {
 	/* Author: Michael Fairbank
 	 * Creation Date: 2016-02-05 (JBox2d version)
 	 * Significant changes applied:
@@ -117,5 +120,116 @@ public class BasicPolygon  {
 		p.closePath();
 		return p;
 	}
-	
+
+	/**
+	 * A factory method which can be used to construct a rectangle with given location info and given width/height
+	 * @param sx x pos
+	 * @param sy y pos
+	 * @param vx x vel
+	 * @param vy y vel
+	 * @param radius radius
+	 * @param col colour
+	 * @param mass mass
+	 * @param rollingFriction friction
+	 * @param width width of rectangle
+	 * @param height height of rectangle
+	 * @return a rectangle object with that info
+	 */
+	public static BasicPolygon RECTANGLE_FACTORY(float sx, float sy, float vx, float vy, float radius, Color col, float mass, float rollingFriction, float width, float height){
+		return new BasicPolygon(sx, sy, vx, vy, radius, col, mass, rollingFriction,
+				new Path2D.Float(new Rectangle2D.Float(
+				-width/2, -height/2, width, height)
+				), 4);
+	}
+
+
+	public static List<BasicPolygon> RECTANGLE_ARCH_FACTORY(float xMid, float yOrigin, Color pillarCol, Color barCol,
+															float mass, float rollingFriction, float archHeight,
+															float archWidth, float pillarWidth, float barHeight,
+															int arch_count){
+		if(arch_count <= 0){
+			return new ArrayList<>(); // not going to bother making 0 or fewer arches.
+		} else if (pillarWidth <= 0f){
+			throw new IllegalArgumentException("pillarWidth must be greater than 0!");
+		} else if (archWidth <= 0f){
+			throw new IllegalArgumentException("archWidth must be greater than 0!");
+		} else if (archHeight <= 0f){
+			throw new IllegalArgumentException("archHeight must be greater than 0!");
+		} else if (barHeight <= 0f){
+			throw new IllegalArgumentException("barHeight must be greater than 0!");
+		} else if (barHeight >= archHeight){
+			throw new IllegalArgumentException("barHeight must be smaller than archHeight!");
+		}
+
+		final float totalWidth = archWidth * arch_count;
+
+		float next_arch_x_midpoint = xMid - (totalWidth/2f);
+
+		final float pillarHeight = archHeight - barHeight;
+
+		final float pillarXOffset = -(pillarWidth/2f);
+		final float pillarYOffset = -(pillarHeight/2f);
+
+		final float pillarYOrigin = yOrigin + (pillarHeight/2f);
+
+		final float barXOffset = -(archWidth/2f);
+		final float barYOffset = -(barHeight/2f);
+
+		final float barYOrigin = yOrigin + archHeight + barYOffset;
+
+		final List<BasicPolygon> arches = new ArrayList<>();
+
+		for (int i = 0; i < arch_count; i++){
+
+			arches.add(
+					BasicPolygon.RECTANGLE_FACTORY(
+							next_arch_x_midpoint + barXOffset,
+							pillarYOrigin,
+							0,
+							0,
+							1,
+							pillarCol,
+							mass,
+							rollingFriction,
+							pillarWidth,
+							pillarHeight
+					)
+			);
+			arches.add(
+					BasicPolygon.RECTANGLE_FACTORY(
+							next_arch_x_midpoint,
+							barYOrigin,
+							0,
+							0,
+							1,
+							barCol,
+							mass,
+							rollingFriction,
+							archWidth,
+							barHeight
+					)
+			);
+			next_arch_x_midpoint += archWidth;
+		}
+
+		arches.add(
+				BasicPolygon.RECTANGLE_FACTORY(
+						next_arch_x_midpoint + barXOffset,
+						pillarYOrigin,
+						0,
+						0,
+						1,
+						pillarCol,
+						mass,
+						rollingFriction,
+						pillarWidth,
+						pillarHeight
+				)
+		);
+
+		return arches;
+
+
+	}
+
 }

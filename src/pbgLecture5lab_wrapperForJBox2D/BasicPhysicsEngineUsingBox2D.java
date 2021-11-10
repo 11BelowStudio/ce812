@@ -1,8 +1,9 @@
 package pbgLecture5lab_wrapperForJBox2D;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Toolkit;
+import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Path2D;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -12,7 +13,7 @@ import org.jbox2d.dynamics.World;
 import org.jbox2d.dynamics.joints.MouseJoint;
 
 
-public class BasicPhysicsEngineUsingBox2D {
+public class BasicPhysicsEngineUsingBox2D implements Drawable {
 	/* Author: Michael Fairbank
 	 * Creation Date: 2016-02-05 (JBox2d version)
 	 * Significant changes applied:
@@ -28,7 +29,10 @@ public class BasicPhysicsEngineUsingBox2D {
 	public static final float GRAVITY=9.8f;
 	public static final boolean ALLOW_MOUSE_POINTER_TO_DRAG_BODIES_ON_SCREEN=true;// There's a load of code in basic mouse listener to process this, if you set it to true
 
-	public static World world; // Box2D container for all bodies and barriers 
+	/**
+	 * Box2D container for all bodies and barriers
+	 */
+	public static World world;
 
 	// sleep time between two drawn frames in milliseconds 
 	public static final int DELAY = 20;
@@ -61,8 +65,32 @@ public class BasicPhysicsEngineUsingBox2D {
 	public List<AnchoredBarrier> barriers;
 	public List<ElasticConnector> connectors;
 	public static MouseJoint mouseJointDef;
-	
-	public static enum LayoutMode {CONVEX_ARENA, CONCAVE_ARENA, CONVEX_ARENA_WITH_CURVE, PINBALL_ARENA, RECTANGLE, SNOOKER_TABLE};
+
+	private static final Vec2 PARTICLE_LAUNCH_LOCATION = new Vec2(WORLD_WIDTH/8, WORLD_HEIGHT/2);
+
+	// Simple pendulum attached under mouse pointer
+	private static final double rollingFriction=.75;
+	private static final double springConstant=1000000, springDampingConstant=1000;
+	private static final double hookesLawTruncation = 1000000000;
+	private static final boolean canGoSlack=false;
+
+
+
+	public static enum LayoutMode {
+		CONVEX_ARENA, CONCAVE_ARENA, CONVEX_ARENA_WITH_CURVE, PINBALL_ARENA, RECTANGLE, SNOOKER_TABLE, PENDULUM_DEMO, PENDULUM_DEMO_2, PENDULUM_DEMO_3, PENDULUM_DEMO_4, SPACESHIP_DEMO, SPACESHIP_DEMO_2,
+
+		/**
+		 * The LayoutMode for the block-related game for lab 5
+		 */
+		BLOCK_GAME
+	};
+
+	/**
+	 * Use this to select the layout mode for the current demo.
+	 */
+	private static final LayoutMode layout = LayoutMode.BLOCK_GAME;
+
+
 	public BasicPhysicsEngineUsingBox2D() {
 		world = new World(new Vec2(0, -GRAVITY));// create Box2D container for everything
 		world.setContinuousPhysics(true);
@@ -71,7 +99,6 @@ public class BasicPhysicsEngineUsingBox2D {
 		polygons = new ArrayList<BasicPolygon>();
 		barriers = new ArrayList<AnchoredBarrier>();
 		connectors=new ArrayList<ElasticConnector>();
-		LayoutMode layout=LayoutMode.CONVEX_ARENA;
 		// pinball:
 		float linearDragForce=.02f;
 		float r=.3f;
@@ -79,11 +106,14 @@ public class BasicPhysicsEngineUsingBox2D {
 //			public BasicRectangle(double sx, double sy, double vx, double vy, double width, double height, double orientation, double angularVeloctiy, boolean improvedEuler, Color col, double mass) {
 
 		float s=1.2f;
-		particles.add(new BasicParticle(WORLD_WIDTH/2-2,WORLD_HEIGHT/2-2.2f,1.5f*s,1.2f*s, r,Color.GREEN, 1, linearDragForce));
-		polygons.add(new BasicPolygon(WORLD_WIDTH/2-2,WORLD_HEIGHT/2+1.4f,-1.5f*s,1.2f*s, r*2,Color.RED, 1, linearDragForce,3));
-		polygons.add(new BasicPolygon(WORLD_WIDTH/2-2,WORLD_HEIGHT/2+1.4f,-1.5f*s,1.2f*s, r*4,Color.RED, 1, linearDragForce,3));
-		polygons.add(new BasicPolygon(WORLD_WIDTH/2-2,WORLD_HEIGHT/2+1.3f,-1.2f*s,1.2f*s, r*2,Color.WHITE, 1, linearDragForce,5));
-		polygons.add(new BasicPolygon(WORLD_WIDTH/2-2,WORLD_HEIGHT/2+1.3f,1.2f*s,1.2f*s, r*2,Color.YELLOW, 1, linearDragForce,4));
+
+		if (layout != LayoutMode.BLOCK_GAME) {
+			particles.add(new BasicParticle(WORLD_WIDTH / 2 - 2, WORLD_HEIGHT / 2 - 2.2f, 1.5f * s, 1.2f * s, r, Color.GREEN, 1, linearDragForce));
+			polygons.add(new BasicPolygon(WORLD_WIDTH / 2 - 2, WORLD_HEIGHT / 2 + 1.4f, -1.5f * s, 1.2f * s, r * 2, Color.RED, 1, linearDragForce, 3));
+			polygons.add(new BasicPolygon(WORLD_WIDTH / 2 - 2, WORLD_HEIGHT / 2 + 1.4f, -1.5f * s, 1.2f * s, r * 4, Color.RED, 1, linearDragForce, 3));
+			polygons.add(new BasicPolygon(WORLD_WIDTH / 2 - 2, WORLD_HEIGHT / 2 + 1.3f, -1.2f * s, 1.2f * s, r * 2, Color.WHITE, 1, linearDragForce, 5));
+			polygons.add(new BasicPolygon(WORLD_WIDTH / 2 - 2, WORLD_HEIGHT / 2 + 1.3f, 1.2f * s, 1.2f * s, r * 2, Color.YELLOW, 1, linearDragForce, 4));
+		}
 		
 //		particles.add(new BasicParticle(WORLD_WIDTH/2+2,WORLD_HEIGHT/2+2f,-1.2f*s,-1.4f*s, r,Color.BLUE, 2, 0));
 //		particles.add(new BasicParticle(3*r+WORLD_WIDTH/2,WORLD_HEIGHT/2,2,6.7f, r*3,Color.BLUE, 90, 0));
@@ -103,17 +133,17 @@ public class BasicPhysicsEngineUsingBox2D {
 
 		
 
-		if (false) {
+		if (layout == LayoutMode.SPACESHIP_DEMO) {
 			// spaceship flying under gravity
 			particles.add(new ControllableSpaceShip(3*r+WORLD_WIDTH/2+1,WORLD_HEIGHT/2-2,0f,2f, r,true, 2*4));
-		} else if (false) {
+		} else if (layout == LayoutMode.SPACESHIP_DEMO_2) {
 			// spaceship flying with dangling pendulum
 			double springConstant=1000000, springDampingConstant=1000;
 			double hookesLawTruncation=0.2;
 			particles.add(new ControllableSpaceShip(3*r+WORLD_WIDTH/2+1,WORLD_HEIGHT/2-2,0f,2f, r,true, 2*4));
 			particles.add(new BasicParticle(3*r+WORLD_WIDTH/2+1,WORLD_HEIGHT/2-4,-3f,9.7f, r,Color.BLUE, 2*4, linearDragForce));
 			connectors.add(new ElasticConnector(particles.get(0), particles.get(1), r*6, springConstant, springDampingConstant, false, Color.WHITE, hookesLawTruncation));
-		} else if (false) {
+		} else if (layout == LayoutMode.PENDULUM_DEMO_2) {
 			// Simple pendulum attached under mouse pointer
 			linearDragForce=.5f;
 			double springConstant=10000, springDampingConstant=10;
@@ -122,7 +152,7 @@ public class BasicPhysicsEngineUsingBox2D {
 			particles.add(new ParticleAttachedToMousePointer(WORLD_WIDTH/2,WORLD_HEIGHT/2,0,0, r, 10000));
 			particles.add(new BasicParticle(WORLD_WIDTH/2,WORLD_HEIGHT/2-2,0,0, r,Color.BLUE, 2*4, linearDragForce));
 			connectors.add(new ElasticConnector(particles.get(0), particles.get(1), r*10, springConstant,springDampingConstant, canGoSlack, Color.WHITE, hookesLawTruncation));
-		} else if (false) {
+		} else if (layout == LayoutMode.PENDULUM_DEMO_3) {
 			// 4 link chain
 			linearDragForce=1;
 			double springConstant=1000000, springDampingConstant=1000;
@@ -136,7 +166,7 @@ public class BasicPhysicsEngineUsingBox2D {
 			connectors.add(new ElasticConnector(particles.get(2), particles.get(3), r*6, springConstant,springDampingConstant, false, Color.WHITE, hookesLawTruncation));
 			particles.add(new BasicParticle(WORLD_WIDTH/2,WORLD_HEIGHT/2-7,0,0, r/2,Color.BLUE, 2*4, linearDragForce));
 			connectors.add(new ElasticConnector(particles.get(3), particles.get(4), r*6, springConstant,springDampingConstant, false, Color.WHITE, hookesLawTruncation));
-		} else if (false) {
+		} else if (layout == LayoutMode.PENDULUM_DEMO_4) {
 			// rectangle box
 			linearDragForce=.1f;
 			double springConstant=1000000, springDampingConstant=1000;
@@ -156,7 +186,7 @@ public class BasicPhysicsEngineUsingBox2D {
 		
 		
 		
-		if (false) {
+		if (layout == LayoutMode.CONVEX_ARENA || layout == LayoutMode.CONCAVE_ARENA || layout == LayoutMode.CONVEX_ARENA_WITH_CURVE) {
 			Random x=new Random(3);
 			for (int i=0;i<40;i++) {
 				particles.add(new BasicParticle((0.5f+0.3f*(x.nextFloat()-.5f))*WORLD_HEIGHT,(0.5f+0.3f*(x.nextFloat()-.5f))*WORLD_WIDTH,0f,0f, r/2,new Color(x.nextFloat(), x.nextFloat(), x.nextFloat()), .2f, linearDragForce));				
@@ -244,6 +274,181 @@ public class BasicPhysicsEngineUsingBox2D {
 				
 				break;
 			}
+			case PENDULUM_DEMO: {
+
+
+				final ParticleAttachedToMousePointer mppart = new ParticleAttachedToMousePointer(WORLD_WIDTH/2,WORLD_HEIGHT/2,0,0, r, 10000);
+				final BasicParticle fixedPart = new BasicParticle(WORLD_WIDTH/2, WORLD_HEIGHT/2, 0,0,r, Color.YELLOW, 10000, 1);
+				final BasicParticle bp = new BasicParticle(WORLD_WIDTH/2,WORLD_HEIGHT/2-2,0,0, r, Color.BLUE, 2*4, (float) rollingFriction);
+				final BasicParticle offsetBP = new BasicParticle(
+						(float)(WORLD_WIDTH/2 - (2 * Math.sqrt(2))),(float)(WORLD_HEIGHT/2-2 + (2 * Math.sqrt(2))),0,0, r, Color.BLUE, 2*4, (float) rollingFriction);
+				particles.add(mppart);
+				particles.add(offsetBP);
+				particles.add(bp);
+
+				final ElasticConnector ec = new ElasticConnector(
+						mppart,
+						//fixedPart,
+						//new BasicParticle(WORLD_WIDTH/2, WORLD_HEIGHT/2,0,0,r, true, Color.YELLOW, 10000, 1),
+						//offsetBP,
+						bp,
+						2,
+						springConstant,
+						springDampingConstant,
+						canGoSlack,
+						Color.RED,
+						hookesLawTruncation
+				);
+				connectors.add(ec);
+
+				final BasicParticle chainPart2 = new BasicParticle(WORLD_WIDTH/2,WORLD_HEIGHT/2-4,0,0, r,Color.BLUE, 2*4, (float)rollingFriction);
+				final ElasticConnector ec2 = new ElasticConnector(
+						bp,
+						chainPart2,
+						2,
+						springConstant,
+						springDampingConstant,
+						canGoSlack,
+						Color.RED,
+						hookesLawTruncation
+				);
+				connectors.add(ec2);
+				particles.add(chainPart2);
+				//connectors.add(ec);
+
+				/*
+				for (BasicParticle p : particles) {
+					p.update(GRAVITY, DELTA_T); // tell each particle to move
+				}
+
+				 */
+
+				break;
+			}
+			case BLOCK_GAME:{
+
+				// floor
+				barriers.add(
+						new AnchoredBarrier_StraightLine(
+								WORLD_WIDTH, 0.1f, 0, 0.1f, Color.WHITE
+						)
+				);
+
+				barriers.add(
+						new AnchoredBarrier_StraightLine(
+								WORLD_WIDTH, 0.1f, WORLD_WIDTH, 1.5f, Color.LIGHT_GRAY
+						)
+				);
+
+				barriers.add(
+						new AnchoredBarrier_StraightLine(
+								WORLD_WIDTH, 1.5f, 0, 0.1f, Color.LIGHT_GRAY
+						)
+				);
+
+				barriers.add(
+						new AnchoredBarrier_StraightLine(
+								5.5f * WORLD_WIDTH/6, 1.4f, 5.5f * WORLD_WIDTH/6, 1.5f, Color.GRAY
+						)
+				);
+
+
+
+				barriers.add(
+						new AnchoredBarrier_StraightLine(
+								5.5f * WORLD_WIDTH/6, 1.5f, WORLD_WIDTH/3, 1.5f, Color.GRAY
+						)
+				);
+
+				barriers.add(
+						new AnchoredBarrier_StraightLine(
+								WORLD_WIDTH/3, 1.5f, WORLD_WIDTH/3, 0.6f, Color.GRAY
+						)
+				);
+
+
+
+				Path2D.Float rec3by9 = new Path2D.Float(new Rectangle2D.Float(-0.15f,-0.15f,0.3f,0.9f));
+
+				Path2D.Float rec12by3 = new Path2D.Float(new Rectangle2D.Float(-0.6f,-0.15f,1.2f, 0.3f));
+
+				Path2D.Float fp = new Path2D.Float(new Rectangle2D.Float(-0.15f,-0.2f,0.3f,0.4f));
+
+				/*
+				polygons.add(
+						new BasicPolygon(WORLD_WIDTH/2 + 0.6f, WORLD_HEIGHT/2, 0, 0, 1, Color.RED, 1, (float) 0, rec3by9, 4)
+				);
+
+				polygons.add(
+						new BasicPolygon(WORLD_WIDTH/2 - 0.6f, WORLD_HEIGHT/2, 0, 0, 1, Color.RED, 1, (float) 0, rec3by9, 4)
+				);
+
+				polygons.add(
+						new BasicPolygon(WORLD_WIDTH/2, WORLD_HEIGHT/2 + 1, 0, 0, 1, Color.RED, 1, (float) 0, rec12by3, 4)
+				);
+
+				 */
+
+				polygons.addAll(
+						BasicPolygon.RECTANGLE_ARCH_FACTORY(
+								5 * WORLD_HEIGHT/8,
+								1.5f,
+								Color.GRAY,
+								Color.LIGHT_GRAY,
+								1,
+								(float) rollingFriction,
+								1.0f,
+								1.0f,
+								0.25f,
+								0.25f,
+								3
+						)
+				);
+
+				polygons.addAll(
+						BasicPolygon.RECTANGLE_ARCH_FACTORY(
+								5 * WORLD_HEIGHT/8,
+								2.5f,
+								Color.GRAY,
+								Color.LIGHT_GRAY,
+								1,
+								(float) rollingFriction,
+								1.0f,
+								1.0f,
+								0.25f,
+								0.25f,
+								2
+						)
+				);
+
+				polygons.addAll(
+						BasicPolygon.RECTANGLE_ARCH_FACTORY(
+								5 * WORLD_HEIGHT/8,
+								3.5f,
+								Color.GRAY,
+								Color.LIGHT_GRAY,
+								1,
+								(float) rollingFriction,
+								1.0f,
+								1.0f,
+								0.25f,
+								0.25f,
+								1
+						)
+				);
+
+
+
+
+				/*
+				Random x=new Random(3);
+				for (int i=0;i<40;i++) {
+					particles.add(new BasicParticle((0.5f+0.3f*(x.nextFloat()-.5f))*WORLD_HEIGHT,(0.5f+0.3f*(x.nextFloat()-.5f))*WORLD_WIDTH,0f,0f, r/2,new Color(x.nextFloat(), x.nextFloat(), x.nextFloat()), .2f, linearDragForce));
+				}
+				 */
+
+				break;
+			}
 		}
 	}
 	
@@ -293,8 +498,6 @@ public class BasicPhysicsEngineUsingBox2D {
 			}
 		}
 	}
-	
-
 
 	public void update() {
 		int VELOCITY_ITERATIONS=NUM_EULER_UPDATES_PER_SCREEN_REFRESH;
@@ -309,7 +512,38 @@ public class BasicPhysicsEngineUsingBox2D {
 		}
 		world.step(DELTA_T, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
 	}
-	
+
+	@Override
+	public void draw(Graphics2D g) {
+		for (Drawable p : particles) {
+			p.draw(g);
+		}
+		for (Drawable p : polygons) {
+			p.draw(g);
+		}
+		for (Drawable c : connectors) {
+			c.draw(g);
+		}
+		for (Drawable b : barriers) {
+			b.draw(g);
+		}
+
+		if (BasicMouseListener.isMouseButtonPressed()){
+			final Vec2 mousePos = BasicMouseListener.getWorldCoordinatesOfMousePointer();
+			g.setColor(Color.RED);
+			g.drawLine(convertWorldXtoScreenX(PARTICLE_LAUNCH_LOCATION.x),
+					convertWorldYtoScreenY(PARTICLE_LAUNCH_LOCATION.y),
+					convertWorldXtoScreenX(mousePos.x),
+					convertWorldYtoScreenY(mousePos.y)
+			);
+
+		}
+
+
+	}
+
+
+	//public BasicParticle particle_launcher()
 
 }
 

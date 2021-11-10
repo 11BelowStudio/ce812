@@ -5,7 +5,7 @@ import java.awt.Graphics2D;
 
 import org.jbox2d.dynamics.joints.DistanceJointDef;
 
-public class ElasticConnector {
+public class ElasticConnector implements Drawable {
 	/* Author: Michael Fairbank
 	 * Creation Date: 2016-01-28
 	 * Significant changes applied:

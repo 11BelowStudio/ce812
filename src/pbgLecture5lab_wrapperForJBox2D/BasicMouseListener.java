@@ -21,6 +21,8 @@ public class BasicMouseListener extends MouseInputAdapter {
 	private static int mouseX, mouseY;
 	private static boolean mouseButtonPressed;
 
+	private static boolean mouseButtonClicked;
+
 	private static MouseJoint mouseJoint;
 	
 	public void mouseMoved(MouseEvent e) {
@@ -33,9 +35,13 @@ public class BasicMouseListener extends MouseInputAdapter {
 			linkMouseDragEventToANewMouseJoint(null);
 		}
 	}
-	public boolean isMouseButtonPressed() {
+
+	public static boolean isMouseButtonPressed() {
 		return mouseButtonPressed;
 	}
+
+	public static boolean isMouseButtonClicked(){ return mouseButtonClicked; }
+
 	public static Vec2 getWorldCoordinatesOfMousePointer() {
 		return new Vec2(BasicPhysicsEngineUsingBox2D.convertScreenXtoWorldX(mouseX), BasicPhysicsEngineUsingBox2D.convertScreenYtoWorldY(mouseY));
 	}
@@ -68,6 +74,18 @@ public class BasicMouseListener extends MouseInputAdapter {
 
 			
 		}
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		mouseButtonClicked = true;
+	}
+
+	/**
+	 * Call this every frame to reset the mouseClicked stuff when the mouse isn't currently being clicked.
+	 */
+	public static void resetMouseClicked(){
+		mouseButtonClicked = false;
 	}
 
 	public static void linkMouseDragEventToANewMouseJoint(MouseJoint mj) {

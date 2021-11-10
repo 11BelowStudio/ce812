@@ -23,8 +23,7 @@ public class AnchoredBarrier_StraightLine extends AnchoredBarrier {
 
 
 	public AnchoredBarrier_StraightLine(float startx, float starty, float endx, float endy, Color col) {
-		
-		
+
 		startPos=new Vec2(startx,starty);
 		endPos=new Vec2(endx,endy);
 
@@ -39,10 +38,11 @@ public class AnchoredBarrier_StraightLine extends AnchoredBarrier {
 		ChainShape chainShape = new ChainShape();
 		chainShape.createChain(vertices, vertices.length);
 		body.createFixture(chainShape, 0);
-		
-		
+
+
 		this.col=col;
 	}
+
 
 	@Override
 	public void draw(Graphics2D g) {
