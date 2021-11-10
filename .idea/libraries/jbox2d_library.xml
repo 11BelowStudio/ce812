@@ -7,6 +7,8 @@
     <JAVADOC>
       <root url="jar://$PROJECT_DIR$/lib/jbox2d-library-2.2.1.1-javadoc.jar!/" />
     </JAVADOC>
-    <SOURCES />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/lib/jbox2d-library-2.2.1.1-sources.jar!/" />
+    </SOURCES>
   </library>
 </component>
