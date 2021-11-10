@@ -119,12 +119,19 @@ public class BasicPolygon implements Drawable, IHaveABody, Toppleable {
 
 				wasToppled = true;
 			} else {
+				if (body.getPosition().y < startY || body.getPosition().x > BasicPhysicsEngineUsingBox2D.WORLD_WIDTH || body.getPosition().x < 0){
+					// it's toppled if it fell below its start position, or if it goes out of the screen's bounds
+					wasToppled = true;
+				}
+				/*
 				final float dist_from_start = body.getPosition().clone().sub(new Vec2(startX, startY)).length();
 				//System.out.println(dist_from_start);
 				if (dist_from_start >= topple_dist) {
 
 					wasToppled = true;
 				}
+
+				 */
 			}
 		}
 	}
