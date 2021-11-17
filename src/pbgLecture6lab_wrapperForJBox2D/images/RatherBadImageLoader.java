@@ -19,9 +19,9 @@ public class RatherBadImageLoader {
         return img;
     }
 
-    private static final Map<String, BufferedImage> images = new HashMap<>();
+    private static final Map<String, Image> images = new HashMap<>();
 
-    public static Map<String, BufferedImage> get_images(){
+    public static Map<String, Image> get_images(){
         return new HashMap<>(images);
     }
 
@@ -34,22 +34,5 @@ public class RatherBadImageLoader {
         }
     }
 
-    /**
-     * Credit to https://stackoverflow.com/a/57619016
-     * @param bimg
-     * @param angle
-     * @return
-     */
-    public static BufferedImage rotate(BufferedImage bimg, double angle) {
 
-        int w = bimg.getWidth();
-        int h = bimg.getHeight();
-
-        BufferedImage rotated = new BufferedImage(w, h, bimg.getType());
-        Graphics2D graphic = rotated.createGraphics();
-        graphic.rotate(angle, w/2.0, h/2.0);
-        graphic.drawImage(bimg, null, 0, 0);
-        graphic.dispose();
-        return rotated;
-    }
 }

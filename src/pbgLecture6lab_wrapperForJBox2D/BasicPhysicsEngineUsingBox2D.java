@@ -1,6 +1,7 @@
 package pbgLecture6lab_wrapperForJBox2D;
 
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +19,7 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 	
 	// frame dimensions
 	public static final int SCREEN_HEIGHT = 680;
-	public static final int SCREEN_WIDTH = 640;
+	public static final int SCREEN_WIDTH = 680;
 	public static final Dimension FRAME_SIZE = new Dimension(
 			SCREEN_WIDTH, SCREEN_HEIGHT);
 	public static final float WORLD_WIDTH=10;//metres
@@ -200,15 +201,21 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 
 
 
-		float stick_height = WORLD_HEIGHT/2;
+		float stick_height = WORLD_HEIGHT/2.0f;
+		float stick_width = WORLD_WIDTH/10.0f;
 
 		// it's brown AND sticky!
 		the_really_big_stick = BasicPolygon.RECTANGLE_FACTORY(
 				rect_x, (rect_y - rect_height/3) + stick_height/2, 0, 0, 1, new Color(78, 52, 36),
-				5f, rollingFriction, 0.5f, stick_height, BodyType.DYNAMIC
+				5f, rollingFriction, stick_width, stick_height, BodyType.DYNAMIC
 		);
 
-		the_really_big_stick.soBrave();
+		//the_really_big_stick.soBrave(-0.25, -(stick_height - rect_height/6));
+		the_really_big_stick.soBrave(
+				new Vec2(0f, -(stick_height - rect_height/6)),
+				BasicPhysicsEngineUsingBox2D.convertWorldXtoScreenX(stick_width),
+				BasicPhysicsEngineUsingBox2D.convertWorldYtoScreenY(stick_height)
+		);
 
 		RevoluteJointDef the_sticky_bit_of_the_stick = new RevoluteJointDef();
 
@@ -217,8 +224,6 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 		the_sticky_bit_of_the_stick.bodyB = the_really_big_stick.getBody();
 		the_sticky_bit_of_the_stick.localAnchorB = new Vec2(0, -(stick_height/2) + rect_height/6);
 		the_sticky_bit_of_the_stick.collideConnected = false;
-
-		the_sticky_bit_of_the_stick.enableMotor = false;
 
 		world.createJoint(the_sticky_bit_of_the_stick);
 
@@ -239,10 +244,15 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 		float ny = v.x * sin + v.y * cos;
 		return new Vec2(nx,ny);
 	}
+
+	public static double Vec2Angle(Vec2 a, Vec2 b){
+		return Math.atan2(b.y - a.y, b.x - a.x);
+	}
+
 	public static void main(String[] args) throws Exception {
 		final BasicPhysicsEngineUsingBox2D game = new BasicPhysicsEngineUsingBox2D();
 		final BasicView view = new BasicView(game);
-		JEasyFrame frame = new JEasyFrame(view, "It's like that one game where there's the birds that you shoot at the thing");
+		JEasyFrame frame = new JEasyFrame(view, "DAE brown and sticky??????????");
 		frame.addKeyListener(new BasicKeyListener());
 		final BasicMouseListener bml = new BasicMouseListener();
 		view.addMouseMotionListener(bml);
@@ -306,6 +316,8 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 			// give the objects an opportunity to add any bespoke forces, e.g. rolling friction
 			p.notificationOfNewTimestep();
 		}
+
+		the_really_big_stick.notificationOfNewTimestep();
 
 		if (BasicKeyListener.isRotateLeftKeyPressed()){
 			if (rightRevWheel.isMotorEnabled()){

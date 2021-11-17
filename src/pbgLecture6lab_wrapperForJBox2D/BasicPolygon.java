@@ -13,11 +13,7 @@ import java.util.Optional;
 
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Vec2;
-import org.jbox2d.dynamics.Body;
-import org.jbox2d.dynamics.BodyDef;
-import org.jbox2d.dynamics.BodyType;
-import org.jbox2d.dynamics.FixtureDef;
-import org.jbox2d.dynamics.World;
+import org.jbox2d.dynamics.*;
 
 import pbgLecture6lab_wrapperForJBox2D.images.RatherBadImageLoader;
 
@@ -42,19 +38,25 @@ public class BasicPolygon implements Drawable, IHaveABody, Toppleable {
 
 	private static final float topple_dist = 0.45f; // moved 0.45 world units from start = toppled.
 
-	private static final float topple_angle = (float) Math.toRadians(50f); // rotated at least 90deg from start = toppled
+	private static final float topple_angle = (float) Math.toRadians(60f); // rotated at least 90deg from start = toppled
 
 	private boolean brave_if_true;
 
-	private static final Map<String, BufferedImage> images = RatherBadImageLoader.get_images();
+	private int braverx, bravery = 0;
 
-	private static final Optional<BufferedImage> BRAVERYSTICK = images.entrySet().stream().filter(
+	private Vec2 image_pivot = new Vec2(0,0);
+
+	private static final Map<String, Image> images = RatherBadImageLoader.get_images();
+
+	private static final Optional<Image> BRAVERYSTICK = images.entrySet().stream().filter(
 			stringImageEntry -> stringImageEntry.getKey().equals("BraveryStick")
 	).map(Map.Entry::getValue).findFirst();
 
-	private static final Optional<BufferedImage> BRAVERYSTICK_FLIPPED = images.entrySet().stream().filter(
+	private static final Optional<Image> BRAVERYSTICK_FLIPPED = images.entrySet().stream().filter(
 			stringImageEntry -> stringImageEntry.getKey().equals("BraveryStickFlipped")
 	).map(Map.Entry::getValue).findFirst();
+
+	private Optional<Rectangle2D> theBraveLittleRectangle = Optional.empty();
 
 	public BasicPolygon(float sx, float sy, float vx, float vy, float radius, Color col, float mass, float rollingFriction, int numSides) {
 		this(sx, sy, vx, vy, radius, col, mass, rollingFriction,mkRegularPolygon(numSides, radius),numSides);
@@ -62,6 +64,8 @@ public class BasicPolygon implements Drawable, IHaveABody, Toppleable {
 	public BasicPolygon(float sx, float sy, float vx, float vy, float radius, Color col, float mass, float rollingFriction, Path2D.Float polygonPath, int numSides) {
 		this(sx, sy, vx, vy, radius, col, mass, rollingFriction, polygonPath, numSides, BodyType.DYNAMIC);
 	}
+
+
 
 
 	public BasicPolygon(float sx, float sy, float vx, float vy, float radius, Color col, float mass, float rollingFriction, Path2D.Float polygonPath, int numSides, BodyType bt){
@@ -90,7 +94,6 @@ public class BasicPolygon implements Drawable, IHaveABody, Toppleable {
 		startY = sy - 0.01f;
 		startAngle = body.getAngle();
 
-
 //		// code to test adding a second fixture:
 //		PolygonShape shape2 = new PolygonShape();
 //		Vec2[] vertices2 = verticesOfPath2D(polygonPath, numSides);
@@ -113,34 +116,55 @@ public class BasicPolygon implements Drawable, IHaveABody, Toppleable {
 	}
 
 
-	public void soBrave(){
+
+	public void soBrave(Vec2 image_pivot, int rect_w, int rect_h){
 		brave_if_true = true;
+		this.image_pivot = new Vec2(image_pivot);
+		braverx = rect_w;
+		bravery = rect_h;
 	}
 	
 	public void draw(Graphics2D g) {
 		g.setColor(col);
 		Vec2 position = body.getPosition();
-		float angle = body.getAngle(); 
+		float angle = body.getAngle();
 		AffineTransform af = new AffineTransform();
 		af.translate(BasicPhysicsEngineUsingBox2D.convertWorldXtoScreenX(position.x), BasicPhysicsEngineUsingBox2D.convertWorldYtoScreenY(position.y));
 		af.scale(ratioOfScreenScaleToWorldScale, -ratioOfScreenScaleToWorldScale);// there is a minus in here because screenworld is flipped upsidedown compared to physics world
-		af.rotate(angle); 
+		af.rotate(angle);
 		Path2D.Float p = new Path2D.Float (polygonPath,af);
+		g.fill(p);
 		if (brave_if_true){
-			float angle_diff = startAngle - body.getAngle();
-			if (angle_diff < 0){
-				BRAVERYSTICK.ifPresent(bufferedImage -> g.setPaint(new TexturePaint(RatherBadImageLoader.rotate(bufferedImage, angle_diff), p.getBounds2D())));
+
+			final Vec2 world_pivot_anchor = body.getWorldPoint(this.image_pivot);
+			final Vec2 w_piv_to_mid = body.getPosition().sub(world_pivot_anchor);
+			//double angle_diff = Math.atan2(w_piv_to_mid.x, w_piv_to_mid.y);
+			if (Math.atan2(w_piv_to_mid.x, w_piv_to_mid.y) > 0){
+				BRAVERYSTICK.ifPresent(i -> braverystick_drawer(i,g,world_pivot_anchor,angle));
 			} else {
-				BRAVERYSTICK_FLIPPED.ifPresent(bufferedImage -> g.setPaint(new TexturePaint(RatherBadImageLoader.rotate(bufferedImage, angle_diff), p.getBounds2D())));
+				BRAVERYSTICK_FLIPPED.ifPresent(i-> braverystick_drawer(i,g,world_pivot_anchor,angle));
 			}
 		}
-		g.fill(p);
 		if (wasToppled){
 			g.setColor(Color.RED);
 			g.draw(p);
 		}
 	}
 
+	/**
+	 * Draws the BraveryStick (very brave)
+	 * @param i the image
+	 * @param g graphics context
+	 * @param v the location of the pivot but in world coordinates instead
+	 * @param a angle of the body we're drawing the BraveryStick over
+	 */
+	private void braverystick_drawer(Image i, Graphics2D g, Vec2 v, float a){
+		final AffineTransform old_at = g.getTransform();
+		g.translate(BasicPhysicsEngineUsingBox2D.convertWorldXtoScreenX(v.x), BasicPhysicsEngineUsingBox2D.convertWorldYtoScreenY(v.y));
+		g.rotate(-a);
+		g.drawImage(i, -braverx/2, (int)(-1.48 * bravery), braverx, bravery, null);
+		g.setTransform(old_at);
+	}
 
 
 	public void notificationOfNewTimestep() {
@@ -152,22 +176,7 @@ public class BasicPolygon implements Drawable, IHaveABody, Toppleable {
 		if (!wasToppled){
 			//System.out.println(startAngle + ", " + body.getAngle() + ", " +  topple_angle + ", " + Math.abs(startAngle - body.getAngle()));
 			if (Math.abs(startAngle - body.getAngle()) > topple_angle){
-
 				wasToppled = true;
-			} else {
-				if (body.getPosition().y < startY || body.getPosition().x > BasicPhysicsEngineUsingBox2D.WORLD_WIDTH || body.getPosition().x < 0){
-					// it's toppled if it fell below its start position, or if it goes out of the screen's bounds
-					wasToppled = true;
-				}
-				/*
-				final float dist_from_start = body.getPosition().clone().sub(new Vec2(startX, startY)).length();
-				//System.out.println(dist_from_start);
-				if (dist_from_start >= topple_dist) {
-
-					wasToppled = true;
-				}
-
-				 */
 			}
 		}
 	}
