@@ -25,9 +25,6 @@ public class BasicKeyListener extends KeyAdapter {
 	public void keyPressed(KeyEvent e) {
 		int key = e.getKeyCode();
 		switch (key) {
-		case KeyEvent.VK_UP:
-			thrustKeyPressed=true;
-			break;
 		case KeyEvent.VK_LEFT:
 			rotateLeftKeyPressed=true;
 			break;
@@ -40,9 +37,6 @@ public class BasicKeyListener extends KeyAdapter {
 	public void keyReleased(KeyEvent e) {
 		int key = e.getKeyCode();
 		switch (key) {
-		case KeyEvent.VK_UP:
-			thrustKeyPressed=false;
-			break;
 		case KeyEvent.VK_LEFT:
 			rotateLeftKeyPressed=false;
 			break;

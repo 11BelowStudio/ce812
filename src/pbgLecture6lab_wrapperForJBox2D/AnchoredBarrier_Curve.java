@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 
 import org.jbox2d.common.Vec2;
+import org.jbox2d.dynamics.Body;
 
 public class AnchoredBarrier_Curve extends AnchoredBarrier {
 	/* Author: Michael Fairbank
@@ -53,5 +54,8 @@ public class AnchoredBarrier_Curve extends AnchoredBarrier {
 	}
 
 
-
+	@Override
+	public Body getBody() {
+		throw new RuntimeException("Not implemented!");
+	}
 }
