@@ -38,7 +38,7 @@ public class BasicPolygon implements Drawable, IHaveABody, Toppleable {
 
 	private static final float topple_dist = 0.45f; // moved 0.45 world units from start = toppled.
 
-	private static final float topple_angle = (float) Math.toRadians(35); // rotated more than 35deg from start = topped.
+	private static final float topple_angle = (float) Math.toRadians(90); // rotated at least 90deg from start = toppled
 
 	public BasicPolygon(float sx, float sy, float vx, float vy, float radius, Color col, float mass, float rollingFriction, int numSides) {
 		this(sx, sy, vx, vy, radius, col, mass, rollingFriction,mkRegularPolygon(numSides, radius),numSides);
@@ -64,7 +64,7 @@ public class BasicPolygon implements Drawable, IHaveABody, Toppleable {
 		wasToppled = false;
 
 		startX = sx;
-		startY = sy;
+		startY = sy - 0.01f;
 		startAngle = body.getAngle();
 
 
