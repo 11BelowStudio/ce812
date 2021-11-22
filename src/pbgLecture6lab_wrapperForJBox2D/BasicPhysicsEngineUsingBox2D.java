@@ -83,13 +83,17 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 
 	private static final Font victory_text_font = new Font(Font.SANS_SERIF, Font.BOLD,16);
 
-	private static final String instructions_words = "click to shoot a ball at the things!";
+	private static final String instructions_words = "press left and right to balance the thing!";
 
 	private boolean not_clicked_yet = true;
 
-	private static final String victory_words = "congartulation, you're winner!";
+	private static final String victory_words = "oh no, you failed after surviving for ";
+
+	private String results_words = "";
 
 	final BasicPolygon the_really_big_stick;
+
+	int survival_time = 0;
 
 
 
@@ -151,15 +155,53 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 
 		barriers.add(
 				new AnchoredBarrier_StraightLine(
+						0, floor_height, 0, 1.5f, Color.WHITE
+				)
+		);
+
+		barriers.add(
+				new AnchoredBarrier_StraightLine(
 						-10, WORLD_HEIGHT, WORLD_WIDTH+10, WORLD_HEIGHT, Color.WHITE
 				)
 		);
 
 		barriers.add(
 				new AnchoredBarrier_StraightLine(
-						WORLD_WIDTH+10, WORLD_HEIGHT, WORLD_WIDTH+10, floor_height, Color.WHITE
+						WORLD_WIDTH+10, WORLD_HEIGHT, WORLD_WIDTH + 10, floor_height, Color.WHITE
 				)
 		);
+
+		barriers.add(
+				new AnchoredBarrier_StraightLine(
+						WORLD_WIDTH, floor_height, WORLD_WIDTH, 1.5f, Color.WHITE
+				)
+		);
+
+		barriers.add(
+				new AnchoredBarrier_StraightLine(
+						0, floor_height, WORLD_WIDTH, floor_height * 4, Color.LIGHT_GRAY
+				)
+		);
+
+		barriers.add(
+				new AnchoredBarrier_StraightLine(
+						WORLD_WIDTH, floor_height, 0, floor_height * 4, Color.LIGHT_GRAY
+				)
+		);
+
+		barriers.add(
+				new AnchoredBarrier_StraightLine(
+						WORLD_WIDTH/2, floor_height, WORLD_WIDTH, floor_height * 6, Color.GRAY
+				)
+		);
+
+		barriers.add(
+				new AnchoredBarrier_StraightLine(
+						 WORLD_WIDTH/2, floor_height, 0, floor_height * 6, Color.GRAY
+				)
+		);
+
+		survival_time = 0;
 
 		float rect_x = WORLD_WIDTH/2;
 		float rect_y = 0.75f + floor_height;
@@ -327,6 +369,9 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 				leftRevWheel.enableMotor(true);
 				leftRevWheel.setMotorSpeed(-50);
 			}
+			if (not_clicked_yet){
+				not_clicked_yet = false;
+			}
 		} else if (BasicKeyListener.isRotateRightKeyPressed()){
 			if (leftRevWheel.isMotorEnabled()){
 				leftRevWheel.enableMotor(false);
@@ -334,6 +379,9 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 			if (!rightRevWheel.isMotorEnabled()){
 				rightRevWheel.enableMotor(true);
 				rightRevWheel.setMotorSpeed(50);
+			}
+			if (not_clicked_yet){
+				not_clicked_yet = false;
 			}
 		} else{
 			if(leftRevWheel.isMotorEnabled()){
@@ -368,6 +416,17 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 		 */
 
 		world.step(DELTA_T, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
+
+		if (layout == LayoutMode.BALANCE_CART){
+			if (!toppled_all_blocks){
+				toppled_all_blocks = the_really_big_stick.isToppled();
+				if (toppled_all_blocks){
+					results_words = "oh no, you failed after surviving for " + survival_time + " ticks!";
+				} else if (!not_clicked_yet){
+					survival_time++;
+				}
+			}
+		}
 
 		if (layout == LayoutMode.BLOCK_GAME){ // if we're in the block game
 			// and we haven't toppled all blocks yet
@@ -409,8 +468,68 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 		the_really_big_stick.draw(g);
 
 
+		if (layout == LayoutMode.BALANCE_CART){
+
+			final Font oldFont = g.getFont();
+
+			g.setFont(victory_text_font);
+
+			final FontMetrics fm = g.getFontMetrics();
+
+			final String score_words = String.valueOf(survival_time);
+
+			final int draw_x_pos = (SCREEN_WIDTH - fm.stringWidth(score_words));
+			final int draw_y_pos = (SCREEN_HEIGHT - fm.getHeight());
+
+			g.setColor(Color.BLACK);
+			g.drawString(score_words, draw_x_pos - 1, draw_y_pos - 1);
+			g.drawString(score_words, draw_x_pos - 1, draw_y_pos + 1);
+			g.drawString(score_words, draw_x_pos + 1, draw_y_pos + 1);
+			g.drawString(score_words, draw_x_pos + 1, draw_y_pos - 1);
+
+			g.setColor(Color.WHITE);
+			g.drawString(score_words, draw_x_pos, draw_y_pos);
+
+			if (not_clicked_yet){
+				g.setFont(victory_text_font);
+
+				final FontMetrics fm2 = g.getFontMetrics();
+
+				final int draw_x_pos2 = (SCREEN_WIDTH - fm2.stringWidth(instructions_words))/2;
+				final int draw_y_pos2 = (SCREEN_HEIGHT - fm2.getHeight())/2;
+
+				g.setColor(Color.BLACK);
+				g.drawString(instructions_words, draw_x_pos2 - 1, draw_y_pos2 - 1);
+				g.drawString(instructions_words, draw_x_pos2 - 1, draw_y_pos2 + 1);
+				g.drawString(instructions_words, draw_x_pos2 + 1, draw_y_pos2 + 1);
+				g.drawString(instructions_words, draw_x_pos2 + 1, draw_y_pos2 - 1);
+
+				g.setColor(Color.WHITE);
+				g.drawString(instructions_words, draw_x_pos2, draw_y_pos2);
+
+				g.setFont(oldFont);
+			}
+
+			if (toppled_all_blocks){
+
+				final FontMetrics fm2 = g.getFontMetrics();
+
+				final int draw_x_pos2 = (SCREEN_WIDTH - fm2.stringWidth(results_words))/2;
+				final int draw_y_pos2 = (SCREEN_HEIGHT - fm2.getHeight())/2;
+
+				g.setColor(Color.BLACK);
+				g.drawString(results_words, draw_x_pos2 - 1, draw_y_pos2 - 1);
+				g.drawString(results_words, draw_x_pos2 - 1, draw_y_pos2 + 1);
+				g.drawString(results_words, draw_x_pos2 + 1, draw_y_pos2 + 1);
+				g.drawString(results_words, draw_x_pos2 + 1, draw_y_pos2 - 1);
+
+				g.setColor(Color.WHITE);
+				g.drawString(results_words, draw_x_pos2, draw_y_pos2);
 
 
+			}
+			g.setFont(oldFont);
+		}
 		if (layout == LayoutMode.BLOCK_GAME) {
 
 			if (not_clicked_yet){
