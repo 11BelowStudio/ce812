@@ -38,7 +38,7 @@ public class BasicPolygon implements Drawable, IHaveABody, Toppleable {
 
 	private static final float topple_dist = 0.45f; // moved 0.45 world units from start = toppled.
 
-	private static final float topple_angle = (float) Math.toRadians(60f); // rotated at least 90deg from start = toppled
+	private static final float topple_angle = (float) Math.toRadians(45f); // rotated at least 90deg from start = toppled
 
 	private boolean brave_if_true;
 

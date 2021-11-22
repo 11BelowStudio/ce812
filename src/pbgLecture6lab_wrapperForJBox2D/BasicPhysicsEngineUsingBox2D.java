@@ -83,7 +83,7 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 
 	private static final Font victory_text_font = new Font(Font.SANS_SERIF, Font.BOLD,16);
 
-	private static final String instructions_words = "press left and right to balance the thing!";
+	private static final String instructions_words = "press left and right to balance the BraveryStick!";
 
 	private boolean not_clicked_yet = true;
 
@@ -179,25 +179,25 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 
 		barriers.add(
 				new AnchoredBarrier_StraightLine(
-						0, floor_height, WORLD_WIDTH, floor_height * 4, Color.LIGHT_GRAY
+						WORLD_WIDTH/2, floor_height*2, WORLD_WIDTH, floor_height * 4, Color.LIGHT_GRAY
 				)
 		);
 
 		barriers.add(
 				new AnchoredBarrier_StraightLine(
-						WORLD_WIDTH, floor_height, 0, floor_height * 4, Color.LIGHT_GRAY
+						WORLD_WIDTH/2, floor_height*2, 0, floor_height * 4, Color.LIGHT_GRAY
 				)
 		);
 
 		barriers.add(
 				new AnchoredBarrier_StraightLine(
-						WORLD_WIDTH/2, floor_height, WORLD_WIDTH, floor_height * 6, Color.GRAY
+						2* WORLD_WIDTH/3, floor_height * 2.5f, WORLD_WIDTH, floor_height * 6, Color.GRAY
 				)
 		);
 
 		barriers.add(
 				new AnchoredBarrier_StraightLine(
-						 WORLD_WIDTH/2, floor_height, 0, floor_height * 6, Color.GRAY
+						 WORLD_WIDTH/3, floor_height * 2.5f, 0, floor_height * 6, Color.GRAY
 				)
 		);
 
@@ -205,7 +205,7 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 
 		float rect_x = WORLD_WIDTH/2;
 		float rect_y = 0.75f + floor_height;
-		float rect_width = 5;
+		float rect_width = 3;
 		float rect_height = 0.75f;
 		float wheel_y = rect_y - (rect_height/4);
 
