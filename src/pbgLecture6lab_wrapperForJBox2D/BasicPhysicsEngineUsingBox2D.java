@@ -422,7 +422,7 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 				toppled_all_blocks = the_really_big_stick.isToppled();
 				if (toppled_all_blocks){
 					results_words = "oh no, you failed after surviving for " + survival_time + " ticks!";
-				} else if (!not_clicked_yet){
+				} else {
 					survival_time++;
 				}
 			}
@@ -490,25 +490,6 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 			g.setColor(Color.WHITE);
 			g.drawString(score_words, draw_x_pos, draw_y_pos);
 
-			if (not_clicked_yet){
-				g.setFont(victory_text_font);
-
-				final FontMetrics fm2 = g.getFontMetrics();
-
-				final int draw_x_pos2 = (SCREEN_WIDTH - fm2.stringWidth(instructions_words))/2;
-				final int draw_y_pos2 = (SCREEN_HEIGHT - fm2.getHeight())/2;
-
-				g.setColor(Color.BLACK);
-				g.drawString(instructions_words, draw_x_pos2 - 1, draw_y_pos2 - 1);
-				g.drawString(instructions_words, draw_x_pos2 - 1, draw_y_pos2 + 1);
-				g.drawString(instructions_words, draw_x_pos2 + 1, draw_y_pos2 + 1);
-				g.drawString(instructions_words, draw_x_pos2 + 1, draw_y_pos2 - 1);
-
-				g.setColor(Color.WHITE);
-				g.drawString(instructions_words, draw_x_pos2, draw_y_pos2);
-
-				g.setFont(oldFont);
-			}
 
 			if (toppled_all_blocks){
 
@@ -527,6 +508,24 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 				g.drawString(results_words, draw_x_pos2, draw_y_pos2);
 
 
+			} else if (not_clicked_yet){
+				g.setFont(victory_text_font);
+
+				final FontMetrics fm2 = g.getFontMetrics();
+
+				final int draw_x_pos2 = (SCREEN_WIDTH - fm2.stringWidth(instructions_words))/2;
+				final int draw_y_pos2 = (SCREEN_HEIGHT - fm2.getHeight())/2;
+
+				g.setColor(Color.BLACK);
+				g.drawString(instructions_words, draw_x_pos2 - 1, draw_y_pos2 - 1);
+				g.drawString(instructions_words, draw_x_pos2 - 1, draw_y_pos2 + 1);
+				g.drawString(instructions_words, draw_x_pos2 + 1, draw_y_pos2 + 1);
+				g.drawString(instructions_words, draw_x_pos2 + 1, draw_y_pos2 - 1);
+
+				g.setColor(Color.WHITE);
+				g.drawString(instructions_words, draw_x_pos2, draw_y_pos2);
+
+				g.setFont(victory_text_font);
 			}
 			g.setFont(oldFont);
 		}
