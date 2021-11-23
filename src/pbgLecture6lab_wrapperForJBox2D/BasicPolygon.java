@@ -36,7 +36,6 @@ public class BasicPolygon implements Drawable, IHaveABody, Toppleable {
 
 	private final float startAngle;
 
-	private static final float topple_dist = 0.45f; // moved 0.45 world units from start = toppled.
 
 	private static final float topple_angle = (float) Math.toRadians(45f); // rotated at least 90deg from start = toppled
 
@@ -56,7 +55,6 @@ public class BasicPolygon implements Drawable, IHaveABody, Toppleable {
 			stringImageEntry -> stringImageEntry.getKey().equals("BraveryStickFlipped")
 	).map(Map.Entry::getValue).findFirst();
 
-	private Optional<Rectangle2D> theBraveLittleRectangle = Optional.empty();
 
 	public BasicPolygon(float sx, float sy, float vx, float vy, float radius, Color col, float mass, float rollingFriction, int numSides) {
 		this(sx, sy, vx, vy, radius, col, mass, rollingFriction,mkRegularPolygon(numSides, radius),numSides);
@@ -64,8 +62,6 @@ public class BasicPolygon implements Drawable, IHaveABody, Toppleable {
 	public BasicPolygon(float sx, float sy, float vx, float vy, float radius, Color col, float mass, float rollingFriction, Path2D.Float polygonPath, int numSides) {
 		this(sx, sy, vx, vy, radius, col, mass, rollingFriction, polygonPath, numSides, BodyType.DYNAMIC);
 	}
-
-
 
 
 	public BasicPolygon(float sx, float sy, float vx, float vy, float radius, Color col, float mass, float rollingFriction, Path2D.Float polygonPath, int numSides, BodyType bt){
@@ -91,7 +87,7 @@ public class BasicPolygon implements Drawable, IHaveABody, Toppleable {
 		brave_if_true = false;
 
 		startX = sx;
-		startY = sy - 0.01f;
+		startY = sy;
 		startAngle = body.getAngle();
 
 //		// code to test adding a second fixture:
