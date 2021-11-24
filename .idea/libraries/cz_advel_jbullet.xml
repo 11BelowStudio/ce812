@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="cz.advel.jbullet" type="repository">
+    <properties maven-id="cz.advel.jbullet:jbullet:20101010-1" />
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/jbullet-20101010-1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/vecmath-1.3.1.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$PROJECT_DIR$/lib/jbullet-20101010-1-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES />
+  </library>
+</component>

@@ -19,5 +19,7 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="jbox2d.library" level="project" />
+    <orderEntry type="library" name="cz.advel.jbullet" level="project" />
+    <orderEntry type="library" name="lwjgl" level="project" />
   </component>
 </module>
