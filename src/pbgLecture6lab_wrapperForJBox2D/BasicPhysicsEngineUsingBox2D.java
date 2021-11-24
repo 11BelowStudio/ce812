@@ -63,6 +63,7 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 	public List<BasicPolygon> polygons;
 	public List<AnchoredBarrier> barriers;
 	public List<ElasticConnector> connectors;
+	private List<BasicParticle> wheels;
 	public static MouseJoint mouseJointDef;
 
 	public List<RevoluteJoint> wheelRevoluteJoints;
@@ -122,6 +123,7 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 		polygons = new ArrayList<BasicPolygon>();
 		barriers = new ArrayList<AnchoredBarrier>();
 		connectors=new ArrayList<ElasticConnector>();
+		wheels = new ArrayList<>();
 
 		wheelRevoluteJoints = new ArrayList<>();
 		// pinball:
@@ -273,6 +275,8 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 		polygons.add(cart_body);
 		particles.add(wheel1);
 		particles.add(wheel2);
+		wheels.add(wheel1);
+		wheels.add(wheel2);
 
 	}
 	
@@ -420,6 +424,14 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 		if (layout == LayoutMode.BALANCE_CART){
 			if (!toppled_all_blocks){
 				toppled_all_blocks = the_really_big_stick.isToppled();
+				if (!toppled_all_blocks){
+					toppled_all_blocks = wheels.stream().anyMatch(
+							bp -> {
+								final float bpposx = bp.getBody().getPosition().x;
+								return (bpposx < 0 || bpposx > BasicPhysicsEngineUsingBox2D.WORLD_WIDTH);
+							}
+					);
+				}
 				if (toppled_all_blocks){
 					results_words = "oh no, you failed after surviving for " + survival_time + " ticks!";
 				} else {
