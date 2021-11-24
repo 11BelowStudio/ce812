@@ -308,6 +308,8 @@ public abstract class JBulletGame3d {
 			case 'x':
 				zoomOut();
 				break;
+			case ' ':
+				space();
 
 			default:
 				// std::cout << "unused key : " << key << std::endl;
@@ -317,6 +319,8 @@ public abstract class JBulletGame3d {
 
 		//LWJGL.postRedisplay();
 	}
+
+	public void space(){}
 
 	
 	public void specialKeyboardUp(int key, int x, int y, int modifiers) {
