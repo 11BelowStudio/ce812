@@ -387,8 +387,6 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 		final float final_position = bike_dist + camera_offset;
 		camera_position = (1-camera_speed) * camera_position + (camera_speed * final_position);
 
-		System.out.println(camera_position);
-
 
 		if (layout == LayoutMode.BIKE_GAME){
 			if (not_clicked_yet){
