@@ -1,14 +1,18 @@
 package pbgLecture8lab_wrapperForJBox2D;
 
 import java.awt.*;
-import java.awt.geom.Rectangle2D;
+import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.jbox2d.common.Vec2;
-import org.jbox2d.dynamics.BodyType;
 import org.jbox2d.dynamics.World;
 import org.jbox2d.dynamics.joints.*;
+
+import javax.swing.*;
+
+import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
 
 
 public class BasicPhysicsEngineUsingBox2D implements Drawable {
@@ -27,6 +31,10 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 	public static final float GRAVITY=9.8f;
 	public static final boolean ALLOW_MOUSE_POINTER_TO_DRAG_BODIES_ON_SCREEN=false;// There's a load of code in basic mouse listener to process this, if you set it to true
 
+	public static final float VICTORY_DISTANCE = 50f;
+	public static final float FULL_WIDTH = WORLD_WIDTH + VICTORY_DISTANCE;
+
+
 	/**
 	 * Box2D container for all bodies and barriers
 	 */
@@ -40,11 +48,15 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 	
 	
 	public static int convertWorldXtoScreenX(float worldX) {
+
 		return (int) (worldX/WORLD_WIDTH*SCREEN_WIDTH);
 	}
 	public static int convertWorldYtoScreenY(float worldY) {
 		// minus sign in here is because screen coordinates are upside down.
 		return (int) (SCREEN_HEIGHT-(worldY/WORLD_HEIGHT*SCREEN_HEIGHT));
+	}
+	public static float convertWorldHeightToScreenHeight(float worldHeight){
+		return (worldHeight/WORLD_HEIGHT*SCREEN_HEIGHT);
 	}
 	public static float convertWorldLengthToScreenLength(float worldLength) {
 		return (worldLength/WORLD_WIDTH*SCREEN_WIDTH);
@@ -56,21 +68,17 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 		return (SCREEN_HEIGHT-screenY)*WORLD_HEIGHT/SCREEN_HEIGHT;
 	}
 
-	
-	
-	
+	public static final int VICTORY_DISTANCE_INT = convertWorldXtoScreenX(VICTORY_DISTANCE);
+
+
+
+
 	public List<BasicParticle> particles;
 	public List<BasicPolygon> polygons;
 	public List<AnchoredBarrier> barriers;
 	public List<ElasticConnector> connectors;
 	private List<BasicParticle> wheels;
 	public static MouseJoint mouseJointDef;
-
-	public List<RevoluteJoint> wheelRevoluteJoints;
-
-	final RevoluteJoint leftRevWheel;
-
-	final RevoluteJoint rightRevWheel;
 
 	private static final Vec2 PARTICLE_LAUNCH_LOCATION = new Vec2(WORLD_WIDTH/8, WORLD_HEIGHT/3);
 
@@ -84,17 +92,29 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 
 	private static final Font victory_text_font = new Font(Font.SANS_SERIF, Font.BOLD,16);
 
-	private static final String instructions_words = "press left and right to balance the BraveryStick!";
+	private static final String instructions_words = "press the right key to move!";
 
 	private boolean not_clicked_yet = true;
 
-	private static final String victory_words = "oh no, you failed after surviving for ";
+	private static final String victory_words = "Congartulation, you made it!";
 
-	private String results_words = "";
+	private final String results_placeholder = "Bike dist: %.2f";
 
-	final BasicPolygon the_really_big_stick;
 
-	int survival_time = 0;
+	private float bike_dist = 0;
+	private boolean won = false;
+
+	private final Bike theBike;
+
+	private static final float camera_offset = -convertScreenXtoWorldX(SCREEN_WIDTH/4);
+	private static final float camera_speed = 0.1f;
+	private static float camera_position = 0f;
+
+	public static float get_camera_position(){
+		return camera_position;
+	}
+
+
 
 
 
@@ -105,27 +125,29 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 		 * The LayoutMode for the block-related game for lab 5
 		 */
 		BLOCK_GAME,
-		BALANCE_CART
+		BALANCE_CART,
+		BIKE_GAME
 	};
 
 	/**
 	 * Use this to select the layout mode for the current demo.
 	 */
-	private static final LayoutMode layout = LayoutMode.BALANCE_CART;
+	private static final LayoutMode layout = LayoutMode.BIKE_GAME;
 
 
-	public BasicPhysicsEngineUsingBox2D() {
+	public BasicPhysicsEngineUsingBox2D(BasicKeyListener bkl) {
 
 		world = new World(new Vec2(0, -GRAVITY));// create Box2D container for everything
 		world.setContinuousPhysics(true);
 
-		particles = new ArrayList<BasicParticle>();
-		polygons = new ArrayList<BasicPolygon>();
-		barriers = new ArrayList<AnchoredBarrier>();
-		connectors=new ArrayList<ElasticConnector>();
+
+
+		particles = new ArrayList<>();
+		polygons = new ArrayList<>();
+		barriers = new ArrayList<>();
+		connectors=new ArrayList<>();
 		wheels = new ArrayList<>();
 
-		wheelRevoluteJoints = new ArrayList<>();
 		// pinball:
 		float linearDragForce=.02f;
 		float r=.3f;
@@ -134,16 +156,12 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 
 		float s=1.2f;
 
-
-		
-		barriers = new ArrayList<AnchoredBarrier>();
-
 		float floor_height = 0.1f;
 
 		// floor
 		barriers.add(
 				new AnchoredBarrier_StraightLine(
-						WORLD_WIDTH + 10, floor_height, -10, floor_height, Color.WHITE
+						FULL_WIDTH, floor_height, -5f, floor_height, Color.WHITE
 				)
 		);
 
@@ -151,28 +169,39 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 
 		barriers.add(
 				new AnchoredBarrier_StraightLine(
-						-10, floor_height, -10, WORLD_HEIGHT, Color.WHITE
+						-5f, floor_height, -5f, WORLD_HEIGHT, Color.WHITE
+				)
+		);
+
+
+		barriers.add(
+				new AnchoredBarrier_StraightLine(
+						-5f, WORLD_HEIGHT, FULL_WIDTH, WORLD_HEIGHT, Color.WHITE
 				)
 		);
 
 		barriers.add(
 				new AnchoredBarrier_StraightLine(
-						0, floor_height, 0, 1.5f, Color.WHITE
+						FULL_WIDTH, WORLD_HEIGHT, FULL_WIDTH, floor_height, Color.WHITE
 				)
 		);
 
+
+		/*
 		barriers.add(
 				new AnchoredBarrier_StraightLine(
-						-10, WORLD_HEIGHT, WORLD_WIDTH+10, WORLD_HEIGHT, Color.WHITE
+						WORLD_WIDTH, 0, WORLD_WIDTH +3f, floor_height + 1.0f, Color.CYAN
 				)
 		);
+		 */
 
-		barriers.add(
-				new AnchoredBarrier_StraightLine(
-						WORLD_WIDTH+10, WORLD_HEIGHT, WORLD_WIDTH + 10, floor_height, Color.WHITE
-				)
-		);
+		barriers.addAll(Arrays.asList(RAMP_FACTORY(WORLD_WIDTH, WORLD_WIDTH+4f, floor_height + 1f)));
 
+
+		barriers.addAll(Arrays.asList(RAMP_FACTORY(WORLD_WIDTH + 20, WORLD_WIDTH + 28f, floor_height + 2f)));
+
+
+		/*
 		barriers.add(
 				new AnchoredBarrier_StraightLine(
 						WORLD_WIDTH, floor_height, WORLD_WIDTH, 1.5f, Color.WHITE
@@ -203,7 +232,11 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 				)
 		);
 
-		survival_time = 0;
+		 */
+
+
+
+		bike_dist = 0;
 
 		float rect_x = WORLD_WIDTH/2;
 		float rect_y = 0.75f + floor_height;
@@ -211,72 +244,35 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 		float rect_height = 0.75f;
 		float wheel_y = rect_y - (rect_height/4);
 
-		BasicPolygon cart_body = BasicPolygon.RECTANGLE_FACTORY(
-				rect_x, rect_y, 0, 0, 1, new Color(74,65,42), 10f, rollingFriction,
-				rect_width, rect_height, BodyType.DYNAMIC);
 
-		BasicParticle wheel1 = new BasicParticle(rect_x - rect_width/2, wheel_y, 0f, 0f, wheel_y - floor_height,  Color.GRAY, 5f, rollingFriction, 10f);
 
-		BasicParticle wheel2 = new BasicParticle(rect_x + rect_width/2, wheel_y, 0f, 0f, wheel_y - floor_height,  Color.GRAY, 5f, rollingFriction, 10f);
-
-		RevoluteJointDef wheelie = new RevoluteJointDef();
-
-		// WheelJointDef realie = new WheelJointDef();
-		// realie.enableMotor = true;
-
-		wheelie.bodyA = cart_body.getBody();
-		wheelie.bodyB = wheel1.getBody();
-		wheelie.collideConnected = false;
-		wheelie.localAnchorA = new Vec2(-rect_width/2, -rect_height/4);
-		wheelie.localAnchorB = new Vec2(0,0);
-		wheelie.enableMotor = true;
-		wheelie.maxMotorTorque = 125f;
-
-		leftRevWheel = (RevoluteJoint) world.createJoint(wheelie);
-
-		wheelRevoluteJoints.add(leftRevWheel);
-
-		wheelie.bodyB = wheel2.getBody();
-		wheelie.localAnchorA = new Vec2(rect_width/2, -rect_height/4);
-
-		rightRevWheel = (RevoluteJoint) world.createJoint(wheelie);
-		wheelRevoluteJoints.add(rightRevWheel);
+		theBike = Bike.DEFAULT_BIKE_FACTORY(bkl);
 
 
 
 
-		float stick_height = WORLD_HEIGHT/2.0f;
-		float stick_width = WORLD_WIDTH/10.0f;
 
-		// it's brown AND sticky!
-		the_really_big_stick = BasicPolygon.RECTANGLE_FACTORY(
-				rect_x, (rect_y - rect_height/3) + stick_height/2, 0, 0, 1, new Color(78, 52, 36),
-				5f, rollingFriction, stick_width, stick_height, BodyType.DYNAMIC
+	}
+
+
+
+	public static AnchoredBarrier[] RAMP_FACTORY(final float start_x, final float end_x, final float height){
+		final float x_length = end_x - start_x;
+		AnchoredBarrier[] ramp_barriers = new AnchoredBarrier[3];
+
+		ramp_barriers[0] = new AnchoredBarrier_StraightLine(
+				start_x, 0, end_x, 2*height/3, Color.CYAN
 		);
 
-		//the_really_big_stick.soBrave(-0.25, -(stick_height - rect_height/6));
-		the_really_big_stick.soBrave(
-				new Vec2(0f, -(stick_height - rect_height/6)),
-				BasicPhysicsEngineUsingBox2D.convertWorldXtoScreenX(stick_width),
-				BasicPhysicsEngineUsingBox2D.convertWorldYtoScreenY(stick_height)
+		ramp_barriers[1] = new AnchoredBarrier_StraightLine(
+				start_x + (x_length/3), 0, end_x, height, Color.CYAN
 		);
 
-		RevoluteJointDef the_sticky_bit_of_the_stick = new RevoluteJointDef();
+		ramp_barriers[2] = new AnchoredBarrier_StraightLine(
+				end_x, 0, end_x, height, Color.WHITE
+		);
+		return ramp_barriers;
 
-		the_sticky_bit_of_the_stick.bodyA = cart_body.getBody();
-		the_sticky_bit_of_the_stick.localAnchorA = new Vec2(0, 0);
-		the_sticky_bit_of_the_stick.bodyB = the_really_big_stick.getBody();
-		the_sticky_bit_of_the_stick.localAnchorB = new Vec2(0, -(stick_height/2) + rect_height/6);
-		the_sticky_bit_of_the_stick.collideConnected = false;
-
-		world.createJoint(the_sticky_bit_of_the_stick);
-
-		polygons.add(the_really_big_stick);
-		polygons.add(cart_body);
-		particles.add(wheel1);
-		particles.add(wheel2);
-		wheels.add(wheel1);
-		wheels.add(wheel2);
 
 	}
 	
@@ -296,13 +292,21 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 	}
 
 	public static void main(String[] args) throws Exception {
-		final BasicPhysicsEngineUsingBox2D game = new BasicPhysicsEngineUsingBox2D();
+
+		final JFrame theFrame = new JFrame("A very brave bike eecks dee");
+		final BasicKeyListener bkl = new BasicKeyListener();
+		theFrame.addKeyListener(bkl);
+		theFrame.setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+		final BasicPhysicsEngineUsingBox2D game = new BasicPhysicsEngineUsingBox2D(bkl);
 		final BasicView view = new BasicView(game);
-		JEasyFrame frame = new JEasyFrame(view, "DAE brown and sticky??????????");
-		frame.addKeyListener(new BasicKeyListener());
-		final BasicMouseListener bml = new BasicMouseListener();
-		view.addMouseMotionListener(bml);
-		view.addMouseListener(bml);
+
+		theFrame.getContentPane().add(BorderLayout.CENTER, view);
+		theFrame.pack();
+		theFrame.setVisible(true);
+		theFrame.repaint();
+		theFrame.setResizable(false);
+
 		game.startThread(view);
 	}
 	private void startThread(final BasicView view) throws InterruptedException {
@@ -322,22 +326,7 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 		int VELOCITY_ITERATIONS=NUM_EULER_UPDATES_PER_SCREEN_REFRESH;
 		int POSITION_ITERATIONS=NUM_EULER_UPDATES_PER_SCREEN_REFRESH;
 
-		if (layout == LayoutMode.BALANCE_CART){
-			String placeholder = "placeholder";
-		} else if(layout == LayoutMode.BLOCK_GAME){
 
-			if (BasicMouseListener.isMouseButtonClicked()){
-				if (not_clicked_yet){
-					not_clicked_yet = false;
-				}
-				if (!toppled_all_blocks){
-					// if it's the block game, and not all blocks have been toppled left, and the mouse button was clicked
-					// we fire a particle from the particle launcher
-					particles.add(particle_launcher());
-				}
-			}
-			BasicMouseListener.resetMouseClicked();
-		}
 
 
 
@@ -363,38 +352,7 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 			p.notificationOfNewTimestep();
 		}
 
-		the_really_big_stick.notificationOfNewTimestep();
-
-		if (BasicKeyListener.isRotateLeftKeyPressed()){
-			if (rightRevWheel.isMotorEnabled()){
-				rightRevWheel.enableMotor(false);
-			}
-			if (!leftRevWheel.isMotorEnabled()){
-				leftRevWheel.enableMotor(true);
-				leftRevWheel.setMotorSpeed(-50);
-			}
-			if (not_clicked_yet){
-				not_clicked_yet = false;
-			}
-		} else if (BasicKeyListener.isRotateRightKeyPressed()){
-			if (leftRevWheel.isMotorEnabled()){
-				leftRevWheel.enableMotor(false);
-			}
-			if (!rightRevWheel.isMotorEnabled()){
-				rightRevWheel.enableMotor(true);
-				rightRevWheel.setMotorSpeed(50);
-			}
-			if (not_clicked_yet){
-				not_clicked_yet = false;
-			}
-		} else{
-			if(leftRevWheel.isMotorEnabled()){
-				leftRevWheel.enableMotor(false);
-			}
-			if (rightRevWheel.isMotorEnabled()){
-				rightRevWheel.enableMotor(false);
-			}
-		}
+		theBike.update();
 
 		/*
 		if (BasicKeyListener.isRotateLeftKeyPressed()){
@@ -421,32 +379,23 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 
 		world.step(DELTA_T, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
 
-		if (layout == LayoutMode.BALANCE_CART){
-			if (!toppled_all_blocks){
-				toppled_all_blocks = the_really_big_stick.isToppled();
-				if (!toppled_all_blocks){
-					toppled_all_blocks = wheels.stream().anyMatch(
-							bp -> {
-								final float bpposx = bp.getBody().getPosition().x;
-								return (bpposx < 0 || bpposx > BasicPhysicsEngineUsingBox2D.WORLD_WIDTH);
-							}
-					);
-				}
-				if (toppled_all_blocks){
-					results_words = "oh no, you failed after surviving for " + survival_time + " ticks!";
-				} else {
-					survival_time++;
-				}
+		bike_dist = theBike.get_x();
+		if (!won){
+			won = bike_dist >= VICTORY_DISTANCE;
+		}
+
+		final float final_position = bike_dist + camera_offset;
+		camera_position = (1-camera_speed) * camera_position + (camera_speed * final_position);
+
+		System.out.println(camera_position);
+
+
+		if (layout == LayoutMode.BIKE_GAME){
+			if (not_clicked_yet){
+				not_clicked_yet = !BasicKeyListener.isRotateRightKeyPressed();
 			}
 		}
 
-		if (layout == LayoutMode.BLOCK_GAME){ // if we're in the block game
-			// and we haven't toppled all blocks yet
-			if (!toppled_all_blocks){
-				toppled_all_blocks = polygons.stream().allMatch(BasicPolygon::isToppled);
-				// we see if there are any blocks left that need toppling.
-			}
-		}
 
 
 	}
@@ -464,6 +413,12 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 
 	@Override
 	public void draw(Graphics2D g) {
+
+		final AffineTransform at = g.getTransform();
+
+		g.translate(-convertWorldXtoScreenX(camera_position), 0);
+
+
 		for (Drawable p : polygons) {
 			p.draw(g);
 		}
@@ -477,10 +432,14 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 			b.draw(g);
 		}
 
-		the_really_big_stick.draw(g);
+		g.setColor(Color.YELLOW);
+		g.drawRect(VICTORY_DISTANCE_INT, 0, 5, SCREEN_HEIGHT);
 
+		theBike.draw(g);
 
-		if (layout == LayoutMode.BALANCE_CART){
+		g.setTransform(at);
+
+		if (layout == LayoutMode.BIKE_GAME) {
 
 			final Font oldFont = g.getFont();
 
@@ -488,123 +447,49 @@ public class BasicPhysicsEngineUsingBox2D implements Drawable {
 
 			final FontMetrics fm = g.getFontMetrics();
 
-			final String score_words = String.valueOf(survival_time);
+			final String score_words = String.format(results_placeholder, bike_dist);
+					//"Bike position: " + String.valueOf(bike_dist);
 
-			final int draw_x_pos = (SCREEN_WIDTH - fm.stringWidth(score_words));
-			final int draw_y_pos = (SCREEN_HEIGHT - fm.getHeight());
+			TEXT_DRAWER(
+					g,
+					(SCREEN_WIDTH - fm.stringWidth(score_words)),
+					(SCREEN_HEIGHT - fm.getHeight()),
+					score_words
+			);
 
-			g.setColor(Color.BLACK);
-			g.drawString(score_words, draw_x_pos - 1, draw_y_pos - 1);
-			g.drawString(score_words, draw_x_pos - 1, draw_y_pos + 1);
-			g.drawString(score_words, draw_x_pos + 1, draw_y_pos + 1);
-			g.drawString(score_words, draw_x_pos + 1, draw_y_pos - 1);
+			if (not_clicked_yet){
 
-			g.setColor(Color.WHITE);
-			g.drawString(score_words, draw_x_pos, draw_y_pos);
-
-
-			if (toppled_all_blocks){
-
-				final FontMetrics fm2 = g.getFontMetrics();
-
-				final int draw_x_pos2 = (SCREEN_WIDTH - fm2.stringWidth(results_words))/2;
-				final int draw_y_pos2 = (SCREEN_HEIGHT - fm2.getHeight())/2;
-
-				g.setColor(Color.BLACK);
-				g.drawString(results_words, draw_x_pos2 - 1, draw_y_pos2 - 1);
-				g.drawString(results_words, draw_x_pos2 - 1, draw_y_pos2 + 1);
-				g.drawString(results_words, draw_x_pos2 + 1, draw_y_pos2 + 1);
-				g.drawString(results_words, draw_x_pos2 + 1, draw_y_pos2 - 1);
-
-				g.setColor(Color.WHITE);
-				g.drawString(results_words, draw_x_pos2, draw_y_pos2);
-
-
-			} else if (not_clicked_yet){
-				g.setFont(victory_text_font);
-
-				final FontMetrics fm2 = g.getFontMetrics();
-
-				final int draw_x_pos2 = (SCREEN_WIDTH - fm2.stringWidth(instructions_words))/2;
-				final int draw_y_pos2 = (SCREEN_HEIGHT - fm2.getHeight())/2;
-
-				g.setColor(Color.BLACK);
-				g.drawString(instructions_words, draw_x_pos2 - 1, draw_y_pos2 - 1);
-				g.drawString(instructions_words, draw_x_pos2 - 1, draw_y_pos2 + 1);
-				g.drawString(instructions_words, draw_x_pos2 + 1, draw_y_pos2 + 1);
-				g.drawString(instructions_words, draw_x_pos2 + 1, draw_y_pos2 - 1);
-
-				g.setColor(Color.WHITE);
-				g.drawString(instructions_words, draw_x_pos2, draw_y_pos2);
-
-				g.setFont(victory_text_font);
+				TEXT_DRAWER(
+						g,
+						(SCREEN_WIDTH - fm.stringWidth(instructions_words))/2,
+						(SCREEN_HEIGHT - fm.getHeight())/2,
+						instructions_words
+				);
+			}
+			if (won){
+				TEXT_DRAWER(
+						g,
+						(SCREEN_WIDTH - fm.stringWidth(victory_words))/2,
+						(SCREEN_HEIGHT - fm.getHeight())/2,
+						victory_words
+				);
 			}
 			g.setFont(oldFont);
 		}
-		if (layout == LayoutMode.BLOCK_GAME) {
-
-			if (not_clicked_yet){
-				final Font oldFont = g.getFont();
-
-				g.setFont(victory_text_font);
-
-				final FontMetrics fm = g.getFontMetrics();
-
-
-				final int draw_x_pos = (SCREEN_WIDTH - fm.stringWidth(instructions_words))/2;
-				final int draw_y_pos = (SCREEN_HEIGHT - fm.getHeight())/2;
-
-				g.setColor(Color.BLACK);
-				g.drawString(instructions_words, draw_x_pos - 1, draw_y_pos - 1);
-				g.drawString(instructions_words, draw_x_pos - 1, draw_y_pos + 1);
-				g.drawString(instructions_words, draw_x_pos + 1, draw_y_pos + 1);
-				g.drawString(instructions_words, draw_x_pos + 1, draw_y_pos - 1);
-
-				g.setColor(Color.WHITE);
-				g.drawString(instructions_words, draw_x_pos, draw_y_pos);
-
-				g.setFont(oldFont);
-			}
-
-			if (toppled_all_blocks){
-
-				final Font oldFont = g.getFont();
-
-				g.setFont(victory_text_font);
-
-				final FontMetrics fm = g.getFontMetrics();
-
-
-				final int draw_x_pos = (SCREEN_WIDTH - fm.stringWidth(victory_words))/2;
-				final int draw_y_pos = (SCREEN_HEIGHT - fm.getHeight())/2;
-
-				g.setColor(Color.BLACK);
-				g.drawString(victory_words, draw_x_pos - 1, draw_y_pos - 1);
-				g.drawString(victory_words, draw_x_pos - 1, draw_y_pos + 1);
-				g.drawString(victory_words, draw_x_pos + 1, draw_y_pos + 1);
-				g.drawString(victory_words, draw_x_pos + 1, draw_y_pos - 1);
-
-				g.setColor(Color.WHITE);
-				g.drawString(victory_words, draw_x_pos, draw_y_pos);
-
-				g.setFont(oldFont);
-
-			} else {
-				if (BasicMouseListener.isMouseButtonPressed()) {
-					final Vec2 mousePos = BasicMouseListener.getWorldCoordinatesOfMousePointer();
-					g.setColor(Color.RED);
-					g.drawLine(convertWorldXtoScreenX(PARTICLE_LAUNCH_LOCATION.x),
-							convertWorldYtoScreenY(PARTICLE_LAUNCH_LOCATION.y),
-							convertWorldXtoScreenX(mousePos.x),
-							convertWorldYtoScreenY(mousePos.y)
-					);
-				}
-
-			}
-		}
 
 
 
+	}
+
+
+	public static void TEXT_DRAWER(Graphics2D g, final int x, final int y, final String t){
+		g.setColor(Color.BLACK);
+		g.drawString(t, x-1, y-1);
+		g.drawString(t, x-1, y+1);
+		g.drawString(t, x+1, y-1);
+		g.drawString(t, x+1, y+1);
+		g.setColor(Color.WHITE);
+		g.drawString(t,x,y);
 	}
 
 

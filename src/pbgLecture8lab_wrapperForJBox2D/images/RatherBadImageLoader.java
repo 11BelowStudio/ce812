@@ -27,8 +27,7 @@ public class RatherBadImageLoader {
 
     static {
         try {
-            loadImage("BraveryStick");
-            loadImage("BraveryStickFlipped");
+            loadImage("BraveryStickMiddle");
         } catch (IOException e) {
             e.printStackTrace();
         }

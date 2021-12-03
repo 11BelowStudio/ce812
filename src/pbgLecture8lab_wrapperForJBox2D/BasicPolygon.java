@@ -48,11 +48,7 @@ public class BasicPolygon implements Drawable, IHaveABody, Toppleable {
 	private static final Map<String, Image> images = RatherBadImageLoader.get_images();
 
 	private static final Optional<Image> BRAVERYSTICK = images.entrySet().stream().filter(
-			stringImageEntry -> stringImageEntry.getKey().equals("BraveryStick")
-	).map(Map.Entry::getValue).findFirst();
-
-	private static final Optional<Image> BRAVERYSTICK_FLIPPED = images.entrySet().stream().filter(
-			stringImageEntry -> stringImageEntry.getKey().equals("BraveryStickFlipped")
+			stringImageEntry -> stringImageEntry.getKey().equals("BraveryStickMiddle")
 	).map(Map.Entry::getValue).findFirst();
 
 
@@ -62,7 +58,6 @@ public class BasicPolygon implements Drawable, IHaveABody, Toppleable {
 	public BasicPolygon(float sx, float sy, float vx, float vy, float radius, Color col, float mass, float rollingFriction, Path2D.Float polygonPath, int numSides) {
 		this(sx, sy, vx, vy, radius, col, mass, rollingFriction, polygonPath, numSides, BodyType.DYNAMIC);
 	}
-
 
 	public BasicPolygon(float sx, float sy, float vx, float vy, float radius, Color col, float mass, float rollingFriction, Path2D.Float polygonPath, int numSides, BodyType bt){
 		World w= BasicPhysicsEngineUsingBox2D.world; // a Box2D object
@@ -119,27 +114,25 @@ public class BasicPolygon implements Drawable, IHaveABody, Toppleable {
 		braverx = rect_w;
 		bravery = rect_h;
 	}
+
+	public void soBrave(int rect_w, int rect_h){
+		brave_if_true = true;
+		braverx = rect_w;
+		bravery = rect_h;
+	}
 	
 	public void draw(Graphics2D g) {
 		g.setColor(col);
-		Vec2 position = body.getPosition();
+		final Vec2 position = body.getPosition();
 		float angle = body.getAngle();
-		AffineTransform af = new AffineTransform();
+		final AffineTransform af = new AffineTransform();
 		af.translate(BasicPhysicsEngineUsingBox2D.convertWorldXtoScreenX(position.x), BasicPhysicsEngineUsingBox2D.convertWorldYtoScreenY(position.y));
 		af.scale(ratioOfScreenScaleToWorldScale, -ratioOfScreenScaleToWorldScale);// there is a minus in here because screenworld is flipped upsidedown compared to physics world
 		af.rotate(angle);
-		Path2D.Float p = new Path2D.Float (polygonPath,af);
+		final Path2D.Float p = new Path2D.Float (polygonPath,af);
 		g.fill(p);
 		if (brave_if_true){
-
-			final Vec2 world_pivot_anchor = body.getWorldPoint(this.image_pivot);
-			final Vec2 w_piv_to_mid = body.getPosition().sub(world_pivot_anchor);
-			//double angle_diff = Math.atan2(w_piv_to_mid.x, w_piv_to_mid.y);
-			if (Math.atan2(w_piv_to_mid.x, w_piv_to_mid.y) > 0){
-				BRAVERYSTICK.ifPresent(i -> braverystick_drawer(i,g,world_pivot_anchor,angle));
-			} else {
-				BRAVERYSTICK_FLIPPED.ifPresent(i-> braverystick_drawer(i,g,world_pivot_anchor,angle));
-			}
+			BRAVERYSTICK.ifPresent(i -> braverystick_drawer(i,g, position, angle));
 		}
 		if (wasToppled){
 			g.setColor(Color.RED);
@@ -158,7 +151,19 @@ public class BasicPolygon implements Drawable, IHaveABody, Toppleable {
 		final AffineTransform old_at = g.getTransform();
 		g.translate(BasicPhysicsEngineUsingBox2D.convertWorldXtoScreenX(v.x), BasicPhysicsEngineUsingBox2D.convertWorldYtoScreenY(v.y));
 		g.rotate(-a);
-		g.drawImage(i, -braverx/2, (int)(-1.48 * bravery), braverx, bravery, null);
+		g.drawImage(i, -braverx/2, -bravery/2, braverx, bravery, null);
+		g.setTransform(old_at);
+	}
+
+	/**
+	 * Draws the BraveryStick (very brave)
+	 * @param i the image
+	 * @param g graphics context
+	 */
+	private void braverystick_drawer(Image i, Graphics2D g, Vec2 v){
+		final AffineTransform old_at = g.getTransform();
+		g.translate(BasicPhysicsEngineUsingBox2D.convertWorldXtoScreenX(v.x), BasicPhysicsEngineUsingBox2D.convertWorldYtoScreenY(v.y));
+		g.drawImage(i, -braverx/2, -bravery/2, braverx, bravery, null);
 		g.setTransform(old_at);
 	}
 
@@ -169,12 +174,14 @@ public class BasicPolygon implements Drawable, IHaveABody, Toppleable {
 			rollingFrictionForce=rollingFrictionForce.mul(-rollingFriction*mass);
 			body.applyForceToCenter(rollingFrictionForce);
 		}
+		/*
 		if (!wasToppled){
 			//System.out.println(startAngle + ", " + body.getAngle() + ", " +  topple_angle + ", " + Math.abs(startAngle - body.getAngle()));
 			if (Math.abs(startAngle - body.getAngle()) > topple_angle){
 				wasToppled = true;
 			}
 		}
+		 */
 	}
 
 	public boolean isToppled(){
@@ -235,6 +242,17 @@ public class BasicPolygon implements Drawable, IHaveABody, Toppleable {
 				new Path2D.Float(new Rectangle2D.Float(
 				-width/2, -height/2, width, height)
 				), 4, bodyType);
+	}
+
+	public static BasicPolygon BRAVE_RECTANGLE_FACTORY(float sx, float sy, float vx, float vy, float radius, Color col,
+													   float mass, float rollingFriction, float width, float height,
+													   BodyType bodyType){
+		final BasicPolygon bp = RECTANGLE_FACTORY(sx, sy, vx, vy, radius, col, mass, rollingFriction, width, height, bodyType);
+		bp.soBrave(
+				(int) BasicPhysicsEngineUsingBox2D.convertWorldLengthToScreenLength(width),
+				(int) BasicPhysicsEngineUsingBox2D.convertWorldHeightToScreenHeight(height)
+		);
+		return bp;
 	}
 
 

@@ -3,7 +3,7 @@ package pbgLecture8lab_wrapperForJBox2D;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
-public class BasicKeyListener extends KeyAdapter {
+public class BasicKeyListener extends KeyAdapter implements BikeController {
 	/* Author: Michael Fairbank
 	 * Creation Date: 2016-01-28
 	 * Significant changes applied:
@@ -20,6 +20,14 @@ public class BasicKeyListener extends KeyAdapter {
 
 	public static boolean isThrustKeyPressed() {
 		return thrustKeyPressed;
+	}
+
+	public BasicKeyListener(){
+
+	}
+
+	public boolean isRightPressed(){
+		return rotateRightKeyPressed;
 	}
 
 	public void keyPressed(KeyEvent e) {
