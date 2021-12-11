@@ -1,8 +1,10 @@
 package crappy;
 
+import crappy.utils.IPair;
+import crappy.utils.Pair;
+
 import java.io.Serializable;
 import java.util.Queue;
-import java.util.Stack;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -167,15 +169,13 @@ public final class Vect2D implements Serializable, I_Vect2D {
     /**
      * rotate by angle given in radians
      * (basically scalar rotation)
-     * @param angle the angle to rotate this Vect2D by
+     * @param rot the rotation to rotate this Vect2D by
      * @return this Vect2D, rotated by angle radians.
      */
-    public Vect2D rotate(final double angle) {
-        final double cos = Math.cos(angle);
-        final double sin = Math.sin(angle);
+    public Vect2D rotate(final I_Rot2D rot) {
         return new Vect2D(
-                x * cos - y * sin,
-                x * sin + y * cos
+                x * rot.get_cos() - y * rot.get_sin(),
+                x * rot.get_sin() + y * rot.get_cos()
         );
     }
 
@@ -239,13 +239,13 @@ public final class Vect2D implements Serializable, I_Vect2D {
     }
 
     /**
-     * Returns cartesian version of the polar vector with given angle and magnitude
-     * @param angleRadians angle for the vector (radians)
+     * Returns cartesian version of the polar vector with given rotation and magnitude
+     * @param rot rotation for the vector
      * @param mag magnitude for the vector
      * @return a vector with given angle and magnitude
      */
-    public static Vect2D POLAR(final double angleRadians, final double mag){
-        return new Vect2D(-mag*Math.sin(angleRadians), mag*Math.cos(angleRadians));
+    public static Vect2D POLAR(final I_Rot2D rot, final double mag){
+        return new Vect2D(-mag*rot.get_sin(), mag*rot.get_cos());
     }
 
     public double getX() {
@@ -297,11 +297,11 @@ public final class Vect2D implements Serializable, I_Vect2D {
         return out_xy;
     }
 
-    public static Vect2D min(I_Vect2D a, I_Vect2D b){
+    public static Vect2D min(final I_Vect2D a, final I_Vect2D b){
         return M_Vect2D.min(a, b).finished();
     }
 
-    public static Vect2D max(I_Vect2D a, I_Vect2D b){
+    public static Vect2D max(final I_Vect2D a, final I_Vect2D b){
         return M_Vect2D.max(a, b).finished();
     }
 
@@ -311,28 +311,104 @@ public final class Vect2D implements Serializable, I_Vect2D {
 }
 
 
-interface I_Vect2D{
+interface I_Vect2D extends IPair<Double, Double>, Comparable<I_Vect2D> {
 
     double getX();
 
     double getY();
 
-    static double ANGLE(final I_Vect2D v1, final I_Vect2D v2){
+    static double angle(final I_Vect2D v1, final I_Vect2D v2){
         return Math.atan2(v2.getY() - v1.getY(), v2.getX() - v1.getX());
     }
 
-    static double DOT(final I_Vect2D v1, final I_Vect2D v2){
+    static double dot(final I_Vect2D v1, final I_Vect2D v2){
         return (v1.getX() * v2.getX()) + (v1.getY() * v2.getY());
     }
 
-    static double MAG(final I_Vect2D v){
+    static double mag(final I_Vect2D v){
         return Math.hypot(v.getX(), v.getY());
     }
 
-    static boolean EQUALS(final I_Vect2D v1 , final I_Vect2D v2){
-        return v1.getX() == v2.getX() && v1.getY() == v2.getY();
+    static double cross(final I_Vect2D v1, final I_Vect2D v2){
+        return v1.getX() * v2.getY() + v1.getY() * v2.getX();
     }
 
+    static Vect2D cross(final I_Vect2D v, final double s){
+        return new Vect2D(-s * v.getY(), s * v.getX());
+    }
+
+    default Double getFirst(){
+        return getX();
+    }
+
+    default Double getSecond(){
+        return getY();
+    }
+
+    /**
+     * Returns a pair holding a vector with the minimum x and y values, and another one with the maximum x and y values,
+     * obtained from the I_Vect2D objects in the vects list.
+     * @param vects the list of I_Vect2D objects which we're looking through
+     * @return Pair of (Min vector, max vector).
+     * @throws IllegalArgumentException if vects has length of 0.
+     */
+    @SafeVarargs
+    static IPair<I_Vect2D, I_Vect2D> min_and_max_varargs(final IPair<Double, Double>... vects){
+        return M_Vect2D.min_and_max_varargs(vects);
+    }
+
+    /**
+     * This is going to be abused by the axis-aligned bounding boxes.
+     * @param o the other I_Vect2D
+     * @return it will either return 11, 4, -3, 5, 0, -5, -1, -4, or -7, depending on where this is in relation to o.
+     * <html>
+     *     <code><br>
+     *      -3 |+4 |+11<br>
+     *      ---|---|---<br>
+     *      -5 | 0 |+5<br>
+     *      ---|---|---<br>
+     *      -7 |-4 |-1<br>
+     *      </code>
+     *
+     * </html>
+     *
+     */
+    @Override
+    default int compareTo(I_Vect2D o) {
+        //
+        // +11|+4 |-3
+        // --- --- ---
+        // +5 | 0 |-5
+        // --- --- ---
+        // -1 |-4 |-7
+        //
+
+        if (getX() > o.getX()){
+            if (getY() > o.getY()){
+                return 11;
+            } else if (getY() == o.getY()){
+                return 5;
+            } else{
+                return -1;
+            }
+        } else if (getX() == o.getX()){
+            if (getY() > o.getY()){
+                return 4;
+            } else if (getY() == o.getY()){
+                return 0;
+            } else{
+                return -4;
+            }
+        } else{
+            if (getY() > o.getY()) {
+                return -3;
+            } else if (getY() == o.getY()){
+                return -5;
+            } else{
+                return -7;
+            }
+        }
+    }
 }
 
 /**
@@ -419,6 +495,9 @@ final class M_Vect2D implements I_Vect2D {
         return _GET_RAW().set(v);
     }
 
+
+    static M_Vect2D GET(final IPair<Double, Double> p){ return _GET_RAW().set(p.getFirst(), p.getSecond()); }
+
     /**
      * Reject modernity, return to 0
      * @return this vector except it'll be (0,0) instead.
@@ -471,6 +550,17 @@ final class M_Vect2D implements I_Vect2D {
         return this;
     }
 
+    /**
+     * use this to make this M_Vect2D copy the value of an IPair of Doubles.
+     * @param p the IPair to copy the value of.
+     * @return this except it has the same values as that IPair.
+     */
+    M_Vect2D set(final IPair<Double, Double> p){
+        this.x = p.getFirst();
+        this.y = p.getSecond();
+        return this;
+    }
+
     @Override
     public double getX() {
         return x;
@@ -506,13 +596,13 @@ final class M_Vect2D implements I_Vect2D {
     }
 
     /**
-     * Obtains an M_Vect2D as a polar vector, with given angle and magnitude
-     * @param angleRadians angle for this vector (radians)
+     * Obtains an M_Vect2D as a polar vector, with given rotation and magnitude
+     * @param rot rotation for this vector
      * @param mag magnitude for this vector
      * @return a mutable polar vector.
      */
-    static M_Vect2D POLAR(final double angleRadians, final double mag){
-        return GET(-mag*Math.sin(angleRadians), mag*Math.cos(angleRadians));
+    static M_Vect2D POLAR(final I_Rot2D rot, final double mag){
+        return GET(-mag * rot.get_sin(), mag * rot.get_cos());
     }
 
     /**
@@ -572,22 +662,26 @@ final class M_Vect2D implements I_Vect2D {
     }
 
     /**
-     * Rotates this M_Vect2D by the given angle (in radians)
-     * @param angle how many radians should this M_Vect2D be rotated by?
-     * @return this M_Vect2D rotated by angle radians.
+     * Rotates this M_Vect2D by the given rotation
+     * @param rot how much should this M_Vect2D be rotated by?
+     * @return this M_Vect2D rotated by the given rot.
      */
-    M_Vect2D rotate(final double angle) {
-        final double cos = Math.cos(angle);
-        final double sin = Math.sin(angle);
+    M_Vect2D rotate(final I_Rot2D rot) {
         final double old_x = x;
         //final double old_y = y;
-        x = old_x * cos - y * sin;
-        y = old_x * sin + y * cos;
+        x = old_x * rot.get_cos() - y * rot.get_sin();
+        y = old_x * rot.get_sin() + y * rot.get_cos();
         return this;
     }
 
     double scalarProduct(final I_Vect2D v){ return x * v.getX() + y * v.getY(); }
 
+    M_Vect2D cross(final double s){
+        final double new_y = s * x;
+        x = -s * y;
+        y = new_y;
+        return this;
+    }
 
 
     /**
@@ -597,13 +691,20 @@ final class M_Vect2D implements I_Vect2D {
      * @param out the M_Vect2D to overwrite the result into
      * @return minimum x and minimum y of the given I_Vect2Ds
      */
-    static M_Vect2D min_to_out(I_Vect2D a, I_Vect2D b, M_Vect2D out){
+    static M_Vect2D min_to_out(final I_Vect2D a, final I_Vect2D b, final M_Vect2D out){
         out.x = a.getX() < b.getX() ? a.getX() : b.getX();
         out.y = a.getY() < b.getY() ? a.getY() : b.getY();
         return out;
     }
 
-    static M_Vect2D min_to_out_varargs(M_Vect2D out, I_Vect2D... vects){
+
+    /**
+     * Attempts to find the minimum x and y values in the given list of I_Vect2D objects.
+     * @param out
+     * @param vects
+     * @return
+     */
+    static M_Vect2D min_to_out_varargs(final M_Vect2D out, final I_Vect2D... vects){
         if (vects.length == 0){
             throw new IllegalArgumentException("Can't find the minimum of 0 items!");
         }
@@ -619,7 +720,7 @@ final class M_Vect2D implements I_Vect2D {
         return out;
     }
 
-    static M_Vect2D min_varargs(I_Vect2D... vects){
+    static M_Vect2D min_varargs(final I_Vect2D... vects){
         return min_to_out_varargs(_GET_RAW(), vects);
     }
 
@@ -629,7 +730,7 @@ final class M_Vect2D implements I_Vect2D {
      * @param b second I_Vect2D
      * @return a new M_Vect2D with the min x and min y from a and b
      */
-    static M_Vect2D min(I_Vect2D a, I_Vect2D b){
+    static M_Vect2D min(final I_Vect2D a, final I_Vect2D b){
         return min_to_out(a, b, _GET_RAW());
     }
 
@@ -640,7 +741,7 @@ final class M_Vect2D implements I_Vect2D {
      * @param out the M_Vect2D to overwrite the result into
      * @return max x and max y of the given I_Vect2Ds
      */
-    static M_Vect2D max_to_out(I_Vect2D a, I_Vect2D b, M_Vect2D out){
+    static M_Vect2D max_to_out(final I_Vect2D a, final I_Vect2D b, final M_Vect2D out){
         out.x = a.getX() > b.getX() ? a.getX() : b.getX();
         out.y = a.getY() > b.getY() ? a.getY() : b.getY();
         return out;
@@ -652,13 +753,13 @@ final class M_Vect2D implements I_Vect2D {
      * @param b second I_Vect2D
      * @return a new M_Vect2D with the max x and max y from a and b
      */
-    static M_Vect2D max(I_Vect2D a, I_Vect2D b){
+    static M_Vect2D max(final I_Vect2D a, final I_Vect2D b){
         return max_to_out(a, b, _GET_RAW());
     }
 
-    static M_Vect2D max_to_out_varargs(M_Vect2D out, I_Vect2D... vects){
+    static M_Vect2D max_to_out_varargs(final M_Vect2D out, final I_Vect2D... vects){
         if (vects.length == 0){
-            throw new IllegalArgumentException("Can't find the minimum of 0 items!");
+            throw new IllegalArgumentException("Can't find the maximum of 0 items!");
         }
         out.set(vects[0]);
         for (int i = vects.length-1; i > 0; i--) {
@@ -672,10 +773,42 @@ final class M_Vect2D implements I_Vect2D {
         return out;
     }
 
-    static M_Vect2D max_varargs(I_Vect2D... vects){
+    static M_Vect2D max_varargs(final I_Vect2D... vects){
         return max_to_out_varargs(_GET_RAW(), vects);
     }
 
+
+    /**
+     * Returns a pair holding a vector with the minimum x and y values, and another one with the maximum x and y values,
+     * obtained from the I_Vect2D objects in the vects list.
+     * @param vects the list of I_Vect2D objects which we're looking through
+     * @return Pair of (Min vector, max vector).
+     * @throws IllegalArgumentException if vects has length of 0.
+     */
+    @SafeVarargs
+    static IPair<I_Vect2D, I_Vect2D> min_and_max_varargs(final IPair<Double, Double>... vects){
+        if (vects.length == 0){
+            throw new IllegalArgumentException("How do you expect me to find the minimum and maximum from an empty list???");
+        }
+        M_Vect2D min = GET(vects[0]);
+        M_Vect2D max = GET(min);
+        for (int i = vects.length-1; i > 0 ; i--) {
+            final double x = vects[i].getFirst();
+            final double y = vects[i].getSecond();
+            if (x < min.x){
+                min.x = x;
+            } else if (x > max.x){
+                max.x = x;
+            }
+            if (y < min.y){
+                min.y = y;
+            } else if (y > max.y){
+                max.y = y;
+            }
+        }
+        return new Pair<>(min, max);
+
+    }
 
 
 }
