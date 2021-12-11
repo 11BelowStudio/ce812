@@ -310,6 +310,59 @@ public final class Vect2D implements Serializable, I_Vect2D {
 
 }
 
+/**
+ * Fuck it, I've just realized that I'm probably going to be able to abuse this
+ * to simplify the whole 'getting an N log N collision handling data structure' stuff.
+ * So I'm enshrining these funny numbers in an enum so I don't forget to abuse this further.
+ */
+enum I_Vect2D_Comp_Values{
+
+    // TODO: abuse the shit out of this to get quadtrees/other things to divide the physics objects
+    //  up into smaller groups for easier collision handling
+
+    X_BIGGER_Y_BIGGER(11),
+    X_BIGGER_Y_SAME(5),
+    X_BIGGER_Y_SMALLER(-1),
+    X_SAME_Y_BIGGER(4),
+    X_SAME_Y_SAME(0),
+    X_SAME_Y_SMALLER(-4),
+    X_SMALLER_Y_BIGGER(-3),
+    X_SMALLER_Y_SAME(-5),
+    X_SMALLER_Y_SMALLER(-7);
+
+    public final int out_val;
+
+    I_Vect2D_Comp_Values(final int int_value){
+        out_val = int_value;
+    }
+
+    I_Vect2D_Comp_Values fromInt(final int input){
+        switch (input){
+            case 11:
+                return X_BIGGER_Y_BIGGER;
+            case 5:
+                return X_BIGGER_Y_SAME;
+            case -1:
+                return X_BIGGER_Y_SMALLER;
+            case 4:
+                return X_SAME_Y_BIGGER;
+            case 0:
+                return X_SAME_Y_SAME;
+            case -4:
+                return X_SAME_Y_SMALLER;
+            case -3:
+                return X_SMALLER_Y_BIGGER;
+            case -5:
+                return X_SMALLER_Y_SAME;
+            case -7:
+                return X_SMALLER_Y_SMALLER;
+            default:
+                throw new IllegalArgumentException("Invalid input!");
+        }
+    }
+
+}
+
 
 interface I_Vect2D extends IPair<Double, Double>, Comparable<I_Vect2D> {
 
@@ -358,7 +411,7 @@ interface I_Vect2D extends IPair<Double, Double>, Comparable<I_Vect2D> {
     }
 
     /**
-     * This is going to be abused by the axis-aligned bounding boxes.
+     * This is going to be abused by the axis-aligned bounding boxes AND A WHOLE LOAD OF EXTRA THINGS BESIDES THAT!
      * @param o the other I_Vect2D
      * @return it will either return 11, 4, -3, 5, 0, -5, -1, -4, or -7, depending on where this is in relation to o.
      * <html>
@@ -385,27 +438,27 @@ interface I_Vect2D extends IPair<Double, Double>, Comparable<I_Vect2D> {
 
         if (getX() > o.getX()){
             if (getY() > o.getY()){
-                return 11;
+                return I_Vect2D_Comp_Values.X_BIGGER_Y_BIGGER.out_val;
             } else if (getY() == o.getY()){
-                return 5;
+                return I_Vect2D_Comp_Values.X_BIGGER_Y_SAME.out_val;
             } else{
-                return -1;
+                return I_Vect2D_Comp_Values.X_BIGGER_Y_SMALLER.out_val;
             }
         } else if (getX() == o.getX()){
             if (getY() > o.getY()){
-                return 4;
+                return I_Vect2D_Comp_Values.X_SAME_Y_BIGGER.out_val;
             } else if (getY() == o.getY()){
-                return 0;
+                return I_Vect2D_Comp_Values.X_SAME_Y_SAME.out_val;
             } else{
-                return -4;
+                return I_Vect2D_Comp_Values.X_SAME_Y_SMALLER.out_val;
             }
         } else{
             if (getY() > o.getY()) {
-                return -3;
+                return I_Vect2D_Comp_Values.X_SMALLER_Y_BIGGER.out_val;
             } else if (getY() == o.getY()){
-                return -5;
+                return I_Vect2D_Comp_Values.X_SMALLER_Y_SAME.out_val;
             } else{
-                return -7;
+                return I_Vect2D_Comp_Values.X_SMALLER_Y_SMALLER.out_val;
             }
         }
     }
