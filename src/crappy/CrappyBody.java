@@ -12,6 +12,12 @@ public class CrappyBody {
 
     protected double angle;
 
+    protected CrappyShape shape;
+
+    protected Crappy_AABB boundingBox;
+
+
+
 
 
 

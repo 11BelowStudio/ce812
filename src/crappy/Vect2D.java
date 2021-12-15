@@ -4,6 +4,7 @@ import crappy.utils.IPair;
 import crappy.utils.Pair;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -112,6 +113,14 @@ public final class Vect2D implements Serializable, I_Vect2D {
     public Vect2D add(final Vect2D v) {
         return new Vect2D(x + v.x, y + v.y);
     }
+
+
+    /**
+     * Adding a scalar d to x and y
+     * @param d scalar to add to x and y
+     * @return this but x and y have both been increased by d.
+     */
+    public Vect2D add(final double d){ return new Vect2D(x + d, y + d); }
 
     /**
      * Adds a vector equal to this + v
@@ -270,7 +279,57 @@ public final class Vect2D implements Serializable, I_Vect2D {
         return M_Vect2D.GET(this).rotate(bodyRotation).add(bodyPos).finished();
     }
 
+    /**
+     * Performs the 'local coordinates to world coordinates' transformation on the coordinates in the given 'locals'
+     * list, and outputs them into the given 'out' list.
+     * @param bodyPos position of the body centroid
+     * @param bodyRotation position of the body's rotation
+     * @param locals local positions of everything in the body
+     * @param out the list which the world positions of everything in the body will be put into
+     */
+    public static void localToWorldCoordinatesForBodyToOut(
+            final Vect2D bodyPos,
+            final Rot2D bodyRotation,
+            final Vect2D[] locals,
+            final Vect2D[] out
+    ){
+        for (int i = locals.length-1; i >= 0; i--) {
+            out[i] = locals[i].localToWorldCoordinates(bodyPos, bodyRotation);
+        }
+    }
 
+    /**
+     * Performs the 'local coordinates to world coordinates' transformation on the coordinates in the given 'locals'
+     * list, and outputs them into the given 'out' list, and also returns a pair with the bounds of the translated vectors
+     * @param bodyPos position of the body centroid
+     * @param bodyRotation position of the body's rotation
+     * @param locals local positions of everything in the body
+     * @param out the list which the world positions of everything in the body will be put into
+     */
+    public static IPair<Vect2D, Vect2D> localToWorldCoordinatesForBodyToOutAndGetBounds(
+            final Vect2D bodyPos,
+            final Rot2D bodyRotation,
+            final Vect2D[] locals,
+            final Vect2D[] out
+    ){
+        out[0] = locals[0].localToWorldCoordinates(bodyPos, bodyRotation);
+        final M_Vect2D min = M_Vect2D.GET(out[0]);
+        final M_Vect2D max = M_Vect2D.GET(min);
+        for (int i = 1; i < locals.length; i++){
+            out[i] = locals[i].localToWorldCoordinates(bodyPos, bodyRotation);
+            if (out[i].x < min.x){
+                min.x = out[i].x;
+            } else if (out[i].x > max.x) {
+                max.x = out[i].x;
+            }
+            if (out[i].y < min.y){
+                min.y = out[i].y;
+            } else if (out[i].y > max.y) {
+                max.y = out[i].y;
+            }
+        }
+        return new Pair<>(min.finished(), max.finished());
+    }
 
 
 }
@@ -383,6 +442,8 @@ interface I_Vect2D extends IPair<Double, Double>, Comparable<I_Vect2D> {
     default Double getSecond(){
         return getY();
     }
+
+    default I_Vect2D to_I_Vect2D(){ return this; }
 
     /**
      * A helper method to compare doubles.
@@ -578,6 +639,10 @@ final class M_Vect2D implements I_Vect2D {
         final Vect2D v = new Vect2D(this);
         discard();
         return v;
+    }
+
+    public I_Vect2D to_I_Vect2D(){
+        return finished();
     }
 
     /**
