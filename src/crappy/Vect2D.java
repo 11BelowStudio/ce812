@@ -248,61 +248,26 @@ public final class Vect2D implements Serializable, I_Vect2D {
         return new Vect2D(-mag*rot.get_sin(), mag*rot.get_cos());
     }
 
-    public double getX() {
-        return x;
+    public double getX() { return x; }
+
+    public double getY(){ return y; }
+
+    public static Vect2D lower_bound(final I_Vect2D a, final I_Vect2D b){
+        return M_Vect2D.lower_bound(a, b).finished();
     }
 
-    public double getY(){
-        return y;
+    public static Vect2D upper_bound(final I_Vect2D a, final I_Vect2D b){
+        return M_Vect2D.upper_bound(a, b).finished();
     }
 
-    // some methods which treat a 2-index array of xy as a substitute for a mutable vector.
-    public double[] toArray(){
-        return new double[]{x, y};
-    }
-
-    public Vect2D(final double[] xy){
-        x = xy[0];
-        y = xy[1];
-    }
-
-    public static double[] ADD_ARRAY(final double[] out_xy, final Vect2D v){
-        out_xy[0] += v.x;
-        out_xy[1] += v.y;
-        return out_xy;
-    }
-
-    public static double[] ADD_SCALED_ARRAY(final double[] out_xy, final Vect2D v, final double scale){
-        out_xy[0] += (v.x * scale);
-        out_xy[1] += (v.y * scale);
-        return out_xy;
-    }
-
-    public static double[] SCALE_ARRAY(final double[] out_xy, final double scale){
-        out_xy[0] *= scale;
-        out_xy[1] *= scale;
-        return out_xy;
-    }
-
-    public static double MAGNITUDE_ARRAY(final double[] xy){
-        return Math.hypot(xy[0], xy[1]);
-    }
-
-    public static double[] NORMALIZE_ARRAY(final double[] out_xy){
-        final double mag = MAGNITUDE_ARRAY(out_xy);
-        if (mag != 0){
-            out_xy[0] /= mag;
-            out_xy[1] /= mag;
-        }
-        return out_xy;
-    }
-
-    public static Vect2D min(final I_Vect2D a, final I_Vect2D b){
-        return M_Vect2D.min(a, b).finished();
-    }
-
-    public static Vect2D max(final I_Vect2D a, final I_Vect2D b){
-        return M_Vect2D.max(a, b).finished();
+    /**
+     * Turns this local coordinate vector into a world coordinate vector.
+     * @param bodyPos the world position of the body this local coordinate is attached to
+     * @param bodyRotation the current rotation of the body which this local coordinate is attached to
+     * @return this local coordinate translated into a world coordinate
+     */
+    public Vect2D localToWorldCoordinates(final Vect2D bodyPos, final Rot2D bodyRotation){
+        return M_Vect2D.GET(this).rotate(bodyRotation).add(bodyPos).finished();
     }
 
 
@@ -315,46 +280,65 @@ public final class Vect2D implements Serializable, I_Vect2D {
  * to simplify the whole 'getting an N log N collision handling data structure' stuff.
  * So I'm enshrining these funny numbers in an enum so I don't forget to abuse this further.
  */
-enum I_Vect2D_Comp_Values{
+enum I_Vect2D_Comp_Enum {
 
     // TODO: abuse the shit out of this to get quadtrees/other things to divide the physics objects
     //  up into smaller groups for easier collision handling
 
-    X_BIGGER_Y_BIGGER(11),
-    X_BIGGER_Y_SAME(5),
-    X_BIGGER_Y_SMALLER(-1),
-    X_SAME_Y_BIGGER(4),
+    // +5 +2 -1
+    // +3  0 -3
+    // +1 -2 -5
+
+    X_BIGGER_Y_BIGGER(5),
+    X_BIGGER_Y_SAME(3),
+    X_BIGGER_Y_SMALLER(1),
+    X_SAME_Y_BIGGER(2),
     X_SAME_Y_SAME(0),
-    X_SAME_Y_SMALLER(-4),
-    X_SMALLER_Y_BIGGER(-3),
-    X_SMALLER_Y_SAME(-5),
-    X_SMALLER_Y_SMALLER(-7);
+    X_SAME_Y_SMALLER(-2),
+    X_SMALLER_Y_BIGGER(-1),
+    X_SMALLER_Y_SAME(-3),
+    X_SMALLER_Y_SMALLER(-5);
+
+    private static final int y_diff_int = 2;
+    private static final int x_diff_int = 3;
 
     public final int out_val;
 
-    I_Vect2D_Comp_Values(final int int_value){
+    private I_Vect2D_Comp_Enum(final int int_value){
         out_val = int_value;
     }
 
-    I_Vect2D_Comp_Values fromInt(final int input){
+    /**
+     * Obtains the appropriate I_Vect2D_Comp_Enum value from the results of comparing the x and y values of
+     * two I_Vect2Ds a and b
+     * @param x_comp_res result of comparing the x values of vector a and vector b
+     * @param y_comp_res result of comparing the y values of vector a and vector b
+     * @return the appropriate I_Vect2D_Comp_Enum describing the relative positions of vectors a and b
+     */
+    public static I_Vect2D_Comp_Enum fromCompResults(final int x_comp_res, final int y_comp_res){
+        return fromInt((x_comp_res * x_diff_int) + (y_diff_int * y_comp_res));
+    }
+
+
+    public static I_Vect2D_Comp_Enum fromInt(final int input){
         switch (input){
-            case 11:
-                return X_BIGGER_Y_BIGGER;
             case 5:
+                return X_BIGGER_Y_BIGGER;
+            case 3:
                 return X_BIGGER_Y_SAME;
-            case -1:
+            case 1:
                 return X_BIGGER_Y_SMALLER;
-            case 4:
+            case 2:
                 return X_SAME_Y_BIGGER;
             case 0:
                 return X_SAME_Y_SAME;
-            case -4:
+            case -2:
                 return X_SAME_Y_SMALLER;
-            case -3:
+            case -1:
                 return X_SMALLER_Y_BIGGER;
-            case -5:
+            case -3:
                 return X_SMALLER_Y_SAME;
-            case -7:
+            case -5:
                 return X_SMALLER_Y_SMALLER;
             default:
                 throw new IllegalArgumentException("Invalid input!");
@@ -362,6 +346,7 @@ enum I_Vect2D_Comp_Values{
     }
 
 }
+
 
 
 interface I_Vect2D extends IPair<Double, Double>, Comparable<I_Vect2D> {
@@ -390,12 +375,30 @@ interface I_Vect2D extends IPair<Double, Double>, Comparable<I_Vect2D> {
         return new Vect2D(-s * v.getY(), s * v.getX());
     }
 
+
     default Double getFirst(){
         return getX();
     }
 
     default Double getSecond(){
         return getY();
+    }
+
+    /**
+     * A helper method to compare doubles.
+     * Like Double.compare(double d1, double d2) but omits the double to long bits stuff
+     * and just returns 0 if neither are found to be bigger than each other, to save time.
+     * @param a first double
+     * @param b second double
+     * @return +1 if a > b, -1 if a < b, otherwise 0.
+     */
+    static int COMPARE_DOUBLES(final double a, final double b){
+        if (a > b){
+            return 1;
+        } else if (a < b){
+            return -1;
+        }
+        return 0;
     }
 
     /**
@@ -413,54 +416,51 @@ interface I_Vect2D extends IPair<Double, Double>, Comparable<I_Vect2D> {
     /**
      * This is going to be abused by the axis-aligned bounding boxes AND A WHOLE LOAD OF EXTRA THINGS BESIDES THAT!
      * @param o the other I_Vect2D
-     * @return it will either return 11, 4, -3, 5, 0, -5, -1, -4, or -7, depending on where this is in relation to o.
+     * @return it will either return 5, 3, 2, 1, 0, -1, -2, -3, or -5, depending on where this is in relation to o.
      * <html>
      *     <code><br>
-     *      -3 |+4 |+11<br>
+     *      -1 |+2 |+5 <br>
      *      ---|---|---<br>
-     *      -5 | 0 |+5<br>
+     *      -3 | 0 |+3 <br>
      *      ---|---|---<br>
-     *      -7 |-4 |-1<br>
+     *      -5 |-2 |+1 <br>
      *      </code>
      *
      * </html>
      *
      */
-    @Override
-    default int compareTo(I_Vect2D o) {
-        //
-        // +11|+4 |-3
-        // --- --- ---
-        // +5 | 0 |-5
-        // --- --- ---
-        // -1 |-4 |-7
-        //
+    default I_Vect2D_Comp_Enum relative_pos_compare(final I_Vect2D o){
+        // +5 +2 -1
+        // +3  0 -3
+        // +1 -2 -5
+        return I_Vect2D_Comp_Enum.fromCompResults(
+                COMPARE_DOUBLES(getX(), o.getX()),
+                COMPARE_DOUBLES(getY(), o.getY())
+        );
+    }
 
-        if (getX() > o.getX()){
-            if (getY() > o.getY()){
-                return I_Vect2D_Comp_Values.X_BIGGER_Y_BIGGER.out_val;
-            } else if (getY() == o.getY()){
-                return I_Vect2D_Comp_Values.X_BIGGER_Y_SAME.out_val;
-            } else{
-                return I_Vect2D_Comp_Values.X_BIGGER_Y_SMALLER.out_val;
-            }
-        } else if (getX() == o.getX()){
-            if (getY() > o.getY()){
-                return I_Vect2D_Comp_Values.X_SAME_Y_BIGGER.out_val;
-            } else if (getY() == o.getY()){
-                return I_Vect2D_Comp_Values.X_SAME_Y_SAME.out_val;
-            } else{
-                return I_Vect2D_Comp_Values.X_SAME_Y_SMALLER.out_val;
-            }
-        } else{
-            if (getY() > o.getY()) {
-                return I_Vect2D_Comp_Values.X_SMALLER_Y_BIGGER.out_val;
-            } else if (getY() == o.getY()){
-                return I_Vect2D_Comp_Values.X_SMALLER_Y_SAME.out_val;
-            } else{
-                return I_Vect2D_Comp_Values.X_SMALLER_Y_SMALLER.out_val;
-            }
+    /**
+     * Is this I_Vect2D greater than the other one? (this.x > o.x && this.y > o.y)
+     * @param o other I_Vect2D
+     * @return true if X and Y of this are not less than X and Y of other
+     */
+    default boolean isGreaterThanOrEqualTo(final I_Vect2D o){
+        return (getX() >= o.getX()) && (getY() >= o.getY());
+    }
+
+    /**
+     * Comparison operation.
+     * Returns result of comparing x values, then attempts to compare y values if x values are identical.
+     * @param o the other I_Vect2D to compare it to
+     * @return 1 if x > o.x, -1 if x < o.x, else 1 if y > o.y, -1 if y < o.y, else 0.
+     */
+    @Override
+    default int compareTo(final I_Vect2D o) {
+        final int x_comp = COMPARE_DOUBLES(getX(), o.getX());
+        if (x_comp == 0){
+            return COMPARE_DOUBLES(getY(), o.getY());
         }
+        return x_comp;
     }
 }
 
@@ -744,7 +744,7 @@ final class M_Vect2D implements I_Vect2D {
      * @param out the M_Vect2D to overwrite the result into
      * @return minimum x and minimum y of the given I_Vect2Ds
      */
-    static M_Vect2D min_to_out(final I_Vect2D a, final I_Vect2D b, final M_Vect2D out){
+    static M_Vect2D lower_bound_to_out(final I_Vect2D a, final I_Vect2D b, final M_Vect2D out){
         out.x = a.getX() < b.getX() ? a.getX() : b.getX();
         out.y = a.getY() < b.getY() ? a.getY() : b.getY();
         return out;
@@ -753,9 +753,9 @@ final class M_Vect2D implements I_Vect2D {
 
     /**
      * Attempts to find the minimum x and y values in the given list of I_Vect2D objects.
-     * @param out
-     * @param vects
-     * @return
+     * @param out the M_Vect2D to output the result into
+     * @param vects the list of I_Vect2D objects we're comparing
+     * @return an M_Vect2D with the minimum x and y values from that list.
      */
     static M_Vect2D min_to_out_varargs(final M_Vect2D out, final I_Vect2D... vects){
         if (vects.length == 0){
@@ -773,6 +773,11 @@ final class M_Vect2D implements I_Vect2D {
         return out;
     }
 
+    /**
+     * Returns an M_Vect2D containing the lowest X and lowest Y values from that list.
+     * @param vects a list of vectors to find the minimum X and Y values from
+     * @return an M_Vect2D with lowest X and lowest Y values from that list.
+     */
     static M_Vect2D min_varargs(final I_Vect2D... vects){
         return min_to_out_varargs(_GET_RAW(), vects);
     }
@@ -783,8 +788,8 @@ final class M_Vect2D implements I_Vect2D {
      * @param b second I_Vect2D
      * @return a new M_Vect2D with the min x and min y from a and b
      */
-    static M_Vect2D min(final I_Vect2D a, final I_Vect2D b){
-        return min_to_out(a, b, _GET_RAW());
+    static M_Vect2D lower_bound(final I_Vect2D a, final I_Vect2D b){
+        return lower_bound_to_out(a, b, _GET_RAW());
     }
 
     /**
@@ -794,7 +799,7 @@ final class M_Vect2D implements I_Vect2D {
      * @param out the M_Vect2D to overwrite the result into
      * @return max x and max y of the given I_Vect2Ds
      */
-    static M_Vect2D max_to_out(final I_Vect2D a, final I_Vect2D b, final M_Vect2D out){
+    static M_Vect2D upper_bound_to_out(final I_Vect2D a, final I_Vect2D b, final M_Vect2D out){
         out.x = a.getX() > b.getX() ? a.getX() : b.getX();
         out.y = a.getY() > b.getY() ? a.getY() : b.getY();
         return out;
@@ -806,8 +811,8 @@ final class M_Vect2D implements I_Vect2D {
      * @param b second I_Vect2D
      * @return a new M_Vect2D with the max x and max y from a and b
      */
-    static M_Vect2D max(final I_Vect2D a, final I_Vect2D b){
-        return max_to_out(a, b, _GET_RAW());
+    static M_Vect2D upper_bound(final I_Vect2D a, final I_Vect2D b){
+        return upper_bound_to_out(a, b, _GET_RAW());
     }
 
     static M_Vect2D max_to_out_varargs(final M_Vect2D out, final I_Vect2D... vects){

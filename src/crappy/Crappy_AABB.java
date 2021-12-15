@@ -24,14 +24,7 @@ public class Crappy_AABB implements IPair<I_Vect2D, I_Vect2D> {
      * @return true if the I_Vect2D is in bounds, false otherwise.
      */
     boolean check_if_in_bounds(I_Vect2D v){
-        if (v.compareTo(min) >= 0){
-            final int max_comp = v.compareTo(max);
-            //noinspection ComparatorResultComparison
-            return max_comp < -3 || max_comp == 0;
-            // a max_comp value of -1 or -3 means that v is bigger than max in the x or y direction,
-            // whilst 0, -4, -5, or -7 means that it's not bigger than max in either direction (so it's in bounds).
-        }
-        return false;
+        return v.isGreaterThanOrEqualTo(min) && max.isGreaterThanOrEqualTo(v);
     }
 
 
