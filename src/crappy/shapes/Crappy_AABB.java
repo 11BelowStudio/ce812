@@ -1,5 +1,7 @@
-package crappy;
+package crappy.shapes;
 
+import crappy.math.I_Vect2D;
+import crappy.math.Vect2D;
 import crappy.utils.IPair;
 
 

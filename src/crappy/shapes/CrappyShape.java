@@ -1,8 +1,7 @@
-package crappy;
+package crappy.shapes;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import crappy.math.Rot2D;
+import crappy.math.Vect2D;
 
 public class CrappyShape {
 

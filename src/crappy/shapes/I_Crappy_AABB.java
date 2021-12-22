@@ -1,5 +1,6 @@
-package crappy;
+package crappy.shapes;
 
+import crappy.math.I_Vect2D;
 import crappy.utils.IPair;
 
 public interface I_Crappy_AABB extends IPair<I_Vect2D, I_Vect2D> {
@@ -24,4 +25,5 @@ public interface I_Crappy_AABB extends IPair<I_Vect2D, I_Vect2D> {
     default boolean check_bb_intersect(final IPair<? extends I_Vect2D, ? extends I_Vect2D> other){
         return check_if_in_bounds(other.getFirst()) || check_if_in_bounds(other.getSecond());
     }
+
 }
