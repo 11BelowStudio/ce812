@@ -39,6 +39,8 @@ public interface I_Vect2D extends IPair<Double, Double>, Comparable<I_Vect2D> {
 
     default I_Vect2D to_I_Vect2D(){ return this; }
 
+    default Vect2D toVect2D(){ return new Vect2D(this); }
+
     /**
      * A helper method to compare doubles.
      * Like Double.compare(double d1, double d2) but omits the double to long bits stuff
@@ -56,17 +58,7 @@ public interface I_Vect2D extends IPair<Double, Double>, Comparable<I_Vect2D> {
         return 0;
     }
 
-    /**
-     * Returns a pair holding a vector with the minimum x and y values, and another one with the maximum x and y values,
-     * obtained from the I_Vect2D objects in the vects list.
-     * @param vects the list of I_Vect2D objects which we're looking through
-     * @return Pair of (Min vector, max vector).
-     * @throws IllegalArgumentException if vects has length of 0.
-     */
-    @SafeVarargs
-    static IPair<I_Vect2D, I_Vect2D> min_and_max_varargs(final IPair<Double, Double>... vects){
-        return M_Vect2D.min_and_max_varargs(vects);
-    }
+
 
     /**
      * This is going to be abused by the axis-aligned bounding boxes AND A WHOLE LOAD OF EXTRA THINGS BESIDES THAT!

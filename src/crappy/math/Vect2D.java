@@ -1,5 +1,6 @@
 package crappy.math;
 
+import crappy.I_Transform;
 import crappy.utils.IPair;
 import crappy.utils.Pair;
 
@@ -57,6 +58,13 @@ public final class Vect2D implements Serializable, I_Vect2D {
 
 
     /**
+     * Creates a new immutable vector which is a copy of the argument M_Vect2D
+     * @param v the M_Vect2D to copy
+     */
+    Vect2D(final M_Vect2D v){ this(v.x, v.y); }
+
+
+    /**
      * Whether this is equal to another object.
      * True if the other object is a Vect2D  with same x and y
      * @param o other object
@@ -95,6 +103,11 @@ public final class Vect2D implements Serializable, I_Vect2D {
         return Math.atan2(other.y - y, other.x - x);
     }
 
+    /**
+     * Angle between this vector and the other vector
+     * @param other other vector
+     * @return angle from this to other
+     */
     double angle(final I_Vect2D other){ return Math.atan2(other.getY() - y, other.getX() - x); }
 
     public String toString() {
@@ -126,20 +139,6 @@ public final class Vect2D implements Serializable, I_Vect2D {
      */
     Vect2D add(final I_Vect2D v){ return new Vect2D(x + v.getX(), y + v.getY()); }
 
-    /**
-     * Finds the sum of these vectors, returning the result as a Vect2D.
-     * @param vects all of the vectors to add together
-     * @return Sum of all of those vectors.
-     */
-    public static Vect2D sum(final I_Vect2D... vects){
-        double x = 0;
-        double y = 0;
-        for (final I_Vect2D v: vects){
-            x += v.getX();
-            y += v.getY();
-        }
-        return new Vect2D(x, y);
-    }
 
     /**
      * Scaled addition of two vectors.
@@ -207,7 +206,7 @@ public final class Vect2D implements Serializable, I_Vect2D {
      * Normalization
      * @return normalized version of this vector. if this vector is 0,0, returns this vector.
      */
-    public Vect2D normalise() {
+    public Vect2D norm() {
         final double len = mag();
         if (len == 0){
             return this;
@@ -215,24 +214,24 @@ public final class Vect2D implements Serializable, I_Vect2D {
         return new Vect2D(x/len, y/len);
     }
 
+
+
     /**
-     * returns a vector equal to v1 - v2
-     * @param v1 the initial vector
-     * @param v2 the vector being subtracted
-     * @return a vector equal to v1 - v2
+     * Turns this Vect2D into an M_Vect2D
+     * @return an M_Vect2D copy of this Vect2D
      */
-    public static Vect2D minus(final Vect2D v1, final Vect2D v2) {
-        // returns v1-v2
-        return v1.addScaled(v2, -1);
-    }
-
-
-    static Vect2D minus(final Vect2D v1, final I_Vect2D v2){
-        return v1.addScaled(v2, -1);
-    }
-
     M_Vect2D copy_to_mutable(){
         return M_Vect2D.GET(this);
+    }
+
+    /**
+     * Linearly interpolates from this vector to the other vector
+     * @param other lerp goes towards here
+     * @param lerpScale how much to lerp by (0: return this. 1: return other. 0.5: midpoint)
+     * @return vector that's lerpScale of the way between start and end
+     */
+    public Vect2D lerp(final Vect2D other, final double lerpScale){
+        return addScaled(other, -lerpScale);
     }
 
     /**
@@ -258,13 +257,6 @@ public final class Vect2D implements Serializable, I_Vect2D {
 
     public double getY(){ return y; }
 
-    public static Vect2D lower_bound(final I_Vect2D a, final I_Vect2D b){
-        return M_Vect2D.lower_bound(a, b).finished();
-    }
-
-    public static Vect2D upper_bound(final I_Vect2D a, final I_Vect2D b){
-        return M_Vect2D.upper_bound(a, b).finished();
-    }
 
     /**
      * Turns this local coordinate vector into a world coordinate vector.
@@ -276,56 +268,19 @@ public final class Vect2D implements Serializable, I_Vect2D {
         return M_Vect2D.GET(this).rotate(bodyRotation).add(bodyPos).finished();
     }
 
-    /**
-     * Performs the 'local coordinates to world coordinates' transformation on the coordinates in the given 'locals'
-     * list, and outputs them into the given 'out' list.
-     * @param bodyPos position of the body centroid
-     * @param bodyRotation position of the body's rotation
-     * @param locals local positions of everything in the body
-     * @param out the list which the world positions of everything in the body will be put into
-     */
-    public static void localToWorldCoordinatesForBodyToOut(
-            final Vect2D bodyPos,
-            final Rot2D bodyRotation,
-            final Vect2D[] locals,
-            final Vect2D[] out
-    ){
-        for (int i = locals.length-1; i >= 0; i--) {
-            out[i] = locals[i].localToWorldCoordinates(bodyPos, bodyRotation);
-        }
-    }
+
+    @Override
+    public Vect2D toVect2D(){ return this; }
 
     /**
-     * Performs the 'local coordinates to world coordinates' transformation on the coordinates in the given 'locals'
-     * list, and outputs them into the given 'out' list, and also returns a pair with the bounds of the translated vectors
-     * @param bodyPos position of the body centroid
-     * @param bodyRotation position of the body's rotation
-     * @param locals local positions of everything in the body
-     * @param out the list which the world positions of everything in the body will be put into
+     * Returns the absolute value of this Vect2D
+     * @return this Vect2D if x and y >= 0, else returns a new Vect2D with math.abs(x) and math.abs(y)
      */
-    public static IPair<Vect2D, Vect2D> localToWorldCoordinatesForBodyToOutAndGetBounds(
-            final Vect2D bodyPos,
-            final Rot2D bodyRotation,
-            final Vect2D[] locals,
-            final Vect2D[] out
-    ){
-        out[0] = locals[0].localToWorldCoordinates(bodyPos, bodyRotation);
-        final M_Vect2D min = M_Vect2D.GET(out[0]);
-        final M_Vect2D max = M_Vect2D.GET(min);
-        for (int i = 1; i < locals.length; i++){
-            out[i] = locals[i].localToWorldCoordinates(bodyPos, bodyRotation);
-            if (out[i].x < min.x){
-                min.x = out[i].x;
-            } else if (out[i].x > max.x) {
-                max.x = out[i].x;
-            }
-            if (out[i].y < min.y){
-                min.y = out[i].y;
-            } else if (out[i].y > max.y) {
-                max.y = out[i].y;
-            }
+    public Vect2D abs(){
+        if (isGreaterThanOrEqualTo(Vect2D.ZERO)){
+            return this;
         }
-        return new Pair<>(min.finished(), max.finished());
+        return new Vect2D(Math.abs(x), Math.abs(y));
     }
 
 

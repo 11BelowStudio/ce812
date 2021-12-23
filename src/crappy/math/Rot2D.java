@@ -46,11 +46,11 @@ public final class Rot2D implements Serializable, I_Rot2D {
         cos = rot.get_cos();
     }
 
-    M_Vect2D getXAxis(final M_Vect2D xAxis){
+    public M_Vect2D getXAxis(final M_Vect2D xAxis){
         return xAxis.set(cos, sin);
     }
 
-    M_Vect2D getYAxis(final M_Vect2D yAxis){
+    public M_Vect2D getYAxis(final M_Vect2D yAxis){
         return yAxis.set(-sin, cos);
     }
 

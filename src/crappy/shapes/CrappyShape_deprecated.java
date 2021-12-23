@@ -2,8 +2,10 @@ package crappy.shapes;
 
 import crappy.math.Rot2D;
 import crappy.math.Vect2D;
+import crappy.math.Vect2DMath;
 
-public class CrappyShape {
+@Deprecated
+public class CrappyShape_deprecated {
 
 
     /**
@@ -25,13 +27,17 @@ public class CrappyShape {
 
     private final Vect2D[] bodyCoordinates;
 
+    private final Vect2D[] bodyNormals;
+
     private final int vertices;
 
     private Crappy_AABB aabb;
 
     private Vect2D[] worldCoordinates;
 
-    private CrappyShape[] childShapes;
+    private Vect2D[] worldNormals;
+
+    private CrappyShape_deprecated[] childShapes;
 
     private final int children;
 
@@ -41,7 +47,7 @@ public class CrappyShape {
      * @param radius the radius of the circle
      * @param mass the mass of the circle
      */
-    private CrappyShape(final double radius, final double mass){
+    private CrappyShape_deprecated(final double radius, final double mass){
 
         relativePosition = Vect2D.ZERO;
 
@@ -53,8 +59,10 @@ public class CrappyShape {
         this.mass = mass;
         bodyCoordinates = new Vect2D[]{Vect2D.ZERO};
         this.worldCoordinates = new Vect2D[]{Vect2D.ZERO};
+        bodyNormals = new Vect2D[]{Vect2D.ZERO};
+        worldNormals = new Vect2D[]{Vect2D.ZERO};
 
-        childShapes = new CrappyShape[0];
+        childShapes = new CrappyShape_deprecated[0];
 
         aabb = new Crappy_AABB(new Vect2D(radius, radius), new Vect2D(-radius, -radius));
 
@@ -80,8 +88,8 @@ public class CrappyShape {
                  */
 
                 aabb.update_aabb(
-                        Vect2D.localToWorldCoordinatesForBodyToOutAndGetBounds(
-                                bodyPos, bodyRot, bodyCoordinates, worldCoordinates
+                        Vect2DMath.LOCAL_TO_WORLD_FOR_BODY_TO_OUT_AND_GET_BOUNDS(
+                                bodyPos, bodyRot, bodyCoordinates, bodyNormals, worldCoordinates, worldNormals
                         )
                 );
 

@@ -1,13 +1,28 @@
 package crappy.shapes;
 
 import crappy.math.I_Vect2D;
+import crappy.math.Vect2D;
 import crappy.utils.IPair;
 
-public interface I_Crappy_AABB extends IPair<I_Vect2D, I_Vect2D> {
+public interface I_Crappy_AABB extends IPair<Vect2D, Vect2D>, Cloneable {
 
-    I_Vect2D getMax();
+    /**
+     * Obtain the max corner
+     * @return vector describing the max xy corner of the I_Crappy_AABB
+     */
+    Vect2D getMax();
 
-    I_Vect2D getMin();
+    /**
+     * Obtain the min corner
+     * @return vector describing the min xy corner of the I_Crappy_AABB
+     */
+    Vect2D getMin();
+
+    /**
+     * Obtain the midpoint
+     * @return vector describing the midpoint of the I_Crappy_AABB
+     */
+    Vect2D getMidpoint();
 
     /**
      * Abuses the compareTo method of I_Vect2D to see if v is within this AABB's boundaries.
