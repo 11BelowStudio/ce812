@@ -8,8 +8,8 @@ import java.lang.annotation.*;
  *
  * @author Rachel Lowe
  */
-@Retention(RetentionPolicy.CLASS)
-@Target({ElementType.METHOD, ElementType.CONSTRUCTOR})
+@Retention(RetentionPolicy.SOURCE)
+@Target({ElementType.METHOD, ElementType.CONSTRUCTOR, ElementType.TYPE_USE})
 @Documented
 public @interface CrappyWarning {
 
@@ -17,6 +17,6 @@ public @interface CrappyWarning {
      * A warning message of sorts
      * @return the warning message
      */
-    String value() default "You probably shouldn't be using this!";
+    String message() default "You probably shouldn't be using this!";
 
 }

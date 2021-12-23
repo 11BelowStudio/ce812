@@ -12,7 +12,6 @@ import crappy.shapes.Crappy_AABB;
  */
 public class CrappyBody implements I_CrappyBody, CrappyBody_Shape_Interface {
 
-
     protected Vect2D position;
 
     protected final M_Vect2D tempDisplacement = M_Vect2D._GET_RAW();
@@ -48,6 +47,21 @@ public class CrappyBody implements I_CrappyBody, CrappyBody_Shape_Interface {
     protected final M_Vect2D pending_forces = M_Vect2D._GET_RAW();
 
     protected final M_Vect2D pending_dist_based_forces = M_Vect2D._GET_RAW();
+
+    public final CRAPPY_BODY_TYPE bodyType;
+
+    public CrappyBody(CRAPPY_BODY_TYPE bodyType) {
+        this.bodyType = bodyType;
+    }
+
+    /**
+     * What type of body is this?
+     */
+    public static enum CRAPPY_BODY_TYPE{
+        STATIC,
+        DYNAMIC,
+        KINEMATIC
+    }
 
 
     @Override
@@ -93,6 +107,17 @@ public class CrappyBody implements I_CrappyBody, CrappyBody_Shape_Interface {
     @Override
     public double getInertia() {
         return inertia;
+    }
+
+    @Override
+    public CRAPPY_BODY_TYPE getBodyType() {
+        return bodyType;
+    }
+
+
+    public Vect2D[] getWorldVertices(){
+
+        return null;
     }
 }
 

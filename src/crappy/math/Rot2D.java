@@ -79,4 +79,8 @@ public final class Rot2D implements Serializable, I_Rot2D {
     public double get_cos() {
         return cos;
     }
+
+    public static Rot2D FROM_DEGREES(final double degrees){
+        return new Rot2D(Math.toRadians(degrees));
+    }
 }

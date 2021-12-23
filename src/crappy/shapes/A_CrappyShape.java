@@ -5,8 +5,13 @@ import crappy.CrappyBody_Shape_Interface;
 import crappy.math.M_Vect2D;
 import crappy.math.Vect2D;
 
+import java.awt.*;
+
 import static crappy.math.Vect2DMath.MINUS_MUT;
 
+/**
+ * A shape class
+ */
 public abstract class A_CrappyShape {
 
     public final CRAPPY_SHAPE_TYPE shapeType;
@@ -15,12 +20,21 @@ public abstract class A_CrappyShape {
 
     final Crappy_AABB aabb;
 
+    final Vect2D[] finalWorldVertices;
+
     double radius;
 
+    // TODO: collision method
+
     A_CrappyShape(final CRAPPY_SHAPE_TYPE shapeType, final CrappyBody_Shape_Interface body) {
+        this(shapeType, body, 1);
+    }
+
+    A_CrappyShape(final CRAPPY_SHAPE_TYPE shapeType, final CrappyBody_Shape_Interface body, final int vertices){
         this.shapeType = shapeType;
         this.body = body;
         aabb = new Crappy_AABB();
+        finalWorldVertices = new Vect2D[vertices];
     }
 
 
@@ -30,7 +44,8 @@ public abstract class A_CrappyShape {
     public static enum CRAPPY_SHAPE_TYPE{
         CIRCLE,
         POLYGON,
-        COMPOUND_POLYGON
+        COMPOUND_POLYGON,
+        LINE
     }
 
     public double getRadius() {
@@ -50,6 +65,8 @@ public abstract class A_CrappyShape {
     }
 
     public abstract Crappy_AABB updateShape();
+
+
 
     /**
      * Computes the normals for a polygon shape

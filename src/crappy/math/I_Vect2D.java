@@ -2,30 +2,50 @@ package crappy.math;
 
 import crappy.utils.IPair;
 
+/**
+ * A read-only interface for 2D vectors.
+ */
 public interface I_Vect2D extends IPair<Double, Double>, Comparable<I_Vect2D> {
 
+    /**
+     * Obtains the X component of this vector
+     * @return x component
+     */
     double getX();
 
+    /**
+     * Obtains the Y component of this vector
+     * @return the y component
+     */
     double getY();
 
-    static double angle(final I_Vect2D v1, final I_Vect2D v2){
-        return Math.atan2(v2.getY() - v1.getY(), v2.getX() - v1.getX());
-    }
 
-    static double dot(final I_Vect2D v1, final I_Vect2D v2){
-        return (v1.getX() * v2.getX()) + (v1.getY() * v2.getY());
-    }
+    /**
+     * Obtains the magnitude of this vector
+     * @return magnitude (length) of this vector
+     */
+    default double mag(){ return Math.hypot(getX(), getY()); }
 
-    static double mag(final I_Vect2D v){
-        return Math.hypot(v.getX(), v.getY());
-    }
+    /**
+     * The angle of this vector
+     * @return the angle of this vector
+     */
+    default double angle(){ return Math.atan2(getY(), getX()); }
 
-    static double cross(final I_Vect2D v1, final I_Vect2D v2){
-        return v1.getX() * v2.getY() + v1.getY() * v2.getX();
-    }
+    /**
+     * Dot product of this vector and the other vector
+     * @param v the other vector
+     * @return this.v
+     */
+    default double dot(final I_Vect2D v){ return getX() * v.getX() + getY() * v.getY(); }
 
-    static Vect2D cross(final I_Vect2D v, final double s){
-        return new Vect2D(-s * v.getY(), s * v.getX());
+    /**
+     * Cross product (as scalar) of this vector and the other vector
+     * @param v the other vector
+     * @return the non-zero bit of the cross product of this X v
+     */
+    default double cross(final I_Vect2D v){
+        return getX() * v.getY() + getY() * v.getX();
     }
 
 
@@ -37,6 +57,10 @@ public interface I_Vect2D extends IPair<Double, Double>, Comparable<I_Vect2D> {
         return getY();
     }
 
+    /**
+     * Method that turns any subclasses into immutable I_Vect2Ds (for ensuring compatibility)
+     * @return this but definitely immutable
+     */
     default I_Vect2D to_I_Vect2D(){ return this; }
 
     default Vect2D toVect2D(){ return new Vect2D(this); }

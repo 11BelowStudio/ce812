@@ -4,6 +4,7 @@ import crappy.utils.CrappyWarning;
 import crappy.utils.IPair;
 import crappy.utils.Pair;
 
+import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -55,7 +56,6 @@ public final class M_Vect2D implements I_Vect2D {
      * Obtains a M_Vect2D (in the state it was in earlier on).
      * @return an M_Vect2D, from the pool. Will be in the state it was in when it was put in the pool.
      */
-    @CrappyWarning(value = "pls remember that this holds junk data")
     public static M_Vect2D _GET_RAW(){
         final M_Vect2D candidate = POOL.poll();
         if (candidate!=null){
@@ -69,7 +69,7 @@ public final class M_Vect2D implements I_Vect2D {
      * ONLY USE THIS IF YOU ARE ABSOLUTELY SURE THAT YOU'RE MAKING SOMETHING THAT WON'T EVER BE PUT BACK INTO THE POOL!
      * @return a new, empty, M_Vect2D
      */
-    @CrappyWarning(value="PLEASE DO NOT USE THIS!")
+    @CrappyWarning(message="PLEASE DO NOT USE THIS!")
     public static M_Vect2D __GET_NONPOOLED(){
         return new M_Vect2D();
     }
@@ -110,6 +110,19 @@ public final class M_Vect2D implements I_Vect2D {
      */
     public static M_Vect2D GET(final IPair<Double, Double> p){ return _GET_RAW().set(p.getFirst(), p.getSecond()); }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        M_Vect2D m_vect2D = (M_Vect2D) o;
+        return Double.compare(m_vect2D.x, x) == 0 && Double.compare(m_vect2D.y, y) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(x, y);
+    }
+
     /**
      * Reject modernity, return to 0
      * @return this vector except it'll be (0,0) instead.
@@ -139,6 +152,11 @@ public final class M_Vect2D implements I_Vect2D {
         return v;
     }
 
+    /**
+     * method
+     * @return
+     */
+    @Override
     public I_Vect2D to_I_Vect2D(){
         return finished();
     }
@@ -226,7 +244,8 @@ public final class M_Vect2D implements I_Vect2D {
      * Calculates the magnitude of this vector.
      * @return the magnitude of this vector.
      */
-    double mag(){
+    @Override
+    public double mag(){
         return Math.hypot(x, y);
     }
 
@@ -291,11 +310,22 @@ public final class M_Vect2D implements I_Vect2D {
         return this;
     }
 
-    double scalarProduct(final I_Vect2D v){ return x * v.getX() + y * v.getY(); }
+    /**
+     * Dot product of this vector and other vector
+     * @param v
+     * @return
+     */
+    public double dot(final I_Vect2D v){ return x * v.getX() + y * v.getY(); }
 
-    M_Vect2D cross(final double s){
-        final double new_y = s * x;
-        x = -s * y;
+    @Override
+    public double cross(final I_Vect2D v){ return x * v.getY() + y * v.getX();}
+
+    @Override
+    public double angle(){ return Math.atan2(y, x); }
+
+    public M_Vect2D cross(final double s){
+        final double new_y = -s * x;
+        x = s * y;
         y = new_y;
         return this;
     }

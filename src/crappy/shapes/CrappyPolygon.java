@@ -4,6 +4,7 @@ import crappy.CrappyBody_Shape_Interface;
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
 
+
 public class CrappyPolygon extends A_CrappyShape{
 
     final int vertexCount;
@@ -16,8 +17,9 @@ public class CrappyPolygon extends A_CrappyShape{
 
     final Vect2D[] worldNormals;
 
+
     public CrappyPolygon(final CrappyBody_Shape_Interface body, final Vect2D[] vertices){
-        super(CRAPPY_SHAPE_TYPE.POLYGON, body);
+        super(CRAPPY_SHAPE_TYPE.POLYGON, body, vertices.length);
 
         vertexCount = vertices.length;
         localVertices = new Vect2D[vertexCount];
@@ -27,9 +29,10 @@ public class CrappyPolygon extends A_CrappyShape{
 
         System.arraycopy(vertices, 0, localVertices, 0, vertexCount);
         A_CrappyShape.NORMALS_TO_OUT(vertices, localNormals);
-
+        radius = Vect2DMath.MAX_MAGNITUDE(localVertices);
         updateShape();
 
+        System.arraycopy(worldVertices, 0, finalWorldVertices, 0, vertexCount);
 
     }
 

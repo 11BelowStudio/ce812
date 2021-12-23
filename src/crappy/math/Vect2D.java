@@ -1,10 +1,12 @@
 package crappy.math;
 
 import crappy.I_Transform;
+import crappy.utils.CrappyWarning;
 import crappy.utils.IPair;
 import crappy.utils.Pair;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * The immutable 2D vector used by CRAPPY.
@@ -14,7 +16,15 @@ import java.io.Serializable;
  */
 public final class Vect2D implements Serializable, I_Vect2D {
 
-    public final double x, y;
+    /**
+     * Immutable X component
+     */
+    public final double x;
+
+    /**
+     * Immutable Y component
+     */
+    public final double y;
 
     /**
      * A zero vector, here so I don't need to keep instantiating a new empty vector every time a zero vector is needed.
@@ -25,9 +35,7 @@ public final class Vect2D implements Serializable, I_Vect2D {
      * Creates a null vector (0,0).
      * Please use ZERO instead of trying to create yet another Vect2D with value (0,0).
      */
-    private Vect2D() {
-        this(0, 0);
-    }
+    private Vect2D(){ this(0, 0); }
 
     /**
      * create vector with given coordinates
@@ -52,7 +60,7 @@ public final class Vect2D implements Serializable, I_Vect2D {
      * Creates a new immutable vector which is a copy of the argument I_Vect2D.
      * @param v an I_Vect2D to copy
      */
-    Vect2D(final I_Vect2D v){
+    public Vect2D(final I_Vect2D v){
         this(v.getX(), v.getY());
     }
 
@@ -61,8 +69,7 @@ public final class Vect2D implements Serializable, I_Vect2D {
      * Creates a new immutable vector which is a copy of the argument M_Vect2D
      * @param v the M_Vect2D to copy
      */
-    Vect2D(final M_Vect2D v){ this(v.x, v.y); }
-
+    public Vect2D(final M_Vect2D v){ this(v.x, v.y); }
 
     /**
      * Whether this is equal to another object.
@@ -70,18 +77,25 @@ public final class Vect2D implements Serializable, I_Vect2D {
      * @param o other object
      * @return whether or not this is equal to the other object
      */
-    public boolean equals(final Object o) {
-        if (o instanceof Vect2D) {
-            final Vect2D v = (Vect2D) o;
-            return x == v.x && y == v.y;
-        }
-        return false;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Vect2D vect2D = (Vect2D) o;
+        return Double.compare(vect2D.x, x) == 0 && Double.compare(vect2D.y, y) == 0;
+    }
+
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(x, y);
     }
 
     /**
      * magnitude
      * @return magnitude of this vector
      */
+    @Override
     public double mag() {
         return Math.hypot(x, y);
     }
@@ -90,9 +104,8 @@ public final class Vect2D implements Serializable, I_Vect2D {
      * The angle of this vector
      * @return the angle of this vector
      */
-    public double angle() {
-        return Math.atan2(y, x);
-    }
+    @Override
+    public double angle() {return Math.atan2(y, x);}
 
     /**
      * angle of difference vector between this vector and other vector
@@ -189,7 +202,7 @@ public final class Vect2D implements Serializable, I_Vect2D {
      * @param v other vector
      * @return this dot v
      */
-    public double scalarProduct(final Vect2D v) {
+    public double dot(final Vect2D v) {
         return x * v.x + y * v.y;
     }
 
@@ -198,8 +211,22 @@ public final class Vect2D implements Serializable, I_Vect2D {
      * @param v other vector
      * @return this dot v
      */
-    double scalarProduct(final I_Vect2D v){
+    @Override
+    public double dot(final I_Vect2D v){
         return x * v.getX() + y * v.getY();
+    }
+
+    @Override
+    public double cross(final I_Vect2D v){
+        return x * v.getY() + y * v.getX();
+    }
+
+
+    public Vect2D cross(final double s){
+        return new Vect2D(
+                s * y,
+                -s * x
+        );
     }
 
     /**

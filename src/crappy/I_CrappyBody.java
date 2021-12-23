@@ -18,4 +18,6 @@ public interface I_CrappyBody extends I_Transform {
     A_CrappyShape getShape();
 
     double getInertia();
+
+    CrappyBody.CRAPPY_BODY_TYPE getBodyType();
 }

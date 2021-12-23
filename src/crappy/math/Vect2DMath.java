@@ -9,8 +9,12 @@ import crappy.utils.Pair;
  *
  * Can statically import any necessary methods from here on a per-method basis.
  */
-public class Vect2DMath {
+public final class Vect2DMath {
 
+    /**
+     * No constructing.
+     */
+    private Vect2DMath(){}
 
     /**
      * returns a vector equal to v1 - v2
@@ -35,7 +39,7 @@ public class Vect2DMath {
 
     /**
      * Finds the sum of these vectors, returning the result as a Vect2D.
-     * @param vects all of the vectors to add together
+     * @param vects all the vectors to add together
      * @return Sum of all of those vectors.
      */
     public static Vect2D SUM(final I_Vect2D... vects){
@@ -74,7 +78,7 @@ public class Vect2DMath {
      * @param b second Vect2D
      * @return midpoint of a and b
      */
-    public static Vect2D MIDPOINT(final Vect2D a, final Vect2D b){
+    public static Vect2D MIDPOINT(final I_Vect2D a, final I_Vect2D b){
         return MIDPOINT_MIN_MAX(LOWER_BOUND(a, b), UPPER_BOUND(a, b));
     }
 
@@ -210,6 +214,7 @@ public class Vect2DMath {
         }
         return new Pair<>(min.finished(), max.finished());
     }
+
 
 
     /**
@@ -362,6 +367,7 @@ public class Vect2DMath {
         return new Pair<>(min.finished(), max.finished());
     }
 
+
     /**
      * Obtains the angle between vectors V1 and V2
      * @param v1 first vector
@@ -383,6 +389,26 @@ public class Vect2DMath {
     }
 
     /**
+     * Obtains scalar cross product of v1 and v2
+     * @param v1 the first vector
+     * @param v2 second vector
+     * @return v1 X v2
+     */
+    public static double CROSS(final I_Vect2D v1, final I_Vect2D v2){
+        return v1.cross(v2);
+    }
+
+    /**
+     * Obtains the vector cross product of V and S
+     * @param v the vector
+     * @param s the scalar (the non-zero component of V X (result of this)
+     * @return res -> v X res = s
+     */
+    public static Vect2D CROSS(final I_Vect2D v, final double s){
+        return new Vect2D(-s * v.getY(), s * v.getX());
+    }
+
+    /**
      * Divides vector v by d
      * @param v the vector to divide by d
      * @param d denominator for division
@@ -392,5 +418,27 @@ public class Vect2DMath {
         return new Vect2D(v.getX()/d, v.getY()/d);
     }
 
+    /**
+     * Creates a random polar vector at a random angle with a magnitude in the given range
+     * @param min_mag minimum magnitude
+     * @param max_mag maximum magnitude
+     * @return a random polar vector
+     */
+    public static Vect2D RANDOM_POLAR_VECTOR(final double min_mag, final double max_mag){
+        return Vect2D.POLAR(Rot2D.FROM_DEGREES(Math.random()*360), min_mag + (Math.random() * max_mag - min_mag));
+    }
+
+    /**
+     * Obtains the maximum magnitude of the vectors in the given list of vectors
+     * @param vects the vectors we're trying to get the longest magnitude from
+     * @return biggest magnitude in vects
+     */
+    public static double MAX_MAGNITUDE(final I_Vect2D... vects){
+        double max_mag = vects[0].mag();
+        for (int i = vects.length-1; i > 0; i--) {
+            max_mag = Math.max(max_mag, vects[i].mag());
+        }
+        return max_mag;
+    }
 
 }
