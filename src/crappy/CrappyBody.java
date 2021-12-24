@@ -10,25 +10,25 @@ import crappy.shapes.Crappy_AABB;
 /**
  * A rigidbody class used by Crappy
  */
-public class CrappyBody implements I_CrappyBody, CrappyBody_Shape_Interface {
+public class CrappyBody implements I_CrappyBody, CrappyBody_Shape_Interface, CrappyBody_Connector_Interface {
 
     protected Vect2D position;
 
-    protected final M_Vect2D tempDisplacement = M_Vect2D._GET_RAW();
+    protected final M_Vect2D tempDisplacement = M_Vect2D.GET();
 
-    protected final M_Vect2D tempPosition = M_Vect2D._GET_RAW();
+    protected final M_Vect2D tempPosition = M_Vect2D.GET();
 
     protected Vect2D velocity;
 
-    protected final M_Vect2D tempVelChange = M_Vect2D._GET_RAW();
+    protected final M_Vect2D tempVelChange = M_Vect2D.GET();
 
-    protected final M_Vect2D tempVel = M_Vect2D._GET_RAW();
+    protected final M_Vect2D tempVel = M_Vect2D.GET();
 
     protected Rot2D rotation;
 
-    protected final M_Rot2D tempRot = M_Rot2D._GET_RAW();
+    protected final M_Rot2D tempRot = M_Rot2D.GET();
 
-    protected final M_Rot2D tempRotChange = M_Rot2D._GET_RAW();
+    protected final M_Rot2D tempRotChange = M_Rot2D.GET();
 
     protected A_CrappyShape shape;
 
@@ -44,9 +44,9 @@ public class CrappyBody implements I_CrappyBody, CrappyBody_Shape_Interface {
 
     protected double inertia;
 
-    protected final M_Vect2D pending_forces = M_Vect2D._GET_RAW();
+    protected final M_Vect2D pending_forces = M_Vect2D.GET();
 
-    protected final M_Vect2D pending_dist_based_forces = M_Vect2D._GET_RAW();
+    protected final M_Vect2D pending_dist_based_forces = M_Vect2D.GET();
 
     public final CRAPPY_BODY_TYPE bodyType;
 
@@ -87,6 +87,11 @@ public class CrappyBody implements I_CrappyBody, CrappyBody_Shape_Interface {
     @Override
     public double getAngVel() {
         return angVelocity;
+    }
+
+    @Override
+    public void applyDistanceForce(final Vect2D force, final Vect2D localForcePos) {
+
     }
 
     @Override

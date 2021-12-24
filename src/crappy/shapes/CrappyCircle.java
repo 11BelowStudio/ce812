@@ -11,7 +11,7 @@ public class CrappyCircle extends A_CrappyShape {
 
 
     public CrappyCircle(final CrappyBody_Shape_Interface body, final double radius) {
-        super(CRAPPY_SHAPE_TYPE.CIRCLE, body);
+        super(CRAPPY_SHAPE_TYPE.CIRCLE, body, Vect2D.ZERO);
         this.radius = radius;
 
         updateShape();

@@ -38,7 +38,7 @@ public class ElasticConnector implements Drawable {
 		Double truncationLimit=this.hookesLawTruncation;// this stops Hooke's law giving too high a force which might cause instability in the numerical integrator
 		if (truncationLimit!=null && extensionRatio>truncationLimit) 
 			extensionRatio=truncationLimit;
-		if (truncationLimit!=null && extensionRatio<-truncationLimit) 
+		if (truncationLimit!=null && extensionRatio< -truncationLimit)
 			extensionRatio=-truncationLimit;
 		double tensionDueToHookesLaw = extensionRatio*springConstant;
 		double tensionDueToMotionDamping=motionDampingConstant*rateOfChangeOfExtension();

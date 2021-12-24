@@ -22,10 +22,7 @@ public final class Vect2DMath {
      * @param v2 the vector being subtracted
      * @return a vector equal to v1 - v2
      */
-    public static Vect2D MINUS(final Vect2D v1, final Vect2D v2) {
-        // returns v1-v2
-        return v1.addScaled(v2, -1);
-    }
+    public static Vect2D MINUS(final Vect2D v1, final Vect2D v2) { return v1.addScaled(v2, -1); }
 
     /**
      * returns a vector equal to v1 - v2
@@ -33,8 +30,36 @@ public final class Vect2DMath {
      * @param v2 the vector being subtracted
      * @return a vector equal to v1 - v2
      */
-    public static Vect2D MINUS(final Vect2D v1, final I_Vect2D v2){
-        return v1.addScaled(v2, -1);
+    public static Vect2D MINUS(final Vect2D v1, final I_Vect2D v2){ return v1.addScaled(v2, -1); }
+
+    /**
+     * returns a vector equal to v1 - v2
+     * @param v1 the initial vector
+     * @param v2 the vector being subtracted
+     * @return a vector equal to v1 - v2
+     */
+    public static Vect2D MINUS(final I_Vect2D v1, final I_Vect2D v2){
+        return new Vect2D(v1.getX() - v2.getX(), v1.getY()-v2.getY());
+    }
+
+    /**
+     * Returns the vector between start and end {@code start->end}. Or, in other words, {@code start-end}.
+     * @param start where we're starting from
+     * @param end where we're going
+     * @return vector from start to end.
+     */
+    public static Vect2D VECTOR_BETWEEN(final I_Vect2D start, final I_Vect2D end){
+        return MINUS(end, start);
+    }
+
+    /**
+     * Vector subtraction but with a mutable result
+     * @param v1 first vector
+     * @param v2 second vector
+     * @return v1 - v2 but the result is mutable.
+     */
+    public static M_Vect2D MINUS_M(final I_Vect2D v1, final I_Vect2D v2){
+        return M_Vect2D.GET(v1).addScaled(v2, -1);
     }
 
     /**
@@ -102,6 +127,16 @@ public final class Vect2DMath {
      */
     public static Vect2D LERP(final Vect2D start, final Vect2D end, final double lerpScale){
         return start.lerp(end, lerpScale);
+    }
+
+    /**
+     * Returns the distance between vectors A and B
+     * @param a the first vector
+     * @param b the second vector
+     * @return scalar distance between A and B
+     */
+    public static double DIST(final I_Vect2D a, final I_Vect2D b){
+        return Math.hypot(a.getX() - b.getX(), a.getY() - b.getY());
     }
 
 
@@ -187,8 +222,8 @@ public final class Vect2DMath {
      * @param outNormals the list which the world normals of each edge in the body will be put into
      */
     public static IPair<Vect2D, Vect2D> LOCAL_TO_WORLD_FOR_BODY_TO_OUT_AND_GET_BOUNDS(
-            final Vect2D bodyPos,
-            final Rot2D bodyRotation,
+            final I_Vect2D bodyPos,
+            final I_Rot2D bodyRotation,
             final Vect2D[] localCoords,
             final Vect2D[] localNormals,
             final Vect2D[] outCoords,
@@ -215,17 +250,40 @@ public final class Vect2DMath {
         return new Pair<>(min.finished(), max.finished());
     }
 
-
-
-    /**
-     * Subtracts V1 from V2, returning as an M_Vect2D
-     * @param v1 first vector
-     * @param v2 second vector
-     * @return v1-v2
-     */
-    public static M_Vect2D MINUS_MUT(final I_Vect2D v1, final I_Vect2D v2){
-        return M_Vect2D.GET(v1).addScaled(v2, -1);
+    public static IPair<Vect2D, Vect2D> LOCAL_TO_WORLD_FOR_BODY_TO_OUT_AND_GET_BOUNDS(
+            final I_Transform trans,
+            final Vect2D[] locals,
+            final Vect2D[] out
+    ){
+        return LOCAL_TO_WORLD_FOR_BODY_TO_OUT_AND_GET_BOUNDS(trans.getPos(), trans.getRot(), locals, out);
     }
+
+    public static IPair<Vect2D, Vect2D> LOCAL_TO_WORLD_FOR_BODY_TO_OUT_AND_GET_BOUNDS(
+            final I_Vect2D pos,
+            final I_Rot2D rot,
+            final Vect2D[] locals,
+            final Vect2D[] out
+    ){
+        out[0] = locals[0].localToWorldCoordinates(pos, rot);
+        final M_Vect2D min = M_Vect2D.GET(out[0]);
+        final M_Vect2D max = M_Vect2D.GET(min);
+        for (int i = locals.length-1; i > 0; i--) {
+            out[i] = locals[i].localToWorldCoordinates(pos, rot);
+            if (out[i].x < min.x){
+                min.x = out[i].x;
+            } else if (out[i].x > max.x) {
+                max.x = out[i].x;
+            }
+            if (out[i].y < min.y){
+                min.y = out[i].y;
+            } else if (out[i].y > max.y) {
+                max.y = out[i].y;
+            }
+        }
+        return new Pair<>(min.finished(), max.finished());
+    }
+
+
 
     /**
      * Obtain the lower bound of a couple of I_Vect2Ds, outputting them into the given M_Vect2D
@@ -401,10 +459,20 @@ public final class Vect2DMath {
     /**
      * Obtains the vector cross product of V and S
      * @param v the vector
-     * @param s the scalar (the non-zero component of V X (result of this)
-     * @return res -> v X res = s
+     * @param s the scalar (the Z component of the 3d vector)
+     * @return v X s = res
      */
     public static Vect2D CROSS(final I_Vect2D v, final double s){
+        return new Vect2D(s * v.getY(), -s * v.getX());
+    }
+
+    /**
+     * Obtains the vector cross product of S and V
+     * @param s the scalar (the Z component of the 3d vector)
+     * @param v the vector
+     * @return s X v = res
+     */
+    public static Vect2D CROSS(final double s, final I_Vect2D v){
         return new Vect2D(-s * v.getY(), s * v.getX());
     }
 
@@ -441,4 +509,36 @@ public final class Vect2DMath {
         return max_mag;
     }
 
+    /**
+     * This uses the shoelace formula to compute the area of an arbitrary polygon defined by some Vect2Ds.
+     * Heavily based on the C++ implementation found here:
+     * <a href=https://iq.opengenus.org/area-of-polygon-shoelace/>https://iq.opengenus.org/area-of-polygon-shoelace/</a>,
+     * except returning the signed area, not unsigned.
+     * In short, it effectively calculates the sum of the areas of the triangles between the midpoint and each outside
+     * edge of the polygon, and apparently works with self-intersects and such as well which is pretty nice I guess.
+     * @param corners list of corners of a polygon
+     * @return the area of the polygon described by the Vect2Ds.
+     * @throws IllegalArgumentException if fewer than 3 corners.
+     * @see <a href=https://iq.opengenus.org/area-of-polygon-shoelace/>https://iq.opengenus.org/area-of-polygon-shoelace/</a>
+     */
+    public static double AREA_OF_VECT2D_POLYGON(final Vect2D... corners){
+
+        if(corners.length < 3){
+            throw new IllegalArgumentException(
+                    "How do you expect me to calculate the area of a polygon with less than 3 corners???" +
+                            "You only gave me " + corners.length + " corners!"
+            );
+        }
+        Vect2D prev = corners[corners.length-1];
+
+        double area = 0;
+        for (Vect2D v: corners) {
+            area += (v.x + prev.x) * (v.y - prev.y);
+            prev = v;
+        }
+        return area/2.0;
+
+    }
+
+    // TODO compute centroid http://paulbourke.net/geometry/polygonmesh/centroid.pdf
 }

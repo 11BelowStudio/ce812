@@ -4,6 +4,7 @@ import crappy.I_Transform;
 import crappy.utils.CrappyWarning;
 import crappy.utils.IPair;
 import crappy.utils.Pair;
+import org.junit.Test;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -221,12 +222,26 @@ public final class Vect2D implements Serializable, I_Vect2D {
         return x * v.getY() + y * v.getX();
     }
 
-
-    public Vect2D cross(final double s){
-        return new Vect2D(
-                s * y,
-                -s * x
-        );
+    /**
+     * Obtains the cross product of this and a 3D vector of (0, 0, z)
+     * This method handles this X z and z X this, please use 'me_first' to indicate which one you want to use.
+     * @param z the Z coordinate of the 3D vector of (0,0,z)
+     * @param me_first if true, {@code this X z}. Else, {@code z X this}.
+     * @return {@code this X z} if me_first, else {@code z X this}.
+     */
+    @SuppressWarnings("BooleanParameter")
+    public Vect2D cross(final double z, final boolean me_first){
+        if (me_first) {
+            return new Vect2D(
+                    z * y,
+                    -z * x
+            );
+        } else {
+            return new Vect2D(
+                    -z * y,
+                    z * x
+            );
+        }
     }
 
     /**
@@ -258,7 +273,10 @@ public final class Vect2D implements Serializable, I_Vect2D {
      * @return vector that's lerpScale of the way between start and end
      */
     public Vect2D lerp(final Vect2D other, final double lerpScale){
-        return addScaled(other, -lerpScale);
+        return addScaled(
+                Vect2DMath.MINUS(other, this), // vector o->this
+                lerpScale // how much to scale (o->this) by
+        );
     }
 
     /**
@@ -285,14 +303,32 @@ public final class Vect2D implements Serializable, I_Vect2D {
     public double getY(){ return y; }
 
 
+    public Vect2D localToWorldCoordinates(final I_Transform trans){
+        return localToWorldCoordinates(trans.getPos(), trans.getRot());
+    }
+
     /**
      * Turns this local coordinate vector into a world coordinate vector.
      * @param bodyPos the world position of the body this local coordinate is attached to
-     * @param bodyRotation the current rotation of the body which this local coordinate is attached to
+     * @param bodyRot the current rotation of the body which this local coordinate is attached to
      * @return this local coordinate translated into a world coordinate
      */
-    public Vect2D localToWorldCoordinates(final Vect2D bodyPos, final Rot2D bodyRotation){
-        return M_Vect2D.GET(this).rotate(bodyRotation).add(bodyPos).finished();
+    public Vect2D localToWorldCoordinates(final I_Vect2D bodyPos, final I_Rot2D bodyRot){
+        return M_Vect2D.GET(this).rotate(bodyRot).add(bodyPos).finished();
+    }
+
+    /**
+     * Obtains the world velocity of this local coordinate.
+     * @param trans the I_Transform describing the body which this local coordinate belongs to
+     * @return velCOM + angVel x worldCoord
+     */
+    public Vect2D getWorldVelocityOfLocalCoordinate(final I_Transform trans){
+        return M_Vect2D.GET(this)
+                .rotate(trans.getRot()) // rotation
+                .add(trans.getPos()) // moving to world pos
+                .cross(trans.getAngVel(), false) // angVel X r
+                .add(trans.getVel()) // adding main body vel
+                .finished(); // aaand done!
     }
 
 
@@ -312,3 +348,4 @@ public final class Vect2D implements Serializable, I_Vect2D {
 
 
 }
+

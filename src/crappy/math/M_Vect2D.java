@@ -268,7 +268,7 @@ public final class M_Vect2D implements I_Vect2D {
      * @param scale what to multiply that other vector by before adding it
      * @return this + (other * scale)
      */
-    M_Vect2D addScaled(final I_Vect2D other, final double scale){
+    public M_Vect2D addScaled(final I_Vect2D other, final double scale){
         this.x += (other.getX() * scale);
         this.y += (other.getY() * scale);
         return this;
@@ -312,8 +312,8 @@ public final class M_Vect2D implements I_Vect2D {
 
     /**
      * Dot product of this vector and other vector
-     * @param v
-     * @return
+     * @param v other vector
+     * @return this.v
      */
     public double dot(final I_Vect2D v){ return x * v.getX() + y * v.getY(); }
 
@@ -323,14 +323,25 @@ public final class M_Vect2D implements I_Vect2D {
     @Override
     public double angle(){ return Math.atan2(y, x); }
 
-    public M_Vect2D cross(final double s){
-        final double new_y = -s * x;
-        x = s * y;
-        y = new_y;
+    /**
+     * Obtains the cross product of this and a 3D vector of (0, 0, z), and overwrites the value of this with the result.
+     * This method handles this X z and z X this, please use 'me_first' to indicate which one you want to use.
+     * @param z the Z coordinate of the 3D vector of (0,0,z)
+     * @param me_first if true, {@code this X z}. Else, {@code z X this}.
+     * @return {@code this X z} if me_first, else {@code z X this}.
+     */
+    public M_Vect2D cross(final double z, final boolean me_first){
+        if (me_first){
+            final double new_x = -z * y;
+            y = z * x;
+            x = new_x;
+        } else {
+            final double new_y = -z * x;
+            x = z * y;
+            y = new_y;
+        }
         return this;
     }
-
-
 
 
 
