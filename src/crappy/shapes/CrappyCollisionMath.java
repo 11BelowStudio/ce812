@@ -14,20 +14,21 @@ public final class CrappyCollisionMath {
      */
     private CrappyCollisionMath(){}
 
-    public static void COLLIDE_CIRCLE_CIRCLE(final CrappyCircle a, final CrappyCircle b, final double deltaT){
+    public static void COLLIDE_CIRCLE_CIRCLE(final I_CrappyCircle a, final I_CrappyCircle b, final double deltaT){
 
         // we find out when the collision actually happened
         final double t = GET_EXACT_COLLISION_TIME_CIRCLE_CIRCLE(a, b);
 
-        final I_Transform aTrans = a.getBodyTransform();
-
-        final I_Transform bTrans = b.getBodyTransform();
+        // if the collision didn't happen in this timestep, we ignore it.
+        if (t > 0 || t < -deltaT){
+            return;
+        }
 
         // move a back to where it was when it collided
-        final Vect2D aCollidePos = aTrans.getPos().addScaled(aTrans.getVel(),t);
+        final Vect2D aCollidePos = a.getPos().addScaled(a.getVel(),t);
 
         // move b back to where it was when it collided
-        final Vect2D bCollidePos = bTrans.getPos().addScaled(bTrans.getVel(),t);
+        final Vect2D bCollidePos = b.getPos().addScaled(b.getVel(),t);
 
         // calculate the AB vector (a to b)
         final Vect2D aToB = Vect2DMath.VECTOR_BETWEEN(aCollidePos, bCollidePos);
@@ -48,22 +49,22 @@ public final class CrappyCollisionMath {
                     (
                         ((a.getRestitution() + b.getRestitution())/2.0)+1
                     ) * (
-                        aTrans.getVel().dot(norm) - bTrans.getVel().dot(norm)
+                        a.getVel().dot(norm) - b.getVel().dot(norm)
                     )
                 ) / ((1/a.getMass()) + (1/b.getMass()));
 
         // vb = ub + norm*(jb/mb)
         //b.setVel(b.getVel().addScaled(norm, jb/b.getMass()));
-        b.body.applyForce(
-                bTrans.getVel().addScaled(norm, jb),
+        b.getBody().applyForce(
+                b.getVel().addScaled(norm, jb),
                 Vect2D.ZERO.lerp(norm, -1 + aRadiusRatio)
         );
 
         // va = ua + norm * (-jb/ma)
         //a.setVel(a.getVel().addScaled(norm, -jb/a.getMass()));
 
-        a.body.applyForce(
-                aTrans.getVel().addScaled(norm, -jb),
+        a.getBody().applyForce(
+                a.getVel().addScaled(norm, -jb),
                 Vect2D.ZERO.lerp(norm, aRadiusRatio)
         );
 
@@ -77,7 +78,7 @@ public final class CrappyCollisionMath {
      * @param b the other CrappyCircle
      * @return the exact T where a collides with b
      */
-    public static double GET_EXACT_COLLISION_TIME_CIRCLE_CIRCLE(final CrappyCircle a, final CrappyCircle b){
+    public static double GET_EXACT_COLLISION_TIME_CIRCLE_CIRCLE(final I_CrappyCircle a, final I_CrappyCircle b){
 
         // A moves according to  x = xa + Va(t)
         // B moves according to  x = xb + Vb(t)
@@ -101,11 +102,9 @@ public final class CrappyCollisionMath {
 
         // (-b +- sqrt(b^2 - 4ac))/2a
 
-        final I_Transform aTransform = a.getBodyTransform();
-        final I_Transform bTransform = b.getBodyTransform();
 
-        final Vect2D c = Vect2DMath.VECTOR_BETWEEN(aTransform.getPos(), bTransform.getPos());
-        final Vect2D v = Vect2DMath.MINUS(bTransform.getVel(), aTransform.getVel());
+        final Vect2D c = Vect2DMath.VECTOR_BETWEEN(a.getPos(), b.getPos());
+        final Vect2D v = Vect2DMath.MINUS(b.getVel(), a.getVel());
         final double d = a.getRadius() + b.getRadius();
 
         final double vv = v.dot(v);
@@ -121,6 +120,10 @@ public final class CrappyCollisionMath {
         );
     }
 
+
+    public static void COLLIDE_CIRCLE_EDGE(final I_CrappyCircle circle, final CrappyEdge edge){
+        // TODO: this.
+    }
 
 
     public static void COLLIDE_TWO_LOCAL_POINTS(

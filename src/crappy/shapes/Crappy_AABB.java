@@ -39,6 +39,14 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
     }
 
     /**
+     * Creates a Crappy_AABB describing a point.
+     * @param point the point this Crappy_AABB is describing
+     */
+    public Crappy_AABB(final Vect2D point){
+        this.min = this.max = point;
+    }
+
+    /**
      * Creates a new AABB that copies the given AABB
      * @param other the AABB to copy
      */
@@ -133,6 +141,15 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
     }
 
     /**
+     * Adds the point to the area described by the AABB
+     * @param point point to add to this AABB
+     */
+    void add_point(final I_Vect2D point){
+        min = Vect2DMath.LOWER_BOUND(min, point);
+        max = Vect2DMath.UPPER_BOUND(max, point);
+    }
+
+    /**
      * Updates this AABB to be a copy of the other one
      * @param other the other AABB to copy
      */
@@ -163,6 +180,14 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
     }
 
     /**
+     * Updates this AABB to describe a point
+     * @param point the point described by this AABB
+     */
+    void update_aabb(final Vect2D point){
+        min = max = point;
+    }
+
+    /**
      * Use this to update the bounding box for a circle
      * @param mid the new midpoint of the bounding box
      * @param radius the radius of the circle which this bounding box describes
@@ -171,6 +196,16 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
         this.min = mid.add(-radius);
         this.max = mid.add(radius);
 
+    }
+
+    /**
+     * Call this to update the AABB to enclose the line described by the arguments,
+     * starting at worldStart in world coords and ending at worldProj in world coords
+     * @param worldStart start position of this AABB
+     * @param worldProj polar vector describing the overall projection of that line in the world
+     */
+    void update_aabb_edge(final Vect2D worldStart, final Vect2D worldProj){
+        this.update_aabb(Vect2DMath.GET_BOUNDS_VARARGS(worldStart, worldStart.add(worldProj)));
     }
 
     @Override

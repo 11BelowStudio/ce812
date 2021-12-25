@@ -9,6 +9,8 @@ import crappy.utils.IPair;
 
 public class CrappyPolygon extends A_CrappyShape{
 
+    // TODO refactor so it's just an array of CrappyEdges with outward-facing normals connected to each other
+
     final int vertexCount;
 
     final Vect2D[] localVertices;
@@ -26,7 +28,11 @@ public class CrappyPolygon extends A_CrappyShape{
     }
 
 
-    public CrappyPolygon(final CrappyBody_Shape_Interface body, final Vect2D[] vertices, final IPair<Double, Vect2D> areaCentroid){
+    public CrappyPolygon(
+            final CrappyBody_Shape_Interface body,
+            final Vect2D[] vertices,
+            final IPair<Double, Vect2D> areaCentroid
+    ){
         super(CRAPPY_SHAPE_TYPE.POLYGON, body, areaCentroid.getSecond(), vertices.length);
 
         area = areaCentroid.getFirst();
@@ -36,7 +42,21 @@ public class CrappyPolygon extends A_CrappyShape{
         worldVertices = new Vect2D[vertexCount];
         worldNormals = new Vect2D[vertexCount];
 
-        System.arraycopy(vertices, 0, localVertices, 0, vertexCount);
+
+        if (area < 0) {
+            // if area is negative, we can copy them in directly as-is,
+            // as that indicates that the vertices are ordered clockwise,
+            // meaning the normals of these as edges will be pointing outwards.
+            System.arraycopy(vertices, 0, localVertices, 0, vertexCount);
+        } else {
+            // if area is positive, however, that means the vertices are ordered anticlockwise,
+            // meaning that the normals of these as edges will be pointing inwards,
+            // which is not what we want, so we reverse the order of them when copying them
+            // into the localVertices.
+            for (int i = 0; i < vertexCount; i++) {
+                localVertices[i] = vertices[vertexCount-1-i];
+            }
+        }
         A_CrappyShape.NORMALS_TO_OUT(vertices, localNormals);
         radius = Vect2DMath.MAX_MAGNITUDE(localVertices);
         updateShape(body);
@@ -48,7 +68,7 @@ public class CrappyPolygon extends A_CrappyShape{
 
     @Override
     public Crappy_AABB updateShape(final I_Transform rootTransform) {
-        aabb.update_aabb(
+        thisFrameAABB.update_aabb(
                 Vect2DMath.LOCAL_TO_WORLD_FOR_BODY_TO_OUT_AND_GET_BOUNDS(
                         rootTransform,
                         localVertices,
@@ -57,7 +77,7 @@ public class CrappyPolygon extends A_CrappyShape{
                         worldNormals
                 )
         );
-        return aabb;
+        return thisFrameAABB;
     }
 
     @Override

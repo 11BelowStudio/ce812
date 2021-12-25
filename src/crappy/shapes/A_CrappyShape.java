@@ -19,6 +19,10 @@ public abstract class A_CrappyShape {
 
     final Crappy_AABB aabb = new Crappy_AABB();
 
+    final Crappy_AABB thisFrameAABB = new Crappy_AABB();
+
+    final Crappy_AABB lastFrameAABB = new Crappy_AABB();
+
     final Vect2D[] finalWorldVertices;
 
     final Vect2D localCentroid;
@@ -76,25 +80,36 @@ public abstract class A_CrappyShape {
 
 
     /**
-     * CONSTRUCTOR FOR LINES
+     * CONSTRUCTOR FOR LINES AND ALSO EDGES
      * @param body the body which this shape is attached to
-     * @param shapeType shape type (MUST BE LINE!)
-     * @param centroid the midpoint of this line.
-     * @throws CrappyInternalException if shapetype isn't Line
+     * @param shapeType shape type (MUST BE LINE OR EDGE!)
+     * @param centroid the midpoint of this line/edge.
+     * @throws CrappyInternalException if shapetype isn't Line or Edge
      */
     A_CrappyShape(
             final CrappyBody_Shape_Interface body,
             final CRAPPY_SHAPE_TYPE shapeType,
             final Vect2D centroid
     ){
-        if (shapeType != CRAPPY_SHAPE_TYPE.LINE){
-            throw new CrappyInternalException("This superclass constructor is for lines only!");
+
+        switch (shapeType){
+            case LINE:
+                this.finalWorldVertices = new Vect2D[2];
+                break;
+            case EDGE:
+                this.finalWorldVertices = new Vect2D[1];
+                break;
+            default:
+                throw new CrappyInternalException(
+                        "This superclass constructor is for LINEs or EDGEs, not for " + shapeType + "!"
+                );
         }
+
         this.shapeType = shapeType;
         this.localCentroid = centroid;
         this.body = body;
-        this.finalWorldVertices = new Vect2D[2];
     }
+
 
     /**
      * Something to define what each of these collision shapes are
@@ -103,7 +118,8 @@ public abstract class A_CrappyShape {
         CIRCLE,
         POLYGON,
         //COMPOUND_POLYGON,
-        LINE
+        LINE,
+        EDGE
     }
 
     public double getRadius() {
@@ -120,6 +136,26 @@ public abstract class A_CrappyShape {
 
     public Crappy_AABB getBoundingBox(){
         return aabb;
+    }
+
+
+    public void timestepStartUpdate(){
+        aabb.update_aabb(thisFrameAABB);
+    }
+
+    public void midTimestepUpdate(){
+        aabb.add_aabb(updateShape(body.getTempTransform()));
+    }
+
+    public void timestepEndUpdate(){
+
+        updateShape(body);
+
+        aabb.update_aabb_compound(lastFrameAABB, thisFrameAABB);
+
+        lastFrameAABB.update_aabb(thisFrameAABB);
+
+        updateFinalWorldVertices();
     }
 
     public abstract Crappy_AABB updateShape(final I_Transform rootTransform);

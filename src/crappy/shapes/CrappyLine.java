@@ -9,6 +9,8 @@ import crappy.math.Vect2DMath;
 
 public class CrappyLine extends A_CrappyShape{
 
+    // TODO: refactor so it's functionally just two CrappyEdges that are the reverse of each other
+
     final int vertexCount;
 
     final Vect2D[] localVertices;

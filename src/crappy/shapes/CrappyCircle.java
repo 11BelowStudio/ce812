@@ -5,7 +5,7 @@ import crappy.I_Transform;
 import crappy.math.Vect2DMath;
 import crappy.math.Vect2D;
 
-public class CrappyCircle extends A_CrappyShape {
+public class CrappyCircle extends A_CrappyShape implements I_CrappyCircle {
 
 
     public CrappyCircle(final CrappyBody_Shape_Interface body, final double radius) {
@@ -32,12 +32,27 @@ public class CrappyCircle extends A_CrappyShape {
 
     @Override
     public Crappy_AABB updateShape(final I_Transform rootTransform) {
-        aabb.update_aabb_circle(rootTransform.getPos().toVect2D(), radius);
-        return aabb;
+        thisFrameAABB.update_aabb_circle(rootTransform.getPos().toVect2D(), radius);
+        return thisFrameAABB;
     }
 
     @Override
     public void updateFinalWorldVertices() {
         finalWorldVertices[0] = body.getPos();
+    }
+
+    @Override
+    public CrappyBody_Shape_Interface getBody(){
+        return body;
+    }
+
+    @Override
+    public Vect2D getPos() {
+        return getBodyTransform().getPos();
+    }
+
+    @Override
+    public Vect2D getVel() {
+        return getBodyTransform().getVel();
     }
 }
