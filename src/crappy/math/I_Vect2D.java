@@ -53,7 +53,7 @@ public interface I_Vect2D extends IPair<Double, Double>, Comparable<I_Vect2D> {
      * @return the non-zero bit of the cross product of this X v
      */
     default double cross(final I_Vect2D v){
-        return getX() * v.getY() + getY() * v.getX();
+        return getX() * v.getY() - getY() * v.getX();
     }
 
     /**

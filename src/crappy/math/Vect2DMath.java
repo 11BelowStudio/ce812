@@ -646,8 +646,10 @@ public final class Vect2DMath {
 
         for (Vect2D next: corners) {
 
-            final double current_area_calc = (current.x * next.y) - (next.x * current.y);
+            //final double current_area_calc = (current.x * next.y) - (next.x * current.y);
             // x(i)y(i+1) − x(i+1)y(i)
+
+            final double current_area_calc = current.cross(next);
 
             area += current_area_calc; // area is the sum of current_area_calc results
 
@@ -667,6 +669,48 @@ public final class Vect2DMath {
         centroid.mult(1.0/(6.0 * area)); // centroid needs to be multiplied by 1/6A
 
         return new Pair<>(area, centroid.finished()); // and that's us done!
+
+    }
+
+    /**
+     * Attempts to find the moment of inertia for an arbitrary polygon with corners defined by the 'corners' list,
+     * based on the moment of inertia algorithm on Wikipedia for:
+     * 'Plane polygon with vertices P1, P2, P3, ..., PN and mass m uniformly distributed on its interior,
+     * rotating about an axis perpendicular to the plane and passing through the origin.'
+     * @param mass mass of that polygon
+     * @param corners list of vectors describing the shape in question
+     * @return moment of inertia about (0,0) for that shape BEFORE BEING MULTIPLIED BY MASS!
+     * @throws IllegalArgumentException if fewer than 3 corners given
+     */
+    public static double POLYGON_MOMENT_OF_INERTIA_ABOUT_ZERO(final double mass, final Vect2D... corners){
+        if (corners.length < 3){
+            throw new IllegalArgumentException(
+                    "I can't find the moment of inertia for a polygon with fewer than 3 corners! " +
+                            "You only gave me " + corners.length + " corners!"
+            );
+        }
+
+        double numerator = 0;
+        double denominator = 0;
+
+        final M_Vect2D current = M_Vect2D.GET(corners[corners.length-1]);
+
+        for (Vect2D next: corners) {
+
+            final double cXn = current.cross(next);
+
+            numerator += (
+                    cXn + current.dot(current) + current.dot(next) + next.dot(next)
+            );
+
+            denominator += cXn;
+
+            current.set(next);
+        }
+
+        current.finished();
+
+        return mass * numerator / (6 * denominator);
 
     }
 
@@ -698,7 +742,7 @@ public final class Vect2DMath {
 
         for (Vect2D next: corners) {
 
-            final double current_area_calc = (current.x * next.y) - (next.x * current.y);
+            final double current_area_calc = current.cross(next);
             // x(i)y(i+1) − x(i+1)y(i)
 
             centroid.x += (current.x + next.x) * current_area_calc;

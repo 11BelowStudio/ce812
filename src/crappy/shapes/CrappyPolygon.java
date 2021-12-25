@@ -42,6 +42,7 @@ public class CrappyPolygon extends A_CrappyShape{
         worldVertices = new Vect2D[vertexCount];
         worldNormals = new Vect2D[vertexCount];
 
+        body.setMomentOfInertia(Vect2DMath.POLYGON_MOMENT_OF_INERTIA_ABOUT_ZERO(body.getMass(), vertices));
 
         if (area < 0) {
             // if area is negative, we can copy them in directly as-is,

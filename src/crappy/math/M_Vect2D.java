@@ -380,7 +380,7 @@ public final class M_Vect2D implements I_Vect2D {
      * @return this x v
      */
     @Override
-    public double cross(final I_Vect2D v){ return x * v.getY() + y * v.getX();}
+    public double cross(final I_Vect2D v){ return x * v.getY() - y * v.getX();}
 
     /**
      * Returns the scalar cross product of this vector and the other vector, and discards this vector

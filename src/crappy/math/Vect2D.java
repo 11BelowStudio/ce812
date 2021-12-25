@@ -231,7 +231,7 @@ public final class Vect2D implements Serializable, I_Vect2D {
 
     @Override
     public double cross(final I_Vect2D v){
-        return x * v.getY() + y * v.getX();
+        return x * v.getY() - y * v.getX();
     }
 
     /**

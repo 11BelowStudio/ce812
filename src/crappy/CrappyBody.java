@@ -9,6 +9,8 @@ import crappy.shapes.Crappy_AABB;
  */
 public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_Shape_Interface, CrappyBody_Connector_Interface {
 
+    //TODO https://www.myphysicslab.com/explain/physics-engine-en.html hmmmmm
+
     /**
      * Current position of this CrappyBody
      */

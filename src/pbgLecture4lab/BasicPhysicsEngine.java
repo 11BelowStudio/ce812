@@ -22,6 +22,9 @@ public class BasicPhysicsEngine implements Drawable {
 	public static final double WORLD_HEIGHT=SCREEN_HEIGHT*(WORLD_WIDTH/SCREEN_WIDTH);// meters - keeps world dimensions in same aspect ratio as screen dimensions, so that circles get transformed into circles as opposed to ovals
 	public static final double GRAVITY= (60.8 /(double)SCREEN_HEIGHT) * WORLD_HEIGHT;
 
+	// (60.8/650) * (650 * (10/640)) = 10.15625
+
+
 	/*
 	falls ~190px from standstill in ~2.5 seconds
 	s = (u + v/2)*t
