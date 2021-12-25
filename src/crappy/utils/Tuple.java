@@ -1,5 +1,7 @@
 package crappy.utils;
 
+import crappy.internals.CrappyWarning;
+
 import java.lang.reflect.Array;
 import java.util.Iterator;
 
@@ -55,6 +57,27 @@ public class Tuple<T> implements Iterable<T> {
     @Override
     public Iterator<T> iterator() {
         return new TupleIterator<T>(this);
+    }
+
+    /**
+     * Returns a clone of the data array. Internally uses .clone() method of the array itself.
+     * @return a clone of the data array.
+     */
+    public T[] getDataClone() {
+        return data.clone();
+    }
+
+    /**
+     * Returns the data list as-is.
+     * ONLY USE THIS IF YOU KNOW WHAT YOU'RE DOING!
+     * @return the data list as-is.
+     * @deprecated not actually deprecated,
+     * this tag is here to discourage you from using it/nag you about it if you are using it.
+     */
+    @Deprecated
+    @CrappyWarning("Please don't use this, unless you are absolutely sure that you know what you're doing.")
+    public T[] __getData(){
+        return data;
     }
 
     /**

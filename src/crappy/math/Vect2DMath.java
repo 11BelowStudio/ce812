@@ -148,6 +148,8 @@ public final class Vect2DMath {
      * @param localNorms local normal vectors of everything in the body
      * @param out the list which the world positions of everything in the body will be put into
      * @param outNorms world normal vectors of everything in the body
+     * @throws ArrayIndexOutOfBoundsException if out is smaller than locals, if outNorms is smaller than localNorms,
+     * or if localNorms is smaller than locals
      */
     public static void LOCAL_TO_WORLD_FOR_BODY_TO_OUT(
             final I_Transform bodyTransform,
@@ -175,10 +177,12 @@ public final class Vect2DMath {
      * @param localNorms local normal vectors of everything in the body
      * @param out the list which the world positions of everything in the body will be put into
      * @param outNorms world normal vectors of everything in the body
+     * @throws ArrayIndexOutOfBoundsException if out is smaller than locals, if outNorms is smaller than localNorms,
+     * or if localNorms is smaller than locals
      */
     public static void LOCAL_TO_WORLD_FOR_BODY_TO_OUT(
-            final Vect2D bodyPos,
-            final Rot2D bodyRotation,
+            final I_Vect2D bodyPos,
+            final I_Rot2D bodyRotation,
             final Vect2D[] locals,
             final Vect2D[] localNorms,
             final Vect2D[] out,
@@ -198,6 +202,8 @@ public final class Vect2DMath {
      * @param localNormals local normals of the edges in the body
      * @param outCoords the list which the world positions of everything in the body will be put into
      * @param outNormals the list which the world normals of each edge in the body will be put into
+     * @throws ArrayIndexOutOfBoundsException if outCoords is shorter than localCoords,
+     * if outNormals is shorter than localNormals, or if localNormals is shorter than localCoords
      */
     public static IPair<Vect2D, Vect2D> LOCAL_TO_WORLD_FOR_BODY_TO_OUT_AND_GET_BOUNDS(
             final I_Transform bodyTransform,
@@ -220,6 +226,8 @@ public final class Vect2DMath {
      * @param localNormals local normals of the edges in the body
      * @param outCoords the list which the world positions of everything in the body will be put into
      * @param outNormals the list which the world normals of each edge in the body will be put into
+     * @throws ArrayIndexOutOfBoundsException if outCoords is shorter than localCoords,
+     *      * if outNormals is shorter than localNormals, or if localNormals is shorter than localCoords
      */
     public static IPair<Vect2D, Vect2D> LOCAL_TO_WORLD_FOR_BODY_TO_OUT_AND_GET_BOUNDS(
             final I_Vect2D bodyPos,
@@ -281,6 +289,38 @@ public final class Vect2DMath {
             }
         }
         return new Pair<>(min.finished(), max.finished());
+    }
+
+    /**
+     * Uses the given transform to convert the given local Vect2Ds into world coordinates
+     * @param trans transformation for the Vect2Ds
+     * @param locals local coordinates
+     * @param out world coordinates (will be overwritten!)
+     */
+    public static void LOCAL_TO_WORLD_FOR_BODY_TO_OUT(
+            final I_Transform trans,
+            final Vect2D[] locals,
+            final Vect2D[] out
+    ){
+        LOCAL_TO_WORLD_FOR_BODY_TO_OUT(trans.getPos(), trans.getRot(), locals, out);
+    }
+
+    /**
+     * Uses the given transform to convert the given local Vect2Ds into world coordinates
+     * @param pos origin of local coords in world
+     * @param rot rotation of local coords in world
+     * @param locals local coordinates
+     * @param out world coordinates (will be overwritten!)
+     */
+    public static void LOCAL_TO_WORLD_FOR_BODY_TO_OUT(
+            final I_Vect2D pos,
+            final I_Rot2D rot,
+            final Vect2D[] locals,
+            final Vect2D[] out
+    ){
+        for (int i = locals.length-1; i >= 0; i--) {
+            out[i] = locals[i].localToWorldCoordinates(pos, rot);
+        }
     }
 
 
@@ -487,6 +527,14 @@ public final class Vect2DMath {
     }
 
     /**
+     * Divides vector v by d, returns result in a mutable vector
+     * @param v the vector to divide
+     * @param d how much to divide it by
+     * @return an M_Vect2D holding the result of v/d
+     */
+    public static M_Vect2D DIVIDE_M(final I_Vect2D v, final double d){ return M_Vect2D.GET(v.getX()/d, v.getY()/d);}
+
+    /**
      * Creates a random polar vector at a random angle with a magnitude in the given range
      * @param min_mag minimum magnitude
      * @param max_mag maximum magnitude
@@ -516,10 +564,15 @@ public final class Vect2DMath {
      * except returning the signed area, not unsigned.
      * In short, it effectively calculates the sum of the areas of the triangles between the midpoint and each outside
      * edge of the polygon, and apparently works with self-intersects and such as well which is pretty nice I guess.
+     * Probably more efficient to use {@link  #AREA_AND_CENTROID_OF_VECT2D_POLYGON(Vect2D...)} instead though.
      * @param corners list of corners of a polygon
-     * @return the area of the polygon described by the Vect2Ds.
+     * @return the area of the polygon described by the Vect2Ds. If positive, that means the corners are ordered
+     * anticlockwise 'about the normal'. If negative, that means the corners are clockwise.
      * @throws IllegalArgumentException if fewer than 3 corners.
      * @see <a href=https://iq.opengenus.org/area-of-polygon-shoelace/>https://iq.opengenus.org/area-of-polygon-shoelace/</a>
+     * @see <a href="http://paulbourke.net/geometry/polygonmesh/centroid.pdf">http://paulbourke.net/geometry/polygonmesh/centroid.pdf</a>
+     * for the area/centroid polygon maths
+     * @see #AREA_AND_CENTROID_OF_VECT2D_POLYGON(Vect2D...)
      */
     public static double AREA_OF_VECT2D_POLYGON(final Vect2D... corners){
 
@@ -529,16 +582,213 @@ public final class Vect2DMath {
                             "You only gave me " + corners.length + " corners!"
             );
         }
-        Vect2D prev = corners[corners.length-1];
+        final M_Vect2D prev = M_Vect2D.GET(corners[corners.length-1]);
 
         double area = 0;
         for (Vect2D v: corners) {
             area += (v.x + prev.x) * (v.y - prev.y);
-            prev = v;
+            prev.set(v);
         }
+
+
+        prev.discard();
         return area/2.0;
 
     }
 
-    // TODO compute centroid http://paulbourke.net/geometry/polygonmesh/centroid.pdf
+
+    /**
+     * Calculates the (signed) area and the centroid of an arbitrary polygon,
+     * described by a list of Vect2Ds for the corners of it.
+     *
+     * The maths for the centroid and the corner stuff can be found in the 'see also' links at the end of this
+     * javadoc comment, but basically it works for any polygon as long as it doesn't self-intersect.
+     *
+     * The implementation for these calculations are heavily based on the C++ implementation of the area calculation
+     * found here:
+     * <a href=https://iq.opengenus.org/area-of-polygon-shoelace/>https://iq.opengenus.org/area-of-polygon-shoelace/</a>,
+     * except returning the signed area, not unsigned.
+     * In short, it effectively calculates the sum of the areas of the triangles between the midpoint and each outside
+     * edge of the polygon, and apparently works with self-intersects and such as well which is pretty nice I guess.
+     *
+     *
+     * @param corners list of Vect2Ds which are the corners of the 2D polygon
+     * @return a pair holding {@code [signed area, centroid]} for the given polygon. If area is positive, that means the
+     * points are ordered anticlockwise 'about the normal', otherwise, that means they're clockwise
+     * @throws IllegalArgumentException if less than 3 corners are given (because polygons need at least 3 corners)
+     * @see <a href="http://paulbourke.net/geometry/polygonmesh/">http://paulbourke.net/geometry/polygonmesh/</a>
+     * for a lot of polygon maths
+     * @see <a href="http://paulbourke.net/geometry/polygonmesh/centroid.pdf">http://paulbourke.net/geometry/polygonmesh/centroid.pdf</a>
+     * for the area/centroid maths
+     * @see <a href="https://iq.opengenus.org/area-of-polygon-shoelace/">https://iq.opengenus.org/area-of-polygon-shoelace/</a>
+     * for the C++ implementation for area calculations which this implementation is based on.
+     */
+    public static IPair<Double, Vect2D> AREA_AND_CENTROID_OF_VECT2D_POLYGON(final Vect2D... corners){
+
+        if (corners.length < 3){
+            throw new IllegalArgumentException(
+                    "I can't find the area and centroid of a polygon with fewer than 3 corners! " +
+                            "You only gave me " + corners.length + " corners!"
+            );
+        }
+
+
+        final M_Vect2D centroid = M_Vect2D.GET();
+        // we'll be storing the centroid in here.
+
+        final M_Vect2D current = M_Vect2D.GET(corners[corners.length-1]);
+        // we're basically starting from i-1, instead of i=0, but the end result is the same
+        // (but the code is more elegant!)
+        // also using this as an M_Vect2D because that way we can just declare this local variable as final
+        // and then discard this (putting it back in the pool) at the end, minimizing garbage collection.
+
+        double area = 0;
+
+        for (Vect2D next: corners) {
+
+            final double current_area_calc = (current.x * next.y) - (next.x * current.y);
+            // x(i)y(i+1) − x(i+1)y(i)
+
+            area += current_area_calc; // area is the sum of current_area_calc results
+
+            centroid.x += (current.x + next.x) * current_area_calc;
+            // (x(i) + x(i+1)) * (x(i)y(i+1) − x(i+1)y(i))
+
+            centroid.y += (current.y + next.y) * current_area_calc;
+            // (y(i) + y(i+1)) (x(i) y(i+1) − x(i+1) y(i))
+
+            current.set(next);
+        }
+
+        current.discard(); // we're done with 'current', so we discard it.
+
+        area /= 2; // we need to halve area
+
+        centroid.mult(1.0/(6.0 * area)); // centroid needs to be multiplied by 1/6A
+
+        return new Pair<>(area, centroid.finished()); // and that's us done!
+
+    }
+
+    /**
+     * Obtains the centroid of a 2D polygon described by a list of corners when the area is already known.
+     * See {@link #AREA_AND_CENTROID_OF_VECT2D_POLYGON(Vect2D...)} for the maths. Probably more efficient to use
+     * that method instead tbh.
+     * @param area the known area of the 2D polygon
+     * @param corners the list of Vect2Ds which this 2D polygon consists of
+     * @return the centroid of this 2D polygon with a known area.
+     * @see #AREA_AND_CENTROID_OF_VECT2D_POLYGON(Vect2D...)
+     */
+    public static Vect2D CENTROID_OF_VECT2D_POLYGON_GIVEN_AREA(final double area, final Vect2D... corners){
+        if (corners.length < 3){
+            throw new IllegalArgumentException(
+                    "I can't find the centroid of a polygon with fewer than 3 corners! " +
+                            "You only gave me " + corners.length + " corners!"
+            );
+        }
+
+        final M_Vect2D centroid = M_Vect2D.GET();
+        // we'll be storing the centroid in here.
+
+        final M_Vect2D current = M_Vect2D.GET(corners[corners.length-1]);
+        // we're basically starting from i-1, instead of i=0, but the end result is the same
+        // (but the code is more elegant!)
+        // also using this as an M_Vect2D because that way we can just declare this local variable as final
+        // and then discard this (putting it back in the pool) at the end, minimizing garbage collection.
+
+        for (Vect2D next: corners) {
+
+            final double current_area_calc = (current.x * next.y) - (next.x * current.y);
+            // x(i)y(i+1) − x(i+1)y(i)
+
+            centroid.x += (current.x + next.x) * current_area_calc;
+            // (x(i) + x(i+1)) * (x(i)y(i+1) − x(i+1)y(i))
+
+            centroid.y += (current.y + next.y) * current_area_calc;
+            // (y(i) + y(i+1)) (x(i) y(i+1) − x(i+1) y(i))
+
+            current.set(next);
+        }
+        current.discard(); // we're done with 'current', so we discard it.
+
+
+        return centroid.mult(1.0/(6.0 * area)).finished(); // centroid needs to be multiplied by 1/6A
+    }
+
+    /**
+     * Given the polygon described by in_points, copies it into out_points, but shifted such that the centroid of
+     * that polygon is now (0,0), and also returns the signed area and original centroid of that polygon.
+     * @param in_points The points describing the original polygon
+     * @param out_points The polygon shifted to have centroid (0,0)
+     * @return an IPair of {@code [signed area, original centroid]} for the polygon described by in_points
+     * @throws IllegalArgumentException if in_points has a length below 3, or if out_points is smaller than in_points
+     * @see #AREA_AND_CENTROID_OF_VECT2D_POLYGON(Vect2D...)
+     */
+    public static IPair<Double, Vect2D> TRANSLATE_POLYGON_TO_SHIFT_CENTROID_TO_ORIGIN_AND_RETURN_AREA_AND_DISPLACEMENT(
+            final Vect2D[] in_points,
+            final Vect2D[] out_points
+    ){
+
+        if (in_points.length > out_points.length){
+            throw new IllegalArgumentException("out_points list cannot be smaller than in_points list!");
+        }
+
+        IPair<Double, Vect2D> centroid_area = AREA_AND_CENTROID_OF_VECT2D_POLYGON(in_points);
+
+        for (int i = 0; i < in_points.length; i++) {
+            out_points[i] = MINUS(in_points[i], centroid_area.getSecond());
+        }
+
+        return centroid_area;
+
+    }
+
+
+    /**
+     * Returns moment of inertia for a circle about (0, 0)
+     * Uses formula (1/2) * mass * r^2
+     * @param radius radius of this circle
+     * @param mass mass of this circle
+     * @return the moment of inertia for a circle with given radius about (0, 0)
+     */
+    public static double CIRCLE_MOMENT_OF_INERTIA(final double radius, final double mass){
+        return (mass * radius * radius)/2.0;
+    }
+
+    /**
+     * Returns moment of inertia for a line between 'start' and 'end', with given mass, assuming uniform mass,
+     * about axis (0,0), using formula sum(massK, distK^2)
+     * @param start first end of the line
+     * @param end other end of the line
+     * @param mass mass of the line
+     * @return moment of inertia for that line
+     */
+    public static double LINE_MOMENT_OF_INERTIA(final I_Vect2D start, final I_Vect2D end, final double mass){
+
+        return mass * (start.magSquared() + end.magSquared())/2.0;
+
+        // m: total mass
+        // I: inertia
+        // a: start dist
+        // b: end dist
+        //
+        // n = m/2 [mass of each point]
+        // x = a^2
+        // y = b^2
+        //
+        // I = nx + ny
+        // 2I = mx + my
+        // 2I/m = x + y
+        // I/m = (x + y)/2
+        // I = m * (x+y)/2
+    }
+
+
 }
+
+
+
+
+
+
+

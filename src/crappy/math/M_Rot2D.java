@@ -1,5 +1,7 @@
 package crappy.math;
 
+import crappy.internals.CrappyWarning;
+
 import java.io.Serializable;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -13,8 +15,8 @@ public final class M_Rot2D implements Serializable, I_Rot2D{
 
     double cos;
 
+    @SuppressWarnings("StaticCollection")
     private static final Queue<M_Rot2D> POOL = new ConcurrentLinkedQueue<>();
-
 
     static {
         for (int i = 0; i < 5; i++) {
@@ -30,6 +32,14 @@ public final class M_Rot2D implements Serializable, I_Rot2D{
         return new M_Rot2D();
     }
 
+    /**
+     * Creates a mutable M_Rot2D, not using the pool.
+     * PLEASE ONLY USE THIS IF YOU'RE ABSOLUTELY SURE THAT YOU DON'T WANT TO GET ONE FROM THE POOL!
+     * @return a new M_Rot2D.
+     * @deprecated intentionally misusing deprecated tag here, in an attempt to get your IDE to complain if you use this.
+     */
+    @CrappyWarning("PLEASE USE THE OTHER GET METHODS OF M_ROT2D INSTEAD!")
+    @Deprecated
     public static M_Rot2D __GET_NONPOOLED(){
         return new M_Rot2D();
     }
@@ -67,7 +77,7 @@ public final class M_Rot2D implements Serializable, I_Rot2D{
         return this;
     }
 
-    public M_Rot2D set(double angle){
+    public M_Rot2D set(final double angle){
         this.sin = Math.sin(angle);
         this.cos = Math.cos(angle);
         return this;
@@ -89,17 +99,25 @@ public final class M_Rot2D implements Serializable, I_Rot2D{
         return this;
     }
 
-    public M_Rot2D mul(final I_Rot2D a, final I_Rot2D b){
-        sin = a.get_sin() * b.get_cos() + a.get_cos() * b.get_sin();
-        cos = a.get_cos() * b.get_cos() - a.get_sin() * b.get_sin();
+    public M_Rot2D mul(final I_Rot2D other){
+        final double new_cos = cos * other.get_cos() - sin * other.get_sin();
+        sin = sin * other.get_cos() + cos * other.get_sin();
+        cos = new_cos;
         return this;
     }
 
-    public M_Rot2D mulTrans(final I_Rot2D a, final I_Rot2D b){
-        sin = a.get_cos() * b.get_sin() - a.get_sin() * b.get_cos();
-        cos = a.get_cos() * b.get_cos() + a.get_sin() * b.get_sin();
+    public M_Rot2D mulTrans(final I_Rot2D other){
+        final double new_cos = cos * other.get_cos() + sin * other.get_sin();
+        sin = cos * other.get_sin() - sin * other.get_cos();
+        cos = new_cos;
         return this;
     }
+
+    public M_Rot2D rotateBy(final double angle){
+        return this.set(this.angle() + angle);
+    }
+
+    public double angle(){ return Math.atan2(sin, cos); }
 
 
 }

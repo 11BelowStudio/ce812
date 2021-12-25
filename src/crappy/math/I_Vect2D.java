@@ -27,6 +27,14 @@ public interface I_Vect2D extends IPair<Double, Double>, Comparable<I_Vect2D> {
     default double mag(){ return Math.hypot(getX(), getY()); }
 
     /**
+     * Obtains magnitude squared
+     * @return magnitude^2
+     */
+    default double magSquared(){
+        return (getX() * getX()) + (getY() * getY());
+    }
+
+    /**
      * The angle of this vector
      * @return the angle of this vector
      */
@@ -47,6 +55,13 @@ public interface I_Vect2D extends IPair<Double, Double>, Comparable<I_Vect2D> {
     default double cross(final I_Vect2D v){
         return getX() * v.getY() + getY() * v.getX();
     }
+
+    /**
+     * Cross product (as Vect3D) of this vector and the other vector
+     * @param v the other vector
+     * @return (0, 0, this x v)
+     */
+    default Vect3D cross3D(final I_Vect2D v){ return new Vect3D(this.cross(v)); }
 
 
     default Double getFirst(){

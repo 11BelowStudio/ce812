@@ -24,7 +24,7 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
     /**
      * Constructor that just sets this to have values of 0 for min and max.
      */
-    Crappy_AABB(){
+    public Crappy_AABB(){
         min = max = Vect2D.ZERO;
     }
 
@@ -33,7 +33,7 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
      * @param min the lower bound for it (minimum x, y)
      * @param max the upper bound for it (maximum x, y)
      */
-    Crappy_AABB(final Vect2D min, final Vect2D max){
+    public Crappy_AABB(final Vect2D min, final Vect2D max){
         this.min = min;
         this.max = max;
     }
@@ -42,7 +42,7 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
      * Creates a new AABB that copies the given AABB
      * @param other the AABB to copy
      */
-    Crappy_AABB(final Crappy_AABB other){
+    public Crappy_AABB(final Crappy_AABB other){
         this(other.min, other.max);
     }
 
@@ -50,7 +50,7 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
      * Creates a new AABB that copies the given AABB
      * @param other the AABB to copy
      */
-    Crappy_AABB(final I_Crappy_AABB other){
+    public Crappy_AABB(final I_Crappy_AABB other){
         this(other.getMin(), other.getMax());
     }
 
@@ -58,7 +58,7 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
      * Creates a new AABB with given bounds described by a pair of objects that extend I_Vect2D
      * @param bounds pair of (min xy, max xy)
      */
-    Crappy_AABB(final IPair<? extends I_Vect2D, ? extends I_Vect2D> bounds){
+    public Crappy_AABB(final IPair<? extends I_Vect2D, ? extends I_Vect2D> bounds){
         this.update_aabb(bounds);
     }
 
@@ -66,7 +66,7 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
      * Creates a new AABB with bounds containing all of the given boxes in the varargs
      * @param boxes a list of I_Crappy_AABB objects that this CrappyAABB will contain
      */
-    Crappy_AABB(final I_Crappy_AABB... boxes){
+    public Crappy_AABB(final I_Crappy_AABB... boxes){
         this.update_aabb_compound(boxes);
     }
 
@@ -75,7 +75,7 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
      * @param pairBoxes a list of IPairs of (min xy, max xy) vectors that this CrappyAABB will contain
      */
     @SafeVarargs
-    Crappy_AABB(final IPair<Vect2D, Vect2D>... pairBoxes){
+    public Crappy_AABB(final IPair<Vect2D, Vect2D>... pairBoxes){
         this.update_aabb_compound(pairBoxes);
     }
 

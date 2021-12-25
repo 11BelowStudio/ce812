@@ -1,5 +1,7 @@
 package crappy;
 
+import crappy.math.I_Rot2D;
+import crappy.math.I_Vect2D;
 import crappy.math.Rot2D;
 import crappy.math.Vect2D;
 
@@ -32,5 +34,13 @@ public interface I_Transform {
      * @return angular velocity
      */
     double getAngVel();
+
+    /**
+     * This method can be overridden to return a different I_Transform instance
+     * which is intended to return a view of the thing this transform is attached to mid-timestep.
+     * Default behaviour just returns this transform as-is.
+     * @return a view of this transform, mid timestep.
+     */
+    default I_Transform getTempTransform(){ return this; }
 
 }

@@ -1,8 +1,7 @@
 package crappy.math;
 
-import crappy.utils.CrappyWarning;
+import crappy.internals.CrappyWarning;
 import crappy.utils.IPair;
-import crappy.utils.Pair;
 
 import java.util.Objects;
 import java.util.Queue;
@@ -68,8 +67,10 @@ public final class M_Vect2D implements I_Vect2D {
      * Obtains a new M_Vect2D which wasn't from the pool (here to reduce the risk of stuff leaking from the pool)
      * ONLY USE THIS IF YOU ARE ABSOLUTELY SURE THAT YOU'RE MAKING SOMETHING THAT WON'T EVER BE PUT BACK INTO THE POOL!
      * @return a new, empty, M_Vect2D
+     * @deprecated Intentionally misusing the 'deprecated' tag here
      */
-    @CrappyWarning(message="PLEASE DO NOT USE THIS!")
+    @Deprecated
+    @CrappyWarning("PLEASE ONLY USE THIS IF YOU ARE ABSOLUTELY SURE YOU KNOW WHAT YOU'RE DOING!")
     public static M_Vect2D __GET_NONPOOLED(){
         return new M_Vect2D();
     }
@@ -109,6 +110,13 @@ public final class M_Vect2D implements I_Vect2D {
      * @return an M_Vect2D that's equal to M_Vect2D(p.first, p.second)
      */
     public static M_Vect2D GET(final IPair<Double, Double> p){ return _GET_RAW().set(p.getFirst(), p.getSecond()); }
+
+    /**
+     * Obtains an M_Vect2D with same x and y values as the given Vect3D
+     * @param v the Vect3D to copy the values of
+     * @return an M_Vect2D, with the same x and y values as that Vect3D. Z is discarded.
+     */
+    public static M_Vect2D GET(final Vect3D v){ return _GET_RAW().set(v.x, v.y); }
 
     @Override
     public boolean equals(Object o) {
@@ -153,8 +161,9 @@ public final class M_Vect2D implements I_Vect2D {
     }
 
     /**
-     * method
-     * @return
+     * basically a wrapper for {@link #finished()} but returning it as an I_Vect2D instead of a Vect2D,
+     * but end result is basically that the value becomes immutable (and this M_Vect2D is put back in the pool)
+     * @return an I_Vect2D view of a new immutable Vect2D holding the value held by this M_Vect2D (which gets discarded)
      */
     @Override
     public I_Vect2D to_I_Vect2D(){
@@ -217,6 +226,18 @@ public final class M_Vect2D implements I_Vect2D {
     }
 
     /**
+     * Adds the other M_Vect2D to this, and promptly discards the other M_Vect2D, returning this updated M_Vect2D
+     * @param other the other M_Vect2D to add to this and discard
+     * @return this + other
+     */
+    public M_Vect2D add_discardOther(final M_Vect2D other){
+        this.x += other.x;
+        this.y += other.y;
+        other.discard();
+        return this;
+    }
+
+    /**
      * Add the value of all of the other I_Vect2Ds to this M_Vect2D
      * @param others a list of I_Vect2Ds to be added to this.
      * @return this + sum(others)
@@ -245,8 +266,33 @@ public final class M_Vect2D implements I_Vect2D {
      * @return the magnitude of this vector.
      */
     @Override
-    public double mag(){
-        return Math.hypot(x, y);
+    public double mag(){return Math.hypot(x, y);}
+
+    /**
+     * Calculates magnitude, and discards this M_Vect2D
+     * @return magnitude
+     */
+    public double mag_discard(){
+        final double m = mag();
+        discard();
+        return m;
+    }
+
+    /**
+     * Obtains magnitude squared
+     * @return magnitude^2
+     */
+    @Override
+    public double magSquared(){return (x * x) + (y * y);}
+
+    /**
+     * Calculates magSquared, and discards this
+     * @return mag squared
+     */
+    public double magSquared_discard(){
+        final double m = magSquared();
+        discard();
+        return m;
     }
 
     /**
@@ -279,7 +325,7 @@ public final class M_Vect2D implements I_Vect2D {
      * @param scale how much should this vector be multiplied by?
      * @return this * scale
      */
-    M_Vect2D mult(final double scale){
+    public M_Vect2D mult(final double scale){
         this.x *= scale;
         this.y *= scale;
         return this;
@@ -302,7 +348,7 @@ public final class M_Vect2D implements I_Vect2D {
      * @param rot how much should this M_Vect2D be rotated by?
      * @return this M_Vect2D rotated by the given rot.
      */
-    M_Vect2D rotate(final I_Rot2D rot) {
+    public M_Vect2D rotate(final I_Rot2D rot) {
         final double old_x = x;
         //final double old_y = y;
         x = old_x * rot.get_cos() - y * rot.get_sin();
@@ -317,11 +363,52 @@ public final class M_Vect2D implements I_Vect2D {
      */
     public double dot(final I_Vect2D v){ return x * v.getX() + y * v.getY(); }
 
+    /**
+     * Dot product of this vector and other vector, also discards this vector
+     * @param v other vector
+     * @return this.v
+     */
+    public double dot_discard(final I_Vect2D v){
+        final double d = dot(v);
+        discard();
+        return d;
+    }
+
+    /**
+     * Returns the scalar cross product of this vector and the other vector
+     * @param v the other vector
+     * @return this x v
+     */
     @Override
     public double cross(final I_Vect2D v){ return x * v.getY() + y * v.getX();}
 
+    /**
+     * Returns the scalar cross product of this vector and the other vector, and discards this vector
+     * @param v the other vector
+     * @return this x v
+     */
+    public double cross_discard(final I_Vect2D v){
+        final double d = cross(v);
+        discard();
+        return d;
+    }
+
+    /**
+     * Returns the angle of this vector
+     * @return angle of this vector
+     */
     @Override
     public double angle(){ return Math.atan2(y, x); }
+
+    /**
+     * Returns the angle of this vector and discards this vector
+     * @return angle of this vector
+     */
+    public double angle_discard(){
+        final double a = angle();
+        discard();
+        return a;
+    }
 
     /**
      * Obtains the cross product of this and a 3D vector of (0, 0, z), and overwrites the value of this with the result.
@@ -330,6 +417,7 @@ public final class M_Vect2D implements I_Vect2D {
      * @param me_first if true, {@code this X z}. Else, {@code z X this}.
      * @return {@code this X z} if me_first, else {@code z X this}.
      */
+    @SuppressWarnings("BooleanParameter")
     public M_Vect2D cross(final double z, final boolean me_first){
         if (me_first){
             final double new_x = -z * y;
@@ -340,6 +428,16 @@ public final class M_Vect2D implements I_Vect2D {
             x = z * y;
             y = new_y;
         }
+        return this;
+    }
+
+    /**
+     * Inverts this vector and returns it
+     * @return this but with x and y multiplied by -1
+     */
+    public M_Vect2D invert(){
+        x *= -1;
+        y *= -1;
         return this;
     }
 

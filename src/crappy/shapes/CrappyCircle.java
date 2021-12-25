@@ -1,22 +1,29 @@
 package crappy.shapes;
 
 import crappy.CrappyBody_Shape_Interface;
-import crappy.math.Rot2D;
+import crappy.I_Transform;
+import crappy.math.Vect2DMath;
 import crappy.math.Vect2D;
-
-import java.awt.*;
-import java.awt.geom.Ellipse2D;
 
 public class CrappyCircle extends A_CrappyShape {
 
 
     public CrappyCircle(final CrappyBody_Shape_Interface body, final double radius) {
-        super(CRAPPY_SHAPE_TYPE.CIRCLE, body, Vect2D.ZERO);
+        super(CRAPPY_SHAPE_TYPE.CIRCLE, Vect2D.ZERO, body, radius);
         this.radius = radius;
 
-        updateShape();
+        body.setMomentOfInertia(Vect2DMath.CIRCLE_MOMENT_OF_INERTIA(radius, body.getMass()));
+
+        updateShape(body);
+
 
     }
+
+    @Override
+    public CRAPPY_SHAPE_TYPE getShapeType() {
+        return CRAPPY_SHAPE_TYPE.CIRCLE;
+    }
+
 
     @Override
     public Crappy_AABB getBoundingBox() {
@@ -24,8 +31,13 @@ public class CrappyCircle extends A_CrappyShape {
     }
 
     @Override
-    public Crappy_AABB updateShape() {
-        aabb.update_aabb_circle(body.getPos(), radius);
+    public Crappy_AABB updateShape(final I_Transform rootTransform) {
+        aabb.update_aabb_circle(rootTransform.getPos().toVect2D(), radius);
         return aabb;
+    }
+
+    @Override
+    public void updateFinalWorldVertices() {
+        finalWorldVertices[0] = body.getPos();
     }
 }

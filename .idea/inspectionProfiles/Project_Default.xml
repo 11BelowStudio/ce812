@@ -37,6 +37,9 @@
         <list>
           <option value="SuspiciousNameCombination" />
           <option value="BooleanParameter" />
+          <option value="StaticCollection" />
+          <option value="MethodDoesntCallSuperMethod" />
+          <option value="DuplicatedCode" />
         </list>
       </option>
     </inspection_tool>

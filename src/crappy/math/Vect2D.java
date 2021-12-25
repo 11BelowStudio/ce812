@@ -1,10 +1,7 @@
 package crappy.math;
 
 import crappy.I_Transform;
-import crappy.utils.CrappyWarning;
 import crappy.utils.IPair;
-import crappy.utils.Pair;
-import org.junit.Test;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -73,6 +70,18 @@ public final class Vect2D implements Serializable, I_Vect2D {
     public Vect2D(final M_Vect2D v){ this(v.x, v.y); }
 
     /**
+     * Creates a Vect2D from an IPair of Doubles, x=first, y=second
+     * @param p the pair of doubles
+     */
+    public Vect2D(final IPair<Double, Double> p){ this(p.getFirst(), p.getSecond()); }
+
+    /**
+     * Creates a Vect2D from a Vect3D, discarding the Z
+     * @param v the Vect3D to copy (copies X and Y, discards Z)
+     */
+    public Vect2D(final Vect3D v){ this(v.x, v.y); }
+
+    /**
      * Whether this is equal to another object.
      * True if the other object is a Vect2D  with same x and y
      * @param o other object
@@ -88,18 +97,21 @@ public final class Vect2D implements Serializable, I_Vect2D {
 
 
     @Override
-    public int hashCode() {
-        return Objects.hash(x, y);
-    }
+    public int hashCode() { return Objects.hash(x, y); }
 
     /**
      * magnitude
      * @return magnitude of this vector
      */
     @Override
-    public double mag() {
-        return Math.hypot(x, y);
-    }
+    public double mag() {return Math.hypot(x, y);}
+
+    /**
+     * Obtains magnitude squared
+     * @return magnitude^2
+     */
+    @Override
+    public double magSquared(){return (x * x) + (y * y);}
 
     /**
      * The angle of this vector
@@ -151,7 +163,7 @@ public final class Vect2D implements Serializable, I_Vect2D {
      * @param v vector being added to a copy of this vector
      * @return a vector equal to this+v
      */
-    Vect2D add(final I_Vect2D v){ return new Vect2D(x + v.getX(), y + v.getY()); }
+    public Vect2D add(final I_Vect2D v){ return new Vect2D(x + v.getX(), y + v.getY()); }
 
 
     /**
@@ -317,17 +329,32 @@ public final class Vect2D implements Serializable, I_Vect2D {
         return M_Vect2D.GET(this).rotate(bodyRot).add(bodyPos).finished();
     }
 
+    public Vect2D worldToLocalCoordinates(final I_Vect2D bodyPos, final I_Rot2D bodyRot){
+        return M_Vect2D.GET(this).addScaled(bodyPos, -1).rotate(new Rot2D(-bodyRot.angle())).finished();
+    }
+
     /**
      * Obtains the world velocity of this local coordinate.
      * @param trans the I_Transform describing the body which this local coordinate belongs to
      * @return velCOM + angVel x worldCoord
      */
     public Vect2D getWorldVelocityOfLocalCoordinate(final I_Transform trans){
+        return getWorldVelocityOfLocalCoordinate(
+                trans.getRot(),
+                trans.getPos(),
+                trans.getAngVel(),
+                trans.getVel()
+        );
+    }
+
+    public Vect2D getWorldVelocityOfLocalCoordinate(
+            final I_Rot2D rot, final I_Vect2D worldPos, final double angVel, final I_Vect2D vel
+    ){
         return M_Vect2D.GET(this)
-                .rotate(trans.getRot()) // rotation
-                .add(trans.getPos()) // moving to world pos
-                .cross(trans.getAngVel(), false) // angVel X r
-                .add(trans.getVel()) // adding main body vel
+                .rotate(rot) // rotation
+                .add(worldPos) // moving to world pos
+                .cross(angVel, false) // angVel X r
+                .add(vel) // adding main body vel
                 .finished(); // aaand done!
     }
 
@@ -344,6 +371,14 @@ public final class Vect2D implements Serializable, I_Vect2D {
             return this;
         }
         return new Vect2D(Math.abs(x), Math.abs(y));
+    }
+
+    /**
+     * Flips this Vect2D
+     * @return copy of this vect2D but with inverted x and y
+     */
+    public Vect2D invert(){
+        return new Vect2D(-x, -y);
     }
 
 

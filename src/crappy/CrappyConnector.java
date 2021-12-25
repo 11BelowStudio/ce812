@@ -1,14 +1,11 @@
 package crappy;
 
-import crappy.math.M_Vect2D;
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
 import crappy.utils.IPair;
 
 
 import java.util.function.DoubleUnaryOperator;
-import java.util.function.Function;
-import java.util.function.ToDoubleBiFunction;
 
 @SuppressWarnings("BooleanParameter")
 public class CrappyConnector implements IPair<Vect2D, Vect2D> {
@@ -16,10 +13,10 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D> {
 
     private static final TruncationRule _NO_TRUNCATION = new NoTruncation();
 
-    private final CrappyBody bodyA;
+    private final CrappyBody_Connector_Interface bodyA;
     private final Vect2D bodyALocalPos;
 
-    private final CrappyBody bodyB;
+    private final CrappyBody_Connector_Interface bodyB;
     private final Vect2D bodyBLocalPos;
 
     private final double naturalLength;
@@ -31,9 +28,9 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D> {
 
 
     public CrappyConnector(
-            final CrappyBody bodyA,
+            final CrappyBody_Connector_Interface bodyA,
             final Vect2D bodyALocalPos,
-            final CrappyBody bodyB,
+            final CrappyBody_Connector_Interface bodyB,
             final Vect2D bodyBLocalPos,
             final double naturalLength,
             final double constant,
@@ -53,9 +50,9 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D> {
     }
 
     public CrappyConnector(
-            final CrappyBody bodyA,
+            final CrappyBody_Connector_Interface bodyA,
             final Vect2D bodyALocalPos,
-            final CrappyBody bodyB,
+            final CrappyBody_Connector_Interface bodyB,
             final Vect2D bodyBLocalPos,
             final double constant,
             final double damping,
@@ -73,8 +70,7 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D> {
     }
 
     /**
-     * This method actually applies the forces to the bodies which this
-     * @return
+     * This method actually applies the forces to the bodies which this connector connects
      */
     public void applyForcesToBodies(){
         final double tension = calculateTension();
@@ -106,8 +102,8 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D> {
     double rateOfChangeOfExtension(){
 
         return Vect2DMath.MINUS(
-                bodyALocalPos.getWorldVelocityOfLocalCoordinate(bodyA),
-                bodyBLocalPos.getWorldVelocityOfLocalCoordinate(bodyB)
+                bodyALocalPos.getWorldVelocityOfLocalCoordinate(bodyA.getTempRot(), bodyA.getTempPos(), bodyA.getTempAngVel(), bodyA.getTempVel()),
+                bodyBLocalPos.getWorldVelocityOfLocalCoordinate(bodyB.getTempRot(), bodyB.getTempPos(), bodyB.getTempAngVel(), bodyB.getTempVel())
         ).dot(
                 normalizedVectorFromAToB()
         );
@@ -115,11 +111,11 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D> {
     }
 
     private Vect2D bodyAWorldPos(){
-        return bodyALocalPos.localToWorldCoordinates(bodyA);
+        return bodyALocalPos.localToWorldCoordinates(bodyA.getTempPos(), bodyA.getTempRot());
     }
 
     private Vect2D bodyBWorldPos(){
-        return bodyBLocalPos.localToWorldCoordinates(bodyB);
+        return bodyBLocalPos.localToWorldCoordinates(bodyB.getTempPos(), bodyB.getTempRot());
     }
 
     private Vect2D normalizedVectorFromAToB(){

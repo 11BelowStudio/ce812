@@ -1,4 +1,4 @@
-package crappy.utils;
+package crappy.internals;
 
 import java.lang.annotation.*;
 
@@ -17,6 +17,6 @@ public @interface CrappyWarning {
      * A warning message of sorts
      * @return the warning message
      */
-    String message() default "You probably shouldn't be using this!";
+    String value() default "You probably shouldn't be using this!";
 
 }

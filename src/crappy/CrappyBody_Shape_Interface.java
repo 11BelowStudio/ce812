@@ -1,12 +1,9 @@
 package crappy;
 
-import crappy.math.Vect2D;
 import crappy.shapes.Crappy_AABB;
 
-public interface CrappyBody_Shape_Interface extends I_CrappyBody, I_Transform {
+public interface CrappyBody_Shape_Interface extends I_View_CrappyBody, I_Transform, I_CrappyBody {
 
-    void setAABB(final Crappy_AABB aabb);
-
-
+    void setMomentOfInertia(final double moment);
 
 }

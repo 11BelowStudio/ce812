@@ -1,11 +1,10 @@
-package crappy.utils.validators;
+package crappy.internals.validators;
 
-import crappy.utils.CrappyWarning;
+import crappy.internals.CrappyWarning;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import java.util.Collections;
@@ -30,7 +29,7 @@ public class CrappyWarningValidator extends AbstractProcessor {
                 e -> {
                     this.processingEnv.getMessager().printMessage(
                             Diagnostic.Kind.WARNING,
-                            "@CrappyWarning: " + e.getAnnotation(CrappyWarning.class).message(),
+                            "@CrappyWarning: " + e.getAnnotation(CrappyWarning.class).value(),
                             e
                     );
                 }

@@ -24,4 +24,10 @@ public interface I_Rot2D extends IPair<Double, Double> {
     default Double getSecond(){
         return get_cos();
     }
+
+    default Rot2D toRot2D(){
+        return new Rot2D(this);
+    }
+
+    default double angle(){ return Math.atan2(get_sin(), get_cos()); }
 }

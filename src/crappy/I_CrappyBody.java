@@ -1,23 +1,15 @@
 package crappy;
 
-import crappy.math.Rot2D;
-import crappy.math.Vect2D;
-import crappy.shapes.A_CrappyShape;
-import crappy.shapes.Crappy_AABB;
+import crappy.math.I_Vect2D;
 
-public interface I_CrappyBody extends I_Transform {
+public interface I_CrappyBody extends I_View_CrappyBody {
 
-    Vect2D getVel();
 
-    double getAngVel();
+    void applyForce(final I_Vect2D force, final I_Vect2D localForcePos);
 
-    double getMass();
+    void applyForce(final I_Vect2D force);
 
-    Crappy_AABB getAABB();
+    void applyDistanceForce(final I_Vect2D force, final I_Vect2D localForcePos);
 
-    A_CrappyShape getShape();
-
-    double getInertia();
-
-    CrappyBody.CRAPPY_BODY_TYPE getBodyType();
+    void applyDistanceForce(final I_Vect2D force);
 }

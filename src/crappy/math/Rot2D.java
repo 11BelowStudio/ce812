@@ -63,11 +63,11 @@ public final class Rot2D implements Serializable, I_Rot2D {
     }
 
     public Rot2D mul(final I_Rot2D other){
-        return M_Rot2D._GET_RAW().mul(this, other).finished();
+        return M_Rot2D._GET_RAW().mul(other).finished();
     }
 
     public Rot2D mulTrans(final I_Rot2D other){
-        return M_Rot2D._GET_RAW().mulTrans(this, other).finished();
+        return M_Rot2D._GET_RAW().mulTrans(other).finished();
     }
 
     @Override
@@ -82,5 +82,12 @@ public final class Rot2D implements Serializable, I_Rot2D {
 
     public static Rot2D FROM_DEGREES(final double degrees){
         return new Rot2D(Math.toRadians(degrees));
+    }
+
+    public double angle(){ return Math.atan2(sin, cos); }
+
+    @Override
+    public Rot2D toRot2D() {
+        return this;
     }
 }

@@ -2,10 +2,9 @@ package crappy.shapes;
 
 
 import crappy.CrappyBody_Shape_Interface;
-import crappy.math.M_Vect2D;
+import crappy.I_Transform;
+import crappy.internals.CrappyInternalException;
 import crappy.math.Vect2D;
-
-import java.awt.*;
 
 import static crappy.math.Vect2DMath.MINUS_M;
 
@@ -18,7 +17,7 @@ public abstract class A_CrappyShape {
 
     public final CrappyBody_Shape_Interface body;
 
-    final Crappy_AABB aabb;
+    final Crappy_AABB aabb = new Crappy_AABB();
 
     final Vect2D[] finalWorldVertices;
 
@@ -28,18 +27,74 @@ public abstract class A_CrappyShape {
 
     // TODO: collision method
 
-    A_CrappyShape(final CRAPPY_SHAPE_TYPE shapeType, final CrappyBody_Shape_Interface body, final Vect2D centroid) {
-        this(shapeType, body,  centroid, 1);
+    /**
+     * CONSTRUCTOR FOR CIRCLES
+     * @param shapeType shapeType (MUST BE CIRCLE!)
+     * @param body the body which this CIRCLE is attached to
+     * @param centroid centroid of this circle
+     * @param rad radius
+     * @throws crappy.internals.CrappyInternalException if shapeType isn't CIRCLE
+     */
+    A_CrappyShape(
+            final CRAPPY_SHAPE_TYPE shapeType,
+            final Vect2D centroid,
+            final CrappyBody_Shape_Interface body,
+            final double rad
+    ){
+        if (shapeType != CRAPPY_SHAPE_TYPE.CIRCLE){
+            throw new CrappyInternalException("This superclass constructor is for circles only!");
+        }
+        this.shapeType = shapeType;
+        this.localCentroid = centroid;
+        this.finalWorldVertices = new Vect2D[1];
+        this.body = body;
+        this.radius = rad;
     }
 
-    A_CrappyShape(final CRAPPY_SHAPE_TYPE shapeType, final CrappyBody_Shape_Interface body, final Vect2D centroid, final int vertices){
+    /**
+     * CONSTRUCTOR FOR POLYGONS
+     * @param shapeType shapeType (MUST BE POLYGON!)
+     * @param body the body which this shape is attached to
+     * @param centroid centroid of this shape
+     * @param vertices how many vertices this shape has
+     * @throws CrappyInternalException if this is not used for a polygon shape.
+     */
+    A_CrappyShape(
+            final CRAPPY_SHAPE_TYPE shapeType,
+            final CrappyBody_Shape_Interface body,
+            final Vect2D centroid,
+            final int vertices
+    ){
+        if (shapeType != CRAPPY_SHAPE_TYPE.POLYGON){
+            throw new CrappyInternalException("This superclass constructor is for polygons only!");
+        }
         this.shapeType = shapeType;
         this.body = body;
         this.localCentroid = centroid;
-        aabb = new Crappy_AABB();
         finalWorldVertices = new Vect2D[vertices];
     }
 
+
+    /**
+     * CONSTRUCTOR FOR LINES
+     * @param body the body which this shape is attached to
+     * @param shapeType shape type (MUST BE LINE!)
+     * @param centroid the midpoint of this line.
+     * @throws CrappyInternalException if shapetype isn't Line
+     */
+    A_CrappyShape(
+            final CrappyBody_Shape_Interface body,
+            final CRAPPY_SHAPE_TYPE shapeType,
+            final Vect2D centroid
+    ){
+        if (shapeType != CRAPPY_SHAPE_TYPE.LINE){
+            throw new CrappyInternalException("This superclass constructor is for lines only!");
+        }
+        this.shapeType = shapeType;
+        this.localCentroid = centroid;
+        this.body = body;
+        this.finalWorldVertices = new Vect2D[2];
+    }
 
     /**
      * Something to define what each of these collision shapes are
@@ -67,9 +122,21 @@ public abstract class A_CrappyShape {
         return aabb;
     }
 
-    public abstract Crappy_AABB updateShape();
+    public abstract Crappy_AABB updateShape(final I_Transform rootTransform);
 
+    public abstract void updateFinalWorldVertices();
 
+    public I_Transform getBodyTransform(){
+        return body;
+    }
+
+    public double getRestitution(){
+        return body.getRestitution();
+    }
+
+    public double getMass(){
+        return body.getMass();
+    }
 
     /**
      * Computes the normals for a polygon shape
@@ -82,4 +149,7 @@ public abstract class A_CrappyShape {
         }
         out[vertices.length-1] = MINUS_M(vertices[vertices.length-1], vertices[0]).norm().rotate90degreesAnticlockwise().finished();
     }
+
+
+
 }
