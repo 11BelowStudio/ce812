@@ -11,7 +11,7 @@ import static crappy.math.Vect2DMath.MINUS_M;
 /**
  * A shape class
  */
-public abstract class A_CrappyShape {
+public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface {
 
     public final CRAPPY_SHAPE_TYPE shapeType;
 
@@ -39,7 +39,7 @@ public abstract class A_CrappyShape {
      * @param rad radius
      * @throws crappy.internals.CrappyInternalException if shapeType isn't CIRCLE
      */
-    A_CrappyShape(
+    public A_CrappyShape(
             final CRAPPY_SHAPE_TYPE shapeType,
             final Vect2D centroid,
             final CrappyBody_Shape_Interface body,
@@ -63,7 +63,7 @@ public abstract class A_CrappyShape {
      * @param vertices how many vertices this shape has
      * @throws CrappyInternalException if this is not used for a polygon shape.
      */
-    A_CrappyShape(
+    public A_CrappyShape(
             final CRAPPY_SHAPE_TYPE shapeType,
             final CrappyBody_Shape_Interface body,
             final Vect2D centroid,
@@ -86,7 +86,7 @@ public abstract class A_CrappyShape {
      * @param centroid the midpoint of this line/edge.
      * @throws CrappyInternalException if shapetype isn't Line or Edge
      */
-    A_CrappyShape(
+    public A_CrappyShape(
             final CrappyBody_Shape_Interface body,
             final CRAPPY_SHAPE_TYPE shapeType,
             final Vect2D centroid
@@ -134,6 +134,7 @@ public abstract class A_CrappyShape {
         return shapeType;
     }
 
+    @Override
     public Crappy_AABB getBoundingBox(){
         return aabb;
     }
@@ -158,6 +159,7 @@ public abstract class A_CrappyShape {
         updateFinalWorldVertices();
     }
 
+
     public abstract Crappy_AABB updateShape(final I_Transform rootTransform);
 
     public abstract void updateFinalWorldVertices();
@@ -173,6 +175,9 @@ public abstract class A_CrappyShape {
     public double getMass(){
         return body.getMass();
     }
+
+    @Override
+    public A_CrappyShape getShape(){ return this; }
 
     /**
      * Computes the normals for a polygon shape

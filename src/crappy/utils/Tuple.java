@@ -100,9 +100,7 @@ public class Tuple<T> implements Iterable<T> {
          * Creates a TupleIterator that iterates over a given tuple
          * @param theTuple tuple to iterate over
          */
-        private TupleIterator(final Tuple<T> theTuple){
-            tup = theTuple;
-        }
+        private TupleIterator(final Tuple<T> theTuple){ tup = theTuple; }
 
         @Override
         public boolean hasNext() {

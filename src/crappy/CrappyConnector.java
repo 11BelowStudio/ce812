@@ -137,7 +137,7 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D> {
     }
 
 
-    public enum TruncationEnum{
+    public static enum TruncationEnum{
         NO_TRUNCATION,
         STANDARD_TRUNCATION,
         COSINE_TRUNCATION;
@@ -155,83 +155,85 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D> {
         }
     }
 
-}
 
-
-@FunctionalInterface
-interface TruncationRule extends DoubleUnaryOperator {
-    double applyAsDouble(final double rawTension);
-}
-
-/**
- * Truncation rule which we apply when we aren't bothering to truncate the spring stuff
- */
-final class NoTruncation implements TruncationRule{
-
-    NoTruncation(){}
-
-    @Override
-    public double applyAsDouble(final double rawTension) {
-        return rawTension;
-    }
-}
-
-/**
- * Truncation rule which just limits extension ratios to be in range(-limit, limit)
- */
-class StandardTruncation implements TruncationRule{
-
-    /**
-     * upper/lower bound for the extension ratio
-     */
-    final double limit;
-
-    /**
-     * Initialize a StandardTruncation rule with given limit
-     * @param d defines lower/upper bound for extension ratio (forced to be positive)
-     */
-    public StandardTruncation(final double d){
-        limit = Math.abs(d);
+    @FunctionalInterface
+    public static interface TruncationRule extends DoubleUnaryOperator {
+        double applyAsDouble(final double rawTension);
     }
 
     /**
-     * Truncates rawTension to ensure it is in range (-limit <= rawTension <= limit)
-     * @param rawTension the double to truncate
-     * @return rawTension, capped to be in range (-limit <= rawTension <= limit)
+     * Truncation rule which we apply when we aren't bothering to truncate the spring stuff
      */
-    @Override
-    public double applyAsDouble(final double rawTension){
-        if (rawTension > limit){
-            return limit;
-        } else if (rawTension < -limit){
-            return -limit;
+    static final class NoTruncation implements TruncationRule{
+
+        NoTruncation(){}
+
+        @Override
+        public double applyAsDouble(final double rawTension) {
+            return rawTension;
         }
-        return rawTension;
     }
 
-}
+    /**
+     * Truncation rule which just limits extension ratios to be in range(-limit, limit)
+     */
+    public static class StandardTruncation implements TruncationRule{
 
-/**
- * Truncation rule which just limits values to be in range (-limit, limit) but uses the cosine rule to
- * smoothen the truncation a bit
- */
-class SineTruncation extends StandardTruncation{
+        /**
+         * upper/lower bound for the extension ratio
+         */
+        final double limit;
 
-
-    public SineTruncation(final double d){
-        super(d);
-    }
-
-    @Override
-    public double applyAsDouble(final double rawTension){
-        if (rawTension >= limit){
-            return limit;
-        } else if (rawTension <= -limit){
-            return -limit;
+        /**
+         * Initialize a StandardTruncation rule with given limit
+         * @param d defines lower/upper bound for extension ratio (forced to be positive)
+         */
+        public StandardTruncation(final double d){
+            limit = Math.abs(d);
         }
-        return Math.cos(
-                ((rawTension-limit)/(limit*2)) // -1 if aDouble is at lower bound, 0 if aDouble is at upper bound
-                * Math.PI //-PI if at lower bound, 0 if at upper bound
-        ) * limit * 2;
+
+        /**
+         * Truncates rawTension to ensure it is in range (-limit <= rawTension <= limit)
+         * @param rawTension the double to truncate
+         * @return rawTension, capped to be in range (-limit <= rawTension <= limit)
+         */
+        @Override
+        public double applyAsDouble(final double rawTension){
+            if (rawTension > limit){
+                return limit;
+            } else if (rawTension < -limit){
+                return -limit;
+            }
+            return rawTension;
+        }
+
     }
+
+    /**
+     * Truncation rule which just limits values to be in range (-limit, limit) but uses the cosine rule to
+     * smoothen the truncation a bit
+     */
+    public static class SineTruncation extends StandardTruncation{
+
+
+        public SineTruncation(final double d){
+            super(d);
+        }
+
+        @Override
+        public double applyAsDouble(final double rawTension){
+            if (rawTension >= limit){
+                return limit;
+            } else if (rawTension <= -limit){
+                return -limit;
+            }
+            return Math.cos(
+                    ((rawTension-limit)/(limit*2)) // -1 if aDouble is at lower bound, 0 if aDouble is at upper bound
+                            * Math.PI //-PI if at lower bound, 0 if at upper bound
+            ) * limit * 2;
+        }
+    }
+
 }
+
+

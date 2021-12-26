@@ -225,7 +225,7 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
      * @param other the other object with a bitmask
      */
     @Override
-    public void consumeBitmask(final IHaveBitmask other) {
+    public void accept(final IHaveBitmask other) {
         combinedBitsOfOtherObjectsCollidedWith |= other.getBitmask();
     }
 
@@ -247,7 +247,9 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
     public static enum CRAPPY_BODY_TYPE{
         STATIC,
         DYNAMIC,
-        KINEMATIC
+        KINEMATIC;
+
+
     }
 
     /**
@@ -257,7 +259,7 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
      */
     public static enum FORCE_SOURCE{
         ENGINE,
-        MANUAL
+        MANUAL;
     }
 
 

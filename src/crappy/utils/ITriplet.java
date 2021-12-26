@@ -1,5 +1,11 @@
 package crappy.utils;
 
+/**
+ * A class representing a triplet of 3 items
+ * @param <T1> first item type
+ * @param <T2> second item type
+ * @param <T3> third item type
+ */
 public interface ITriplet <T1, T2, T3> extends IPair<T1, T2>{
 
     T1 getFirst();
@@ -12,7 +18,15 @@ public interface ITriplet <T1, T2, T3> extends IPair<T1, T2>{
      */
     T3 getThird();
 
-    static <T1, T2, T3> ITriplet<T1, T2, T3> of(T1 i1, T2 i2, T3 i3){
-        return new Triplet<>(i1, i2, i3);
-    }
+    /**
+     * Creates a new triplet of these three arguments
+     * @param i1 first item
+     * @param i2 second item
+     * @param i3 third item
+     * @param <T1> type of first item
+     * @param <T2> type of second item
+     * @param <T3> type of third item
+     * @return a triplet of items i1, i2, i3
+     */
+    static <T1, T2, T3> ITriplet<T1, T2, T3> of(T1 i1, T2 i2, T3 i3){ return new Triplet<>(i1, i2, i3); }
 }
