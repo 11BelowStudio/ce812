@@ -1,11 +1,9 @@
 package crappy;
 
 import crappy.math.*;
-import crappy.shapes.A_CrappyShape;
-import crappy.shapes.Crappy_AABB;
+import crappy.collisions.A_CrappyShape;
+import crappy.collisions.Crappy_AABB;
 import crappy.utils.bitmasks.IHaveBitmask;
-
-import java.util.function.IntConsumer;
 
 /**
  * A rigidbody class used by Crappy
@@ -175,7 +173,12 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
 
     // TODO: basically call this after done with euler updates, give collidedWithBitmask,
     //  intended for external objects to see what this collided with this timestep, and to handle it appropriately.
-    final IntConsumer collisionCallback;
+    final CrappyCollisionCallbackHandler callbackHandler;
+
+    /**
+     *
+     */
+    final Object userData;
 
     public CrappyBody(
             final Vect2D pos,
@@ -185,7 +188,9 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
             final double mass,
             final CRAPPY_BODY_TYPE bodyType,
             final int bodyTagBits,
-            final int tagsICanCollideWithBits
+            final int tagsICanCollideWithBits,
+            final CrappyCollisionCallbackHandler callback,
+            final Object userData
     ) {
         this.bodyType = bodyType;
         if (bodyType == CRAPPY_BODY_TYPE.STATIC){
@@ -193,9 +198,12 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
         } else {
             this.mass = mass;
         }
+
         inertia = 0;
         myBodyTagBits = bodyTagBits;
         tagsICanCollideWithBitmask = tagsICanCollideWithBits;
+        callbackHandler = callback;
+        this.userData = userData;
     }
 
     public void setShape(final A_CrappyShape shape){
@@ -316,23 +324,30 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
     }
 
     /**
-     * Internal method for applying a force (considered constant throughout the timestep) to a local position on a body
-     * THIS WILL BE IGNORED BY KINEMATIC BODIES!
+     * External method for applying a force (considered constant throughout the timestep) to a local position on a body.
+     *
+     * You should use this to apply forces to your bodies for your games.
+     * THIS WILL BE IGNORED BY STATIC BODIES!
      * @param force the force
      * @param localForcePos local position to apply it to
+     * @see #applyForce(I_Vect2D, I_Vect2D, FORCE_SOURCE)
      */
     public void applyForce(final I_Vect2D force, final I_Vect2D localForcePos){
 
-        applyForce(force, localForcePos, FORCE_SOURCE.ENGINE);
+        applyForce(force, localForcePos, FORCE_SOURCE.MANUAL);
     }
 
     /**
      * Use this to apply any forces that are considered constant throughout a timestep,
      * and apply it to a specific local position on this body.
      * THIS WILL BE IGNORED BY KINEMATIC BODIES unless specified as manual.
+     *
+     * If you're not doing stuff within CRAPPY, please use {@link #applyForce(I_Vect2D, I_Vect2D)} instead
      * @param force the force expressed as a vector
      * @param localForcePos local position of where this force is being applied
      * @param source if not MANUAL, this force will be ignored by kinematic bodies.
+     * @see #applyMidTimestepForce(I_Vect2D, I_Vect2D)
+     * @see #canApplyThisForce(FORCE_SOURCE)
      */
     public void applyForce(final I_Vect2D force, final I_Vect2D localForcePos, final FORCE_SOURCE source){
         if (canApplyThisForce(source)){
@@ -343,21 +358,27 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
     }
 
     /**
-     * Internal method for applying a force (considered constant throughout the timestep) to origin of body
+     * Public method for applying a force (considered constant throughout the timestep) to origin of body.
+     * All forces added through this are considered to be manually applied, instead of being applied by the engine.
+     *
+     * If you're reading this and not working on CRAPPY itself, use this.
      * @param force the force
+     * @see #applyForce(I_Vect2D, FORCE_SOURCE)
      */
-    @Override
     public void applyForce(final I_Vect2D force){
-        applyForce(force, FORCE_SOURCE.ENGINE);
+        applyForce(force, FORCE_SOURCE.MANUAL);
     }
 
     /**
      * Use this to apply any forces that are considered constant throughout a timestep,
      * and apply it to centroid of the body
      * THIS WILL BE IGNORED BY KINEMATIC BODIES unless specified as manual.
+     *
+     * If you're not doing stuff within CRAPPY, please use {@link #applyForce(I_Vect2D)} instead.
      * @param force the force expressed as a vector
      * @param source if not MANUAL, this force will be ignored by kinematic bodies.
      */
+    @Override
     public void applyForce(final I_Vect2D force, final FORCE_SOURCE source){
 
         if (canApplyThisForce(source)) {
@@ -369,14 +390,12 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
     /**
      * Use this to apply any forces that depend on the distance between a point on this body and a point elsewhere,
      * and apply it to a specific local position on this body.
-     * THIS WILL BE IGNORED BY KINEMATIC BODIES!
      * @param force the force expressed as a vector
      * @param localForcePos local position of where this force is being applied
      */
-    @Override
-    public void applyDistanceForce(final I_Vect2D force, final I_Vect2D localForcePos) {
+    public void applyMidTimestepForce(final I_Vect2D force, final I_Vect2D localForcePos) {
 
-        applyDistanceForce(force, localForcePos, FORCE_SOURCE.ENGINE);
+        applyMidTimestepForce(force, localForcePos, FORCE_SOURCE.MANUAL);
     }
 
     /**
@@ -384,12 +403,16 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
      * and a point elsewhere, and apply it to a specific local position on this body.
      * Will always be ignored by static bodies, and will only be taken into account by a kinematic body if
      * FORCE_SOURCE is ENGINE.
+     * Anyway, if you're not doing stuff within CRAPPY itself, please use
+     * {@link #applyMidTimestepForce(I_Vect2D, I_Vect2D)} instead.
      * @param force the force expressed as a vector
      * @param localForcePos local position of where this force is being applied
      * @param source Where the force is coming from. If you're moving something yourself, please specify
      *               FORCE_SOURCE.MANUAL, otherwise any Kinematic bodies will ignore it.
+     * @see #applyMidTimestepForce(I_Vect2D, I_Vect2D)
      */
-    public void applyDistanceForce(final I_Vect2D force, final I_Vect2D localForcePos, final FORCE_SOURCE source){
+    @Override
+    public void applyMidTimestepForce(final I_Vect2D force, final I_Vect2D localForcePos, final FORCE_SOURCE source){
 
         if (canApplyThisForce(source)) {
             pending_forces_mid_timestep.add_discardOther(Vect2DMath.DIVIDE_M(force, mass));
@@ -401,11 +424,12 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
 
     /**
      * Use this to apply a force that depends on the distance between this body and somewhere else,
-     * but applied to (0, 0) on this body
+     * but applied to (0, 0) on this body.
+     * Will be ignored by static bodies.
      * @param force the force to apply to point (0, 0) on this body.
      */
-    public void applyDistanceForce(final I_Vect2D force){
-        applyDistanceForce(force, FORCE_SOURCE.ENGINE);
+    public void applyMidTimestepForce(final I_Vect2D force){
+        applyMidTimestepForce(force, FORCE_SOURCE.MANUAL);
     }
 
     /**
@@ -415,10 +439,57 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
      * @param force the force to apply to point (0, 0) on this body.
      * @param source if not MANUAL, this force will be ignored by kinematic bodies.
      */
-    public void applyDistanceForce(final I_Vect2D force,final FORCE_SOURCE source){
+    @Override
+    public void applyMidTimestepForce(final I_Vect2D force, final FORCE_SOURCE source){
         if (canApplyThisForce(source)){
             pending_forces_mid_timestep.add_discardOther(Vect2DMath.DIVIDE_M(force, mass));
         }
+    }
+
+
+    /**
+     * Applies a torque which remains constant throughout the timestep to this object.
+     * You should use {@link #applyTorque(double)} instead.
+     * @param torque torque force to apply
+     * @param source source of it. You should specify it as manual.
+     * @see #applyTorque(double)
+     */
+    public void applyTorque(final double torque, final FORCE_SOURCE source){
+
+        if (canApplyThisForce(source)){
+            pending_torque_this_timestep += torque;
+        }
+
+    }
+
+    /**
+     * Like {@link #applyTorque(double, FORCE_SOURCE)} but source is manual. Please use this.
+     * @param torque torque to apply throughout timestep
+     */
+    public void applyTorque(final double torque){
+        applyTorque(torque, FORCE_SOURCE.MANUAL);
+    }
+
+    /**
+     * Applies torque to this object for sub-timestep.
+     * You, reading this, should use {@link #applyMidTimestepTorque(double)} instead.
+     * @param torque torque to apply
+     * @param source is it coming from engine or being done manually?
+     * @see #applyMidTimestepTorque(double)
+     */
+    public void applyMidTimestepTorque(final double torque, final FORCE_SOURCE source){
+
+        if (canApplyThisForce(source)){
+            pending_torque_mid_timestep += torque;
+        }
+    }
+
+    /**
+     * Applies torque to this object for sub-timestep.
+     * @param torque torque to apply
+     */
+    public void applyMidTimestepTorque(final double torque){
+        applyMidTimestepTorque(torque, FORCE_SOURCE.MANUAL);
     }
 
 
@@ -450,6 +521,13 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
     public CRAPPY_BODY_TYPE getBodyType() {
         return bodyType;
     }
+
+    @Override
+    public Object getUserData() {
+        return userData;
+    }
+
+    public
 
     /**
      * Call this to perform the first euler sub-update on this body.
@@ -577,6 +655,10 @@ class CrappyBodyCreator {
     public int thisBodyTagsAsBitmask = DEFAULT_THIS_BODY_TAGS_BITMASK;
 
     public int tagsOfBodiesThatCanBeCollidedWith = 0;
+
+    public CrappyCollisionCallbackHandler parentObject;
+
+    public Object userData;
 
     public CrappyBodyCreator(){}
 

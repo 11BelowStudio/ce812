@@ -255,7 +255,7 @@ public final class Vect2DMath {
                 max.y = outCoords[i].y;
             }
         }
-        return new Pair<>(min.finished(), max.finished());
+        return IPair.of(min.finished(), max.finished());
     }
 
     public static IPair<Vect2D, Vect2D> LOCAL_TO_WORLD_FOR_BODY_TO_OUT_AND_GET_BOUNDS(
@@ -288,7 +288,7 @@ public final class Vect2DMath {
                 max.y = out[i].y;
             }
         }
-        return new Pair<>(min.finished(), max.finished());
+        return IPair.of(min.finished(), max.finished());
     }
 
     /**
@@ -462,7 +462,7 @@ public final class Vect2DMath {
                 max.y = y;
             }
         }
-        return new Pair<>(min.finished(), max.finished());
+        return IPair.of(min.finished(), max.finished());
     }
 
 
@@ -668,7 +668,7 @@ public final class Vect2DMath {
 
         centroid.mult(1.0/(6.0 * area)); // centroid needs to be multiplied by 1/6A
 
-        return new Pair<>(area, centroid.finished()); // and that's us done!
+        return IPair.of(area, centroid.finished()); // and that's us done!
 
     }
 

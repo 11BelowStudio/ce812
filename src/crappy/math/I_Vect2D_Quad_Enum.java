@@ -1,7 +1,6 @@
 package crappy.math;
 
 
-import java.rmi.UnexpectedException;
 
 /**
  * Comparison enum for I_Vect2D but for a quadtree instead

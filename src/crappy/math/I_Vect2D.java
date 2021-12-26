@@ -82,13 +82,14 @@ public interface I_Vect2D extends IPair<Double, Double>, Comparable<I_Vect2D> {
 
     /**
      * A helper method to compare doubles.
-     * Like Double.compare(double d1, double d2) but omits the double to long bits stuff
+     * Like {@link Double#compare(double, double)} but omits the double to long bits stuff
      * and just returns 0 if neither are found to be bigger than each other, to save time.
      * @param a first double
      * @param b second double
      * @return +1 if a > b, -1 if a < b, otherwise 0.
+     * @see Double#compare(double, double)
      */
-    static int COMPARE_DOUBLES(final double a, final double b){
+    static int COMPARE_DOUBLES_CRAPPILY(final double a, final double b){
         if (a > b){
             return 1;
         } else if (a < b){
@@ -120,8 +121,8 @@ public interface I_Vect2D extends IPair<Double, Double>, Comparable<I_Vect2D> {
         // +3  0 -3
         // +1 -2 -5
         return I_Vect2D_Comp_Enum.fromCompResults(
-                COMPARE_DOUBLES(getX(), o.getX()),
-                COMPARE_DOUBLES(getY(), o.getY())
+                COMPARE_DOUBLES_CRAPPILY(getX(), o.getX()),
+                COMPARE_DOUBLES_CRAPPILY(getY(), o.getY())
         );
     }
 
@@ -157,9 +158,9 @@ public interface I_Vect2D extends IPair<Double, Double>, Comparable<I_Vect2D> {
      */
     @Override
     default int compareTo(final I_Vect2D o) {
-        final int x_comp = COMPARE_DOUBLES(getX(), o.getX());
+        final int x_comp = COMPARE_DOUBLES_CRAPPILY(getX(), o.getX());
         if (x_comp == 0){
-            return COMPARE_DOUBLES(getY(), o.getY());
+            return COMPARE_DOUBLES_CRAPPILY(getY(), o.getY());
         }
         return x_comp;
     }

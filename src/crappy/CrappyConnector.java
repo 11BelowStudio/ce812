@@ -76,8 +76,8 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D> {
         final double tension = calculateTension();
         final Vect2D normDist = normalizedVectorFromAToB();
 
-        bodyA.applyDistanceForce(normDist.mult(tension), bodyALocalPos);
-        bodyB.applyDistanceForce(normDist.mult(-tension), bodyBLocalPos);
+        bodyA.applyMidTimestepForce(normDist.mult(tension), bodyALocalPos, CrappyBody.FORCE_SOURCE.ENGINE);
+        bodyB.applyMidTimestepForce(normDist.mult(-tension), bodyBLocalPos, CrappyBody.FORCE_SOURCE.ENGINE);
 
     }
 

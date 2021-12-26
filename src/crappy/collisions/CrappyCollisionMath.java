@@ -1,8 +1,7 @@
-package crappy.shapes;
+package crappy.collisions;
 
 import crappy.CrappyBody;
 import crappy.CrappyBody_Shape_Interface;
-import crappy.I_Transform;
 import crappy.math.M_Vect2D;
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
@@ -57,7 +56,8 @@ public final class CrappyCollisionMath {
         //b.setVel(b.getVel().addScaled(norm, jb/b.getMass()));
         b.getBody().applyForce(
                 b.getVel().addScaled(norm, jb),
-                Vect2D.ZERO.lerp(norm, -1 + aRadiusRatio)
+                Vect2D.ZERO.lerp(norm, -1 + aRadiusRatio),
+                CrappyBody.FORCE_SOURCE.ENGINE
         );
 
         // va = ua + norm * (-jb/ma)
@@ -65,7 +65,8 @@ public final class CrappyCollisionMath {
 
         a.getBody().applyForce(
                 a.getVel().addScaled(norm, -jb),
-                Vect2D.ZERO.lerp(norm, aRadiusRatio)
+                Vect2D.ZERO.lerp(norm, aRadiusRatio),
+                CrappyBody.FORCE_SOURCE.ENGINE
         );
 
 

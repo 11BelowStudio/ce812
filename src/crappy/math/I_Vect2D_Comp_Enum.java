@@ -44,6 +44,20 @@ public enum I_Vect2D_Comp_Enum {
         return fromInt((x_comp_res * x_diff_int) + (y_diff_int * y_comp_res));
     }
 
+    /**
+     * Obtains an I_Vect2D_Comp_enum describing how A compares to B
+     * @param a first vector
+     * @param b other vector
+     * @return I_Vect2D_Comp_Enum describing A relative to B.
+     */
+    public static I_Vect2D_Comp_Enum compareTwoVectors(I_Vect2D a, I_Vect2D b){
+        return fromCompResults(
+                I_Vect2D.COMPARE_DOUBLES_CRAPPILY(a.getX(), b.getX()),
+                I_Vect2D.COMPARE_DOUBLES_CRAPPILY(a.getY(), b.getY())
+        );
+    }
+
+
 
     public static I_Vect2D_Comp_Enum fromInt(final int input){
         switch (input){

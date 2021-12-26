@@ -1,4 +1,4 @@
-package crappy.shapes;
+package crappy.collisions;
 
 import crappy.CrappyBody_Shape_Interface;
 import crappy.I_Transform;

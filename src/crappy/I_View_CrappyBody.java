@@ -4,8 +4,8 @@ import crappy.math.I_Rot2D;
 import crappy.math.I_Vect2D;
 import crappy.math.Rot2D;
 import crappy.math.Vect2D;
-import crappy.shapes.A_CrappyShape;
-import crappy.shapes.Crappy_AABB;
+import crappy.collisions.A_CrappyShape;
+import crappy.collisions.Crappy_AABB;
 import crappy.utils.bitmasks.IHaveBitmask;
 
 public interface I_View_CrappyBody extends I_Transform, IHaveBitmask {
@@ -29,6 +29,8 @@ public interface I_View_CrappyBody extends I_Transform, IHaveBitmask {
     CrappyBody.CRAPPY_BODY_TYPE getBodyType();
 
     double getRestitution();
+
+    Object getUserData();
 
 
     class I_CrappyBody_Temp_Transform implements I_Transform{
@@ -58,6 +60,7 @@ public interface I_View_CrappyBody extends I_Transform, IHaveBitmask {
         public double getAngVel() {
             return cb.getTempAngVel();
         }
+
 
     }
 }

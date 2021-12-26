@@ -1,4 +1,4 @@
-package crappy.shapes;
+package crappy.collisions;
 
 import crappy.math.Rot2D;
 import crappy.math.Vect2D;
