@@ -6,8 +6,9 @@ import crappy.math.Rot2D;
 import crappy.math.Vect2D;
 import crappy.shapes.A_CrappyShape;
 import crappy.shapes.Crappy_AABB;
+import crappy.utils.bitmasks.IHaveBitmask;
 
-public interface I_View_CrappyBody extends I_Transform {
+public interface I_View_CrappyBody extends I_Transform, IHaveBitmask {
 
     I_Vect2D getTempPos();
 

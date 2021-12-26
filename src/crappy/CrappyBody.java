@@ -3,6 +3,9 @@ package crappy;
 import crappy.math.*;
 import crappy.shapes.A_CrappyShape;
 import crappy.shapes.Crappy_AABB;
+import crappy.utils.bitmasks.IHaveBitmask;
+
+import java.util.function.IntConsumer;
 
 /**
  * A rigidbody class used by Crappy
@@ -80,8 +83,16 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
      */
     protected double torque = 0;
 
+    /**
+     * How much mass does this body have?
+     */
     final double mass;
 
+    /**
+     * What's the moment of inertia of this body?
+     * If 0, object cannot be rotated.
+     * This should be set by the CrappyShape which will be attached to this body.
+     */
     double inertia = 0;
 
 
@@ -106,6 +117,9 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
      */
     protected double pending_torque_mid_timestep = 0;
 
+    /**
+     * What sort of body is this?
+     */
     public final CRAPPY_BODY_TYPE bodyType;
 
     /**
@@ -128,9 +142,51 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
      */
     protected double restitution = 0.9;
 
+    /**
+     * Set this to 'false' if this body isn't supposed to have any physics impact when colliding
+     */
     protected boolean tangible = true;
 
-    public CrappyBody(final double mass, final CRAPPY_BODY_TYPE bodyType) {
+    /**
+     * Whether or not this body is currently allowed to move
+     */
+    protected boolean canMove = true;
+
+    /**
+     * Set this to 'true' if this CrappyBody needs to be removed from the physics engine
+     */
+    protected boolean pendingRemoval = false;
+
+    /**
+     * Basically a bitmask to indicate what 'tags' the objects this object collided with had.
+     */
+    int combinedBitsOfOtherObjectsCollidedWith = 0;
+
+    /**
+     * This is a bitmask, as some sort of arbitrary 'tag' system for bodies.
+     */
+    final int myBodyTagBits;
+
+    /**
+     * A bitmask indicating what object tags this object can collide with.
+     * Set this to -1 to indicate that it can collide with anything.
+     */
+    final int tagsICanCollideWithBitmask;
+
+    // TODO: basically call this after done with euler updates, give collidedWithBitmask,
+    //  intended for external objects to see what this collided with this timestep, and to handle it appropriately.
+    final IntConsumer collisionCallback;
+
+    public CrappyBody(
+            final Vect2D pos,
+            final Vect2D vel,
+            final Rot2D rot,
+            final double angVel,
+            final double mass,
+            final CRAPPY_BODY_TYPE bodyType,
+            final int bodyTagBits,
+            final int tagsICanCollideWithBits
+    ) {
         this.bodyType = bodyType;
         if (bodyType == CRAPPY_BODY_TYPE.STATIC){
             this.mass = 0;
@@ -138,10 +194,43 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
             this.mass = mass;
         }
         inertia = 0;
+        myBodyTagBits = bodyTagBits;
+        tagsICanCollideWithBitmask = tagsICanCollideWithBits;
     }
 
     public void setShape(final A_CrappyShape shape){
         this.shape = shape;
+    }
+
+    /**
+     * Returns {@link #myBodyTagBits} (the bitmask representing the 'tags' of this object)
+     * @return {@link #myBodyTagBits}
+     */
+    @Override
+    public int getBitmask() {
+        return myBodyTagBits;
+    }
+
+    /**
+     * Combines current {@link #combinedBitsOfOtherObjectsCollidedWith} to be the result of
+     * ORing it with the other object's bitmask (updating {@link #combinedBitsOfOtherObjectsCollidedWith})
+     * @param other the other object with a bitmask
+     */
+    @Override
+    public void consumeBitmask(final IHaveBitmask other) {
+        combinedBitsOfOtherObjectsCollidedWith |= other.getBitmask();
+    }
+
+    /**
+     * COMPARES THIS OBJECT'S 'tagsICanCollideWith' BITMASK TO THE OTHER OBJECT'S BITMASK!
+     * Also returns true if 'tagsICanCollideWith' is -1
+     * @param other the other object with a bitmask
+     * @return true if tagsICanCollideWithBitmask is -1,
+     * or if the result of tagsICanCollideWithBitmask & other.getBitmask() is greater than 0.
+     * @see #tagsICanCollideWithBitmask
+     */
+    public boolean anyMatchInBitmasks(final IHaveBitmask other){
+        return tagsICanCollideWithBitmask == -1 || ((tagsICanCollideWithBitmask & other.getBitmask()) > 0);
     }
 
     /**
@@ -221,7 +310,7 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
             case KINEMATIC:
                 return source != FORCE_SOURCE.ENGINE;
             default:
-                return true;
+                return canMove;
         }
 
     }
@@ -446,14 +535,53 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
         tempAngVelocity = angVelocity;
     }
 
-
-
     @Override
     public I_Transform getTempTransform() {
         return intermediateTransform;
     }
+
+
+    public static CrappyBodyCreator GET_CREATOR(){
+        return new CrappyBodyCreator();
+    }
 }
 
+/**
+ * Inspired somewhat by JBox2D's BodyDef class,
+ * intended to make it slightly less painful to create a CrappyBody.
+ */
+class CrappyBodyCreator {
 
+
+    public CrappyWorld world = null;
+
+    public Vect2D pos = Vect2D.ZERO;
+    public Vect2D vel = Vect2D.ZERO;
+
+    public Rot2D angle = Rot2D.IDENTITY;
+
+    public double angVel = 0;
+
+    public double mass = 1;
+
+    public CrappyBody.CRAPPY_BODY_TYPE bodyType = null;
+
+    public boolean tangible = true;
+
+    public double linearDrag = 0.9;
+
+    public double angularDrag = 0.9;
+
+    public static int DEFAULT_THIS_BODY_TAGS_BITMASK = 0;
+
+    public int thisBodyTagsAsBitmask = DEFAULT_THIS_BODY_TAGS_BITMASK;
+
+    public int tagsOfBodiesThatCanBeCollidedWith = 0;
+
+    public CrappyBodyCreator(){}
+
+
+
+}
 
 
