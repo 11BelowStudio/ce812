@@ -1,4 +1,4 @@
-package crappy.utils;
+package crappy.utils.containers;
 
 import crappy.internals.CrappyWarning;
 
@@ -14,12 +14,12 @@ public class Tuple<T> implements Iterable<T> {
     /**
      * The tuple itself
      */
-    final T[] data;
+    private final T[] data;
 
     /**
      * How long the tuple is
      */
-    final int length;
+    private final int length;
 
     /**
      * Constructs the tuple, holding the given contents

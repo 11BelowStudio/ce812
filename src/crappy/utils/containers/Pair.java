@@ -1,4 +1,4 @@
-package crappy.utils;
+package crappy.utils.containers;
 
 /**
  * An equally crappy implementation of the IPair interface
@@ -27,12 +27,19 @@ public class Pair<T1, T2> implements IPair<T1, T2> {
         second = s;
     }
 
-
+    /**
+     * get first item
+     * @return the first item from the pair
+     */
     @Override
     public T1 getFirst() {
         return first;
     }
 
+    /**
+     * get second item
+     * @return the second item from the pair
+     */
     @Override
     public T2 getSecond(){
         return second;

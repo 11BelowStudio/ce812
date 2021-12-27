@@ -1,7 +1,7 @@
 package crappy.math;
 
 import crappy.internals.CrappyWarning;
-import crappy.utils.IPair;
+import crappy.utils.containers.IPair;
 
 import java.util.Objects;
 import java.util.Queue;
@@ -302,8 +302,7 @@ public final class M_Vect2D implements I_Vect2D {
     public M_Vect2D norm(){
         final double mag = mag();
         if (mag != 0){
-            this.x /= mag;
-            this.y /= mag;
+            return divide(mag);
         }
         return this;
     }
@@ -328,6 +327,17 @@ public final class M_Vect2D implements I_Vect2D {
     public M_Vect2D mult(final double scale){
         this.x *= scale;
         this.y *= scale;
+        return this;
+    }
+
+    /**
+     * Divides X and Y by given divisor
+     * @param divisor amount to divide X and Y by
+     * @return this vector, divided by the given divisor.
+     */
+    public M_Vect2D divide(final double divisor){
+        this.x /= divisor;
+        this.y /= divisor;
         return this;
     }
 
@@ -361,6 +371,7 @@ public final class M_Vect2D implements I_Vect2D {
      * @param v other vector
      * @return this.v
      */
+    @Override
     public double dot(final I_Vect2D v){ return x * v.getX() + y * v.getY(); }
 
     /**
@@ -436,9 +447,20 @@ public final class M_Vect2D implements I_Vect2D {
      * @return this but with x and y multiplied by -1
      */
     public M_Vect2D invert(){
-        x *= -1;
-        y *= -1;
-        return this;
+        return mult(-1);
+    }
+
+    /**
+     * Linearly interpolates this vector towards the other vector
+     * @param other lerp goes towards here
+     * @param lerpScale how much to lerp by (0: return this. 1: return other. 0.5: midpoint)
+     * @return vector that's lerpScale of the way between start and end
+     */
+    public M_Vect2D lerp(final I_Vect2D other, final double lerpScale){
+        return addScaled(
+                Vect2DMath.VECTOR_BETWEEN(this, other), // vector this->o
+                lerpScale // how much to scale (this->o) by
+        );
     }
 
 

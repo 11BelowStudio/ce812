@@ -1,8 +1,9 @@
 package crappy.math;
 
 import crappy.I_Transform;
-import crappy.utils.IPair;
-import crappy.utils.Pair;
+import crappy.utils.containers.IPair;
+import crappy.utils.containers.IQuadruplet;
+import crappy.utils.containers.ITriplet;
 
 /**
  * A utility class holding static Vect2D math-related methods.
@@ -22,7 +23,7 @@ public final class Vect2DMath {
      * @param v2 the vector being subtracted
      * @return a vector equal to v1 - v2
      */
-    public static Vect2D MINUS(final Vect2D v1, final Vect2D v2) { return v1.addScaled(v2, -1); }
+    public static Vect2D MINUS(final Vect2D v1, final Vect2D v2) { return v2.addScaled(v1, -1); }
 
     /**
      * returns a vector equal to v1 - v2
@@ -30,7 +31,7 @@ public final class Vect2DMath {
      * @param v2 the vector being subtracted
      * @return a vector equal to v1 - v2
      */
-    public static Vect2D MINUS(final Vect2D v1, final I_Vect2D v2){ return v1.addScaled(v2, -1); }
+    public static Vect2D MINUS(final I_Vect2D v1, final Vect2D v2){ return v2.addScaled(v1, -1); }
 
     /**
      * returns a vector equal to v1 - v2
@@ -40,6 +41,16 @@ public final class Vect2DMath {
      */
     public static Vect2D MINUS(final I_Vect2D v1, final I_Vect2D v2){
         return new Vect2D(v1.getX() - v2.getX(), v1.getY()-v2.getY());
+    }
+
+    /**
+     * Vector subtraction but with a mutable result
+     * @param v1 first vector
+     * @param v2 second vector
+     * @return v1 - v2 but the result is mutable.
+     */
+    public static M_Vect2D MINUS_M(final I_Vect2D v1, final I_Vect2D v2){
+        return ADD_SCALED_M(v2, v1, -1);
     }
 
     /**
@@ -53,13 +64,40 @@ public final class Vect2DMath {
     }
 
     /**
-     * Vector subtraction but with a mutable result
+     * Returns the vector between start and end {@code start->end}. Or, in other words, {@code start-end}.
+     * @param start where we're starting from
+     * @param end where we're going
+     * @return MUTABLE vector from start to end.
+     */
+    public static M_Vect2D VECTOR_BETWEEN_M(final I_Vect2D start, final I_Vect2D end){
+        return MINUS_M(end, start);
+    }
+
+
+
+    /**
+     * Like ADD_SCALED but ensures we don't accidentally modify any mutable M_Vect2Ds we may be using here
+     * @param v1 first vector
+     * @param v2 vector to scale and add to the other one
+     * @param scale how much to scale v2 by
+     * @return v1 + (v2 * scale)
+     */
+    public static Vect2D ADD_SCALED(final I_Vect2D v1, final I_Vect2D v2, final double scale){
+        return new Vect2D(
+                v1.getX() + (v2.getX() * scale),
+                v1.getY() + (v2.getY() * scale)
+        );
+    }
+
+    /**
+     * Like ADD_SCALED but with a mutable result
      * @param v1 first vector
      * @param v2 second vector
-     * @return v1 - v2 but the result is mutable.
+     * @param scale how much to scale v2 by
+     * @return v1 + (v2 * scale)
      */
-    public static M_Vect2D MINUS_M(final I_Vect2D v1, final I_Vect2D v2){
-        return M_Vect2D.GET(v1).addScaled(v2, -1);
+    public static M_Vect2D ADD_SCALED_M(final I_Vect2D v1, final I_Vect2D v2, final double scale){
+        return M_Vect2D.GET(v1).addScaled(v2, scale);
     }
 
     /**
@@ -114,19 +152,36 @@ public final class Vect2DMath {
      * @param max upper bound Vect2D
      * @return midpoint of min and max
      */
-    public static Vect2D MIDPOINT_MIN_MAX(final Vect2D min, final Vect2D max){
-        return max.lerp(min, 0.5);
+    public static Vect2D MIDPOINT_MIN_MAX(final Vect2D min, final I_Vect2D max){
+        return min.lerp(max, 0.5);
+    }
+
+    public static Vect2D MIDPOINT_MIN_MAX(final I_Vect2D min, final I_Vect2D max){
+        return LERP(min, max, 0.5);
     }
 
     /**
-     * Linearly interpolates from start to end
+     * Linearly interpolates from start to end, but when 'start' is actually a Vect2D.
+     * @param start start from here
+     * @param end go to here
+     * @param lerpScale how much to lerp by (0: return start. 1: return end. 0.5: midpoint)
+     * @return vector that's lerpScale of the way between start and end
+     * @see Vect2D#lerp(I_Vect2D, double)
+     */
+    public static Vect2D LERP(final Vect2D start, final I_Vect2D end, final double lerpScale){
+        return start.lerp(end, lerpScale);
+    }
+
+    /**
+     * Linearly interpolates from start to end, but for I_Vect2D objects
+     * (when we don't know if start is immutable or not).
      * @param start start from here
      * @param end go to here
      * @param lerpScale how much to lerp by (0: return start. 1: return end. 0.5: midpoint)
      * @return vector that's lerpScale of the way between start and end
      */
-    public static Vect2D LERP(final Vect2D start, final Vect2D end, final double lerpScale){
-        return start.lerp(end, lerpScale);
+    public static Vect2D LERP(final I_Vect2D start, final I_Vect2D end, final double lerpScale){
+        return M_Vect2D.GET(start).lerp(end, lerpScale).finished();
     }
 
     /**
@@ -841,6 +896,102 @@ public final class Vect2DMath {
         );
 
     }
+
+
+    /**
+     * Basically returns the quarter midpoints between the min and the max
+     * @param min min(x,y) of region
+     * @param max max(x,y) of region
+     * @return the points that describe the midpoints between (min, midpoint) and (midpoint, max)
+     */
+    public static IPair<Vect2D, Vect2D> QUARTER_MIDPOINTS(final I_Vect2D min, final I_Vect2D max){
+        final Vect2D quarterDiff = VECTOR_BETWEEN_M(min, max).divide(4).finished();
+        return IPair.of(
+                SUM(min, quarterDiff),
+                MINUS(max, quarterDiff)
+        );
+    }
+
+    /**
+     * Knowing the min bounds and a known original midpoint, we can generate the midpoints for each quarter region
+     * around the knownMidpoint
+     * @param min the lower bound of the outer region
+     * @param knownMidpoint our known midpoint
+     * @return quadruplet with: -x-y, +x+y, +x-y, -y+x regions
+     */
+    public static IQuadruplet<Vect2D, Vect2D, Vect2D, Vect2D> ALL_QUARTER_MIDPOINTS_FROM_KNOWN_MIDPOINT(final Vect2D min, final Vect2D knownMidpoint){
+        final Vect2D min_midpoint = min.lerp(knownMidpoint, 0.5);
+        return IQuadruplet.of(
+                min_midpoint,
+                INVERT_RELATIVE_TO(min_midpoint, knownMidpoint),
+                INVERT_X_RELATIVE_TO(min_midpoint, knownMidpoint.x),
+                INVERT_Y_RELATIVE_TO(min_midpoint, knownMidpoint.y)
+        );
+    }
+
+    /**
+     * Returns a Quadruplet of the boundaries of all the sub-regions of this given region
+     * @param min lower bound of outer region
+     * @param max upper bound of outer region
+     * @param mid midpoint of outer region
+     * @return quadruplet of (lower bound) upper bound pairs for each region. Order is (-x-y, +x+y, -x+y, -y+x)
+     */
+    public static IQuadruplet<
+            IPair<Vect2D, Vect2D>,
+            IPair<Vect2D, Vect2D>,
+            IPair<Vect2D, Vect2D>,
+            IPair<Vect2D, Vect2D>
+    > ALL_QUARTER_REGIONS(final Vect2D min, final Vect2D max, final Vect2D mid){
+        return IQuadruplet.of(
+                IPair.of(min, mid),
+                IPair.of(mid, max),
+                IPair.of(new Vect2D(min.x, mid.y), new Vect2D(mid.x, max.y)),
+                IPair.of(new Vect2D(mid.x, min.y), new Vect2D(max.x, mid.y))
+        );
+    }
+
+    /**
+     * Invert y axis of vector relative to iY
+     * @param v the vector we're inverting
+     * @param iY inverting x relative to here
+     * @return v but the x value is reflected about iY on y axis
+     */
+    public static Vect2D INVERT_Y_RELATIVE_TO(final I_Vect2D v, final double iY){
+        return new Vect2D(
+                v.getX(),
+                v.getY() + ((iY - v.getY()) * 2)
+        );
+    }
+
+    /**
+     * Invert x axis of vector relative to iX
+     * @param v the vector we're inverting
+     * @param iX inverting x relative to here
+     * @return v but the x value is reflected about the iX on x axis
+     */
+    public static Vect2D INVERT_X_RELATIVE_TO(final I_Vect2D v, final double iX){
+        return new Vect2D(
+                v.getX() + ((iX - v.getX()) * 2),
+                v.getY()
+        );
+    }
+
+    /**
+     * Returns a vector that's a copy of the current one but with X and Y inverted in relation to invertAround
+     * @param v the vector we're reflecting
+     * @param invertAround reflecting it around this point
+     * @return v but x and y are inverted relative to invertAround
+     */
+    public static Vect2D INVERT_RELATIVE_TO(final I_Vect2D v, final I_Vect2D invertAround){
+        return ADD_SCALED(
+                v,
+                VECTOR_BETWEEN(v, invertAround),
+                2
+        );
+    }
+
+
+
 
 }
 

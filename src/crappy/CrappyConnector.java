@@ -2,7 +2,7 @@ package crappy;
 
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
-import crappy.utils.IPair;
+import crappy.utils.containers.IPair;
 
 
 import java.util.function.DoubleUnaryOperator;

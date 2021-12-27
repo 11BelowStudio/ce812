@@ -1,4 +1,4 @@
-package crappy.utils;
+package crappy.utils.containers;
 
 /**
  * A crappy (LITERALLY) implementation of a read-only 'pair' datatype

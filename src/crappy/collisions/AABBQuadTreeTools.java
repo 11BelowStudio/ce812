@@ -9,6 +9,7 @@ import crappy.utils.bitmasks.IHaveBitmask;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 
@@ -190,7 +191,7 @@ public final class AABBQuadTreeTools {
     }
 
 
-    public static interface I_StaticGeometryQuadTreeRootNode extends AABBQuadTreeRootNode, Iterable<A_CrappyShape>{
+    public interface I_StaticGeometryQuadTreeRootNode extends AABBQuadTreeRootNode, Iterable<A_CrappyShape>{
 
     }
 
@@ -202,14 +203,21 @@ public final class AABBQuadTreeTools {
                 implements I_StaticGeometryQuadTreeRootNode, Iterable<A_CrappyShape>
         {
 
-            private final A_CrappyShape[] allShapes;
+            private final List<A_CrappyShape> allShapes;
 
             private StaticGeometryRootNode(final Collection<CrappyShape_QuadTree_Interface> geometryShapes) {
                 super(geometryShapes);
 
                 allShapes = geometryShapes.stream()
+                        .unordered()
                         .map(CrappyShape_QuadTree_Interface::getShape)
-                        .toArray(A_CrappyShape[]::new);
+                        .collect(Collectors.collectingAndThen(
+                                Collectors.toCollection(ArrayList::new),
+                                l -> {
+                                    l.trimToSize();
+                                    return Collections.unmodifiableList(l);
+                                }
+                        ));
             }
 
             /**
@@ -219,46 +227,9 @@ public final class AABBQuadTreeTools {
              */
             @Override
             public Iterator<A_CrappyShape> iterator() {
-                return new allShapeIterator(this);
+                return allShapes.iterator();
             }
 
-
-            private static class allShapeIterator implements Iterator<A_CrappyShape>{
-
-                private final StaticGeometryRootNode data;
-
-                private int cursor = -1;
-
-                allShapeIterator(final StaticGeometryRootNode r){
-                    data = r;
-                }
-
-                /**
-                 * Returns {@code true} if the iteration has more elements. (In other words, returns {@code true} if
-                 * {@link #next} would return an element rather than throwing an exception.)
-                 *
-                 * @return {@code true} if the iteration has more elements
-                 */
-                @Override
-                public boolean hasNext() {
-                    return cursor+1 < data.candidatesLeft;
-                }
-
-                /**
-                 * Returns the next element in the iteration.
-                 *
-                 * @return the next element in the iteration
-                 *
-                 * @throws NoSuchElementException if the iteration has no more elements
-                 */
-                @Override
-                public A_CrappyShape next() {
-                    cursor+=1;
-                    return data.allShapes[cursor];
-                }
-
-
-            }
         }
 
 
@@ -368,6 +339,17 @@ public final class AABBQuadTreeTools {
         }
 
 
+        /**
+         * Attempts to create the next layer for the static geometry AABB tree, and sets up the variables
+         * which that other layer will use when creating its child layers (if any)
+         * @param nextLayerShapes all of the shapes to go into this region of the next layer
+         * @param grandparentLayerShapeCount how many shapes were on the layer before the layer before this layer?
+         * @param parentLayerShapeCount  how many shapes were on the layer before this layer?
+         * @param currentLayerShapeCount how many shapes were on this current layer?
+         * @param shapesFromThisLayerOnOtherSide how many shapes are in the region on the opposite diagonal region
+         *                                       to the region we're creating with this method?
+         * @return a new A_AABBQuadTree node, for static geometry, attempting to
+         */
         private static A_AABBQuadTree NEXT_LAYER_FACTORY_FOR_STATIC_GEOMETRY(
                 final List<CrappyShape_QuadTree_Interface> nextLayerShapes,
                 final int grandparentLayerShapeCount,
@@ -537,13 +519,35 @@ public final class AABBQuadTreeTools {
     }
 
 
+    public interface RegionTreeNode extends AABBQuadTreeNode{
+
+        boolean isRoot();
+
+        RegionTreeNode getFrom(AABB_Quad_Enum e);
 
 
 
-    //public static class StaticGeometryAABBTree extends A_AABBQuadTree{
+    }
 
-    // TODO: this
-    //}
+
+    static class DynamicKinematicAABBQuadTreeRegionTree{
+
+
+        // TODO:
+        //   Root node:
+        //       Get boundary of all bounding boxes in list(s)
+        //       Create empty structure, based on original bounding boxes. Predefined depth?
+        // TODO:
+        //   Insertion + collision checking at same time
+        //       Start with kinematics, don't bother checking their collisions with each other.
+        //       For the dynamics
+        //           Find leave(s) that they can fit in, add them to those leaves
+        //           Check BB of new object against the BBs already in those leaves
+        //           Return found intersections for that object
+        //       Combine these found intersections with dynamic/static intersections
+        //      Return all found intersections to main update loop, where they can actually be dealt with properly.
+    }
+
 
     /**
      * An enumeration used to identify sub-regions of a quadtree region

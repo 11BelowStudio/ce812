@@ -1,6 +1,6 @@
 package crappy.math;
 
-import crappy.utils.IPair;
+import crappy.utils.containers.IPair;
 
 /**
  * A read-only interface for 2D vectors.

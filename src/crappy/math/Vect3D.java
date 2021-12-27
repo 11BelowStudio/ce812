@@ -1,6 +1,6 @@
 package crappy.math;
 
-import crappy.utils.ITriplet;
+import crappy.utils.containers.ITriplet;
 
 public final class Vect3D implements ITriplet<Double, Double, Double> {
 

@@ -1,6 +1,6 @@
 package crappy.math;
 
-import crappy.utils.IPair;
+import crappy.utils.containers.IPair;
 
 /**
  * An interface for the mutable/immutable Rot2D objects.

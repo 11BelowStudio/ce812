@@ -3,7 +3,8 @@ package crappy.collisions;
 import crappy.math.I_Vect2D;
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
-import crappy.utils.IPair;
+import crappy.utils.containers.IPair;
+import crappy.utils.containers.Quadruplet;
 
 
 /**
@@ -243,6 +244,8 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
     public Vect2D getMidpoint(){
         return Vect2DMath.MIDPOINT_MIN_MAX(min, max);
     }
+
+
 
 
 }

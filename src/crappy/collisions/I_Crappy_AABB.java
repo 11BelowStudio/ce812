@@ -2,7 +2,7 @@ package crappy.collisions;
 
 import crappy.math.I_Vect2D;
 import crappy.math.Vect2D;
-import crappy.utils.IPair;
+import crappy.utils.containers.IPair;
 
 import java.util.function.Predicate;
 

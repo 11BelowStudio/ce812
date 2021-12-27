@@ -4,7 +4,7 @@ import crappy.CrappyBody_Shape_Interface;
 import crappy.I_Transform;
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
-import crappy.utils.IPair;
+import crappy.utils.containers.IPair;
 
 
 public class CrappyPolygon extends A_CrappyShape{

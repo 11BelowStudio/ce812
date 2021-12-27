@@ -3,7 +3,7 @@ package crappy;
 import crappy.math.Rot2D;
 import crappy.math.Vect2D;
 import crappy.collisions.I_Crappy_AABB;
-import crappy.utils.Pair;
+import crappy.utils.containers.Pair;
 
 /**
  * A static barrier of some description.

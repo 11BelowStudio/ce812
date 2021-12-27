@@ -1,7 +1,7 @@
 package crappy.math;
 
 import crappy.I_Transform;
-import crappy.utils.IPair;
+import crappy.utils.containers.IPair;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -284,10 +284,10 @@ public final class Vect2D implements Serializable, I_Vect2D {
      * @param lerpScale how much to lerp by (0: return this. 1: return other. 0.5: midpoint)
      * @return vector that's lerpScale of the way between start and end
      */
-    public Vect2D lerp(final Vect2D other, final double lerpScale){
+    public Vect2D lerp(final I_Vect2D other, final double lerpScale){
         return addScaled(
-                Vect2DMath.MINUS(other, this), // vector o->this
-                lerpScale // how much to scale (o->this) by
+                Vect2DMath.VECTOR_BETWEEN(this, other), // vector this->o
+                lerpScale // how much to scale (this->o) by
         );
     }
 

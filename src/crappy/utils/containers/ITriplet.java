@@ -1,4 +1,4 @@
-package crappy.utils;
+package crappy.utils.containers;
 
 /**
  * A class representing a triplet of 3 items
@@ -7,10 +7,6 @@ package crappy.utils;
  * @param <T3> third item type
  */
 public interface ITriplet <T1, T2, T3> extends IPair<T1, T2>{
-
-    T1 getFirst();
-
-    T2 getSecond();
 
     /**
      * Obtains the third item from the triplet
