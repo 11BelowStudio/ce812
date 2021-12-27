@@ -827,6 +827,20 @@ public final class Vect2DMath {
         // I = m * (x+y)/2
     }
 
+    /**
+     * Gets a random Vect2D within these bounds
+     * @param min lower bound
+     * @param max upper bound
+     * @return random Vect2D in these bounds
+     */
+    public static Vect2D RANDOM_VECTOR_IN_BOUNDS(final I_Vect2D min, final I_Vect2D max){
+
+        return new Vect2D(
+                min.getX() + (Math.random() * (max.getX() - min.getX())),
+                min.getY() + (Math.random() * (max.getY() - min.getY()))
+        );
+
+    }
 
 }
 

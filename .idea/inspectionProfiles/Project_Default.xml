@@ -41,6 +41,8 @@
           <option value="MethodDoesntCallSuperMethod" />
           <option value="DuplicatedCode" />
           <option value="unchecked" />
+          <option value="OptionalUsedAsFieldOrParameterType" />
+          <option value="ReturnOfNull" />
         </list>
       </option>
     </inspection_tool>

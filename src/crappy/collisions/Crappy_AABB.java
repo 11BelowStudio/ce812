@@ -228,14 +228,6 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
         return v.isGreaterThanOrEqualTo(min) && max.isGreaterThanOrEqualTo(v);
     }
 
-    /**
-     * Checks if this bounding box intersects with the other bounding box
-     * @param other the other bounding box
-     * @return true if the other AABB intersects with this AABB, false otherwise
-     */
-    public boolean check_bb_intersect(final Crappy_AABB other){
-        return check_if_in_bounds(other.max) || check_if_in_bounds(other.min);
-    }
 
     @Override
     public Vect2D getFirst() { return getMax(); }
@@ -251,4 +243,6 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
     public Vect2D getMidpoint(){
         return Vect2DMath.MIDPOINT_MIN_MAX(min, max);
     }
+
+
 }

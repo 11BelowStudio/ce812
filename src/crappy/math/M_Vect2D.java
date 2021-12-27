@@ -19,12 +19,12 @@ public final class M_Vect2D implements I_Vect2D {
      * X component of this vector.
      * Not final.
      */
-    double x;
+    public double x;
     /**
      * Y component of this vector.
      * Not final.
      */
-    double y;
+    public double y;
 
     /**
      * A pool of M_Vect2D objects,

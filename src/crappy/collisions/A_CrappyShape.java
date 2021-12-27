@@ -6,6 +6,8 @@ import crappy.I_Transform;
 import crappy.internals.CrappyInternalException;
 import crappy.math.Vect2D;
 
+import java.util.Objects;
+
 import static crappy.math.Vect2DMath.MINUS_M;
 
 /**
@@ -174,6 +176,19 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface {
 
     public double getMass(){
         return body.getMass();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        A_CrappyShape that = (A_CrappyShape) o;
+        return shapeType == that.shapeType && body.equals(that.body);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(shapeType, body);
     }
 
     @Override

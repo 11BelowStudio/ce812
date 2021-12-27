@@ -1,6 +1,8 @@
 package crappy;
 
+import crappy.collisions.AABBQuadTreeTools;
 import crappy.math.Vect2D;
+import crappy.utils.LazyFinal;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -28,7 +30,7 @@ public class CrappyWorld {
 
     final Set<CrappyBody> kinematicBodies = new LinkedHashSet<>();
 
-    final Set<CrappyBody> staticBodies = new LinkedHashSet<>();
+    final LazyFinal<AABBQuadTreeTools.I_StaticGeometryQuadTreeRootNode> staticGeometry = new LazyFinal<>();
 
     final Set<CrappyConnector> connectors = new LinkedHashSet<>();
 
@@ -36,11 +38,18 @@ public class CrappyWorld {
 
     }
 
+    /**
+     * Set the world's static geometry.
+     * @param geom the Quadtree describing the world's static geometry.
+     * @throws IllegalStateException if static geometry has already been set
+     */
+    public void setStaticGeometry(AABBQuadTreeTools.I_StaticGeometryQuadTreeRootNode geom) throws IllegalStateException{
+        staticGeometry.set(geom);
+    }
 
     public void addBody(final CrappyBody b){
         switch (b.bodyType){
             case STATIC:
-                staticBodies.add(b);
                 break;
             case KINEMATIC:
                 kinematicBodies.add(b);
@@ -58,7 +67,6 @@ public class CrappyWorld {
     public void removeBody(final CrappyBody b){
         switch (b.bodyType){
             case STATIC:
-                staticBodies.remove(b);
                 break;
             case KINEMATIC:
                 kinematicBodies.remove(b);

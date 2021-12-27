@@ -55,4 +55,6 @@ public class CrappyCircle extends A_CrappyShape implements I_CrappyCircle {
     public Vect2D getVel() {
         return getBodyTransform().getVel();
     }
+
+
 }
