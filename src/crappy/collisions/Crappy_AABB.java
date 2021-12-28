@@ -127,7 +127,7 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
      * adds the area described by the other AABB to this AABB
      * @param other the other AABB area to add to this AABB
      */
-    void add_aabb(final I_Crappy_AABB other){
+    public void add_aabb(final I_Crappy_AABB other){
         min = Vect2DMath.LOWER_BOUND(min, other.getMin());
         max = Vect2DMath.UPPER_BOUND(max, other.getMax());
     }
@@ -164,7 +164,7 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
      * call this with a pair of < minimum, maximum > I_Vect2D objects describing the bounds of this bounding box
      * @param bounds pair of < min xy, max xy>
      */
-    void update_aabb(final IPair<? extends I_Vect2D, ? extends I_Vect2D> bounds){
+    public void update_aabb(final IPair<? extends I_Vect2D, ? extends I_Vect2D> bounds){
         min = bounds.getFirst().toVect2D();
         max = bounds.getSecond().toVect2D();
     }
@@ -175,7 +175,7 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
      * @param min lower x,y bounds vector
      * @param max upper x,y bounds vector
      */
-    void update_aabb(final Vect2D min, final Vect2D max){
+    public void update_aabb(final Vect2D min, final Vect2D max){
         this.min = min;
         this.max = max;
     }
@@ -184,7 +184,7 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
      * Updates this AABB to describe a point
      * @param point the point described by this AABB
      */
-    void update_aabb(final Vect2D point){
+    public void update_aabb(final Vect2D point){
         min = max = point;
     }
 
@@ -193,7 +193,7 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
      * @param mid the new midpoint of the bounding box
      * @param radius the radius of the circle which this bounding box describes
      */
-    void update_aabb_circle(final Vect2D mid, final double radius){
+    public void update_aabb_circle(final Vect2D mid, final double radius){
         this.min = mid.add(-radius);
         this.max = mid.add(radius);
 
@@ -205,7 +205,7 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
      * @param worldStart start position of this AABB
      * @param worldProj polar vector describing the overall projection of that line in the world
      */
-    void update_aabb_edge(final Vect2D worldStart, final Vect2D worldProj){
+    public void update_aabb_edge(final Vect2D worldStart, final Vect2D worldProj){
         this.update_aabb(Vect2DMath.GET_BOUNDS_VARARGS(worldStart, worldStart.add(worldProj)));
     }
 

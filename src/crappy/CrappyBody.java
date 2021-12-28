@@ -529,7 +529,6 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
         return userData;
     }
 
-    public
 
     /**
      * Call this to perform the first euler sub-update on this body.
@@ -597,7 +596,7 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
 
     }
 
-    private void post_euler_update_cleanup(){
+   void post_euler_update_cleanup(){
         pending_forces_mid_timestep.reset();
         pending_torque_mid_timestep = 0;
         pending_forces_this_timestep.reset();
@@ -607,7 +606,7 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
         angVelocity = tempAngVelocity;
         rotation = new Rot2D(tempRot);
 
-        //and now making sure the temps are 100% identical to the
+        //and now making sure the temps are 100% identical to the actuals
 
         tempVel.set(velocity);
         tempPosition.set(position);

@@ -941,13 +941,60 @@ public final class Vect2DMath {
             IPair<Vect2D, Vect2D>,
             IPair<Vect2D, Vect2D>,
             IPair<Vect2D, Vect2D>
-    > ALL_QUARTER_REGIONS(final Vect2D min, final Vect2D max, final Vect2D mid){
+    > ALL_QUARTER_REGIONS_BOUNDS(final Vect2D min, final Vect2D max, final Vect2D mid){
         return IQuadruplet.of(
                 IPair.of(min, mid),
                 IPair.of(mid, max),
                 IPair.of(new Vect2D(min.x, mid.y), new Vect2D(mid.x, max.y)),
                 IPair.of(new Vect2D(mid.x, min.y), new Vect2D(max.x, mid.y))
         );
+    }
+
+
+    /**
+     * Returns a Quadruplet of (lower bound, midpoint) pairs of all the sub-regions of this given region
+     * @param minMid pair of (lower bound, midpoint) for parent region
+     * @return quadruplet of (lower bound, midpoint) pairs for each region. Order is (-x-y, +x+y, -x+y, +x-y)
+     * @see #ALL_QUARTER_REGIONS_LOWERBOUND_MIDPOINTS(Vect2D, Vect2D)
+     */
+    public static IQuadruplet<
+            IPair<Vect2D, Vect2D>,
+            IPair<Vect2D, Vect2D>,
+            IPair<Vect2D, Vect2D>,
+            IPair<Vect2D, Vect2D>
+            > ALL_QUARTER_REGIONS_LOWERBOUND_MIDPOINTS(IPair<Vect2D, Vect2D> minMid){
+        return ALL_QUARTER_REGIONS_LOWERBOUND_MIDPOINTS(minMid.getFirst(), minMid.getSecond());
+    }
+
+    /**
+     * Returns a Quadruplet of (lower bound, midpoint) pairs of all the sub-regions of this given region
+     * @param min lower bound of outer region
+     * @param mid midpoint of outer region
+     * @return quadruplet of (lower bound, midpoint) pairs for each region. Order is (-x-y, +x+y, -x+y, +x-y)
+     */
+    public static IQuadruplet<
+            IPair<Vect2D, Vect2D>,
+            IPair<Vect2D, Vect2D>,
+            IPair<Vect2D, Vect2D>,
+            IPair<Vect2D, Vect2D>
+            > ALL_QUARTER_REGIONS_LOWERBOUND_MIDPOINTS(final Vect2D min, final Vect2D mid){
+        final Vect2D offset = MINUS_M(mid, min).mult(0.5).finished(); // offset of child midpoints from their min
+        return IQuadruplet.of(
+                PAIR_OF_MIN_AND_OFFSET_MIN(min, offset),
+                PAIR_OF_MIN_AND_OFFSET_MIN(mid, offset),
+                PAIR_OF_MIN_AND_OFFSET_MIN(new Vect2D(min.x, mid.y), offset),
+                PAIR_OF_MIN_AND_OFFSET_MIN(new Vect2D(mid.x, min.y), offset)
+        );
+    }
+
+    /**
+     * Returns a pair of (v, v + offset)
+     * @param v initial vector
+     * @param offset vector to add to V and put in second
+     * @return pair of (v, v+offset)
+     */
+    private static IPair<Vect2D, Vect2D> PAIR_OF_MIN_AND_OFFSET_MIN(final Vect2D v, final Vect2D offset){
+        return IPair.of(v, v.add(offset));
     }
 
     /**

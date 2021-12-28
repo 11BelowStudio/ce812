@@ -1,16 +1,18 @@
 package crappy.collisions;
 
+import crappy.CrappyBody;
 import crappy.math.I_Vect2D;
 import crappy.math.M_Vect2D;
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
 import crappy.utils.bitmasks.BitmaskPredicate;
 import crappy.utils.bitmasks.IHaveBitmask;
+import crappy.utils.containers.IPair;
+import crappy.utils.containers.IQuadruplet;
 
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 
 
@@ -47,6 +49,106 @@ public final class AABBQuadTreeTools {
     private interface HasCandidates{
         int getCandidatesLeft();
     }
+
+
+    /**
+     * An iterator over child nodes for a non-leaf node.
+     *
+     * Works via abusing an iterator over the AABB_Quad_Enum
+     * @param <ChildNode> child node class
+     * @param <ChildEnum> enum that is used to identify each one
+     */
+    @FunctionalInterface
+    private interface ChildNodeIterable<ChildNode, ChildEnum extends Enum<?>>{
+
+        /**
+         * Obtains the appropriate child node based on the given AABB_Quad_Enum value
+         * @param q AABB_Quad_Enum value we're getting the child node from
+         * @return the appropriate child node
+         */
+        ChildNode getChildLayer(final ChildEnum q);
+
+        /**
+         * Creates the iterator that iterates over the childNodes
+         * @param iterSource Iterator over ChildEnum values
+         * @return an iterator which iterates over the childnodes that can be accessed via {@link #getChildLayer(Enum)}
+         * from the values that the iterSource iterates over.
+         */
+        default Iterator<ChildNode> childNodeIterator(final Iterable<ChildEnum> iterSource){
+            return new ChildNodeIterator<>(this, iterSource);
+        }
+
+        /**
+         * An iterator over child nodes for a given parent node.
+         *
+         * Works via abusing iterators over ChildEnum values.
+         */
+        class ChildNodeIterator<
+                ParentNode extends ChildNodeIterable<ChildNode, ChildEnum>,
+                ChildNode,
+                ChildEnum extends Enum<?>
+            > implements Iterator<ChildNode>{
+
+            /**
+             * The actual node with the child nodes that we're performing the iterations on
+             */
+            private final ParentNode node;
+
+            /**
+             * The iterator over the ChildEnum values that we'll actually be looking at.
+             *
+             * All the important iterator stuff is delegated to qIter.
+             */
+            private final Iterator<ChildEnum> qIter;
+
+
+            /**
+             * Iterator over all the child elements in a ParentNode,
+             * but using the iterator of it from a particular source.
+             * @param n the parent we're iterating over
+             * @param iterSource where we're getting our iterator over the AABB_Quad_Enum
+             */
+            ChildNodeIterator(final ParentNode n, final Iterable<ChildEnum> iterSource){
+                node = n;
+                this.qIter = iterSource.iterator();
+            }
+
+            /**
+             * Returns {@code true} if the iteration has more elements. (In other words, returns {@code true} if {@link
+             * #next} would return an element rather than throwing an exception.)
+             *
+             * @return {@code true} if the iteration has more elements
+             */
+            @Override
+            public boolean hasNext() {
+                return qIter.hasNext();
+            }
+
+            /**
+             * Returns the next element in the iteration.
+             *
+             * @return the next element in the iteration
+             *
+             * @throws NoSuchElementException if the iteration has no more elements
+             */
+            @Override
+            public ChildNode next() {
+                return node.getChildLayer(qIter.next());
+            }
+
+            /**
+             * Applies specified action with the rules which the rest of the stuff in this iterator refers to
+             * @param action action to take
+             */
+            @Override
+            public void forEachRemaining(Consumer<? super ChildNode> action) {
+                qIter.forEachRemaining(a -> action.accept(node.getChildLayer(a)));
+            }
+
+        }
+
+    }
+
 
     /**
      * An implementation of a quadtree for axis-aligned bounding boxes
@@ -196,7 +298,8 @@ public final class AABBQuadTreeTools {
     }
 
 
-    private static class StaticGeometryAABBTreeNode extends A_AABBQuadTree{
+    private static class StaticGeometryAABBTreeNode extends A_AABBQuadTree implements ChildNodeIterable<A_AABBQuadTree, AABB_Quad_Enum>{
+
 
         private static class StaticGeometryRootNode
                 extends StaticGeometryAABBTreeNode
@@ -253,7 +356,33 @@ public final class AABBQuadTreeTools {
          */
         final A_AABBQuadTree LG;
 
+        /**
+         * midpoint of the node
+         */
         final Vect2D midpoint;
+
+
+        /**
+         * Mapping from AABB_Quad_Enum values to the actual subtrees
+         * @param q AABB_Quad_Enum value to turn into subtree
+         * @return the appropriate subtree
+         */
+        public A_AABBQuadTree getChildLayer(final AABB_Quad_Enum q){
+            switch (q){
+                case X_SMALLER_Y_SMALLER:
+                    return LL;
+                case X_GREATER_Y_SMALLER:
+                    return GL;
+                case X_SMALLER_Y_GREATER:
+                    return LG;
+                case X_GREATER_Y_GREATER:
+                default:
+                    return GG;
+            }
+        }
+
+
+
 
         StaticGeometryAABBTreeNode(
                 final Collection<CrappyShape_QuadTree_Interface> geometryShapes
@@ -429,37 +558,17 @@ public final class AABBQuadTreeTools {
                 final Set<CrappyShape_QuadTree_Interface> results
         ) {
 
-
-            final AABB_Quad_Enum.AABB_Choose_Quadtree_Enum c = AABB_Quad_Enum.AABB_Choose_Quadtree_Enum.get(
+            for (final Iterator<A_AABBQuadTree> it = childNodeIterator(AABB_Quad_Enum.AABB_Choose_Quadtree_Enum.get(
                     midpoint,
                     attemptBoundingBox
-            );
-
-            if (AABB_Quad_Enum.X_GREATER_Y_GREATER.test(c)){
-                GG.getShapesThatProbablyCollideWithToOut(
-                        attemptBoundingBox,
-                        results
-                );
-            }
-            if (AABB_Quad_Enum.X_GREATER_Y_SMALLER.test(c)){
-                GL.getShapesThatProbablyCollideWithToOut(
-                        attemptBoundingBox,
-                        results
-                );
-            }
-            if (AABB_Quad_Enum.X_SMALLER_Y_SMALLER.test(c)){
-                LL.getShapesThatProbablyCollideWithToOut(
-                        attemptBoundingBox,
-                        results
-                );
-            }
-            if (AABB_Quad_Enum.X_SMALLER_Y_GREATER.test(c)){
-                LG.getShapesThatProbablyCollideWithToOut(
-                        attemptBoundingBox,
-                        results
+            )); it.hasNext(); ) {
+                it.next().getShapesThatProbablyCollideWithToOut(
+                        attemptBoundingBox, results
                 );
             }
             return results;
+
+
 
         }
 
@@ -529,8 +638,248 @@ public final class AABBQuadTreeTools {
 
     }
 
+    interface I_DynamicKinematicAABBQuadTreeNode extends
+            Consumer<CrappyShape_QuadTree_Interface>,
+            Function<CrappyShape_QuadTree_Interface, Set<CrappyShape_QuadTree_Interface>>
+    {
 
-    static class DynamicKinematicAABBQuadTreeRegionTree{
+
+        /**
+         * Clears all of the bodies in this tree (retains structure), allowing it to be promptly repopulated in the
+         * next sub-timestep.
+         */
+        void clearAll();
+
+        /**
+         * Use this to add each individual kinematic body shape to the treenode
+         *
+         * @param kBody the kinematic body shape to add
+         */
+        @Override
+        void accept(final CrappyShape_QuadTree_Interface kBody);
+
+        /**
+         * Use this to add each dynamic body shape to the treenode, and return the set of the other body shapes
+         * which its bounding box overlaps
+         *
+         * @param dBody the dynamic body shape to add
+         *
+         * @return all of the other body shapes (dynamic and kinematic) which dBody's bounding boxes overlap with
+         */
+        @Override
+        Set<CrappyShape_QuadTree_Interface> apply(final CrappyShape_QuadTree_Interface dBody);
+
+    }
+
+    public interface I_DynamicKinematicAABBQuadTreeRootNode extends I_DynamicKinematicAABBQuadTreeNode{
+
+        /**
+         * Shortcut method to add all of the kinematic bodies to the tree at once
+         * @param kinematics all the kinematic bodies to add
+         */
+        default void addAllKinematicBodies(Collection<? extends CrappyBody> kinematics){
+            for (final CrappyBody k: kinematics) {
+                if (k.getBodyType() != CrappyBody.CRAPPY_BODY_TYPE.KINEMATIC){
+                    throw new IllegalArgumentException("Expected a kinematic shape, got " + k.getBodyType() + "!");
+                }
+                accept(k.getShape());
+            }
+        }
+
+        /**
+         * Wrapper for {@link #apply(CrappyShape_QuadTree_Interface)}, less awkward to look at.
+         *
+         * Anyway, it returns all of the {@link CrappyShape_QuadTree_Interface} items in this QuadTree that
+         * have a bounding box that intersects with this one (and also adds it to the appropriate child nodes of the
+         * QuadTree after it's done working out what things in there it intersected with)
+         * @param dBody the dynamic body we're trying to add/check.
+         * @return set of all the other pre-existing CrappyShape_QuadTree_Interface objects that the new shape collides with
+         */
+        default Set<CrappyShape_QuadTree_Interface> checkDynamicBodyAABB(final CrappyShape_QuadTree_Interface dBody){
+            if (dBody.getShape().body.getBodyType() != CrappyBody.CRAPPY_BODY_TYPE.DYNAMIC){
+                throw new IllegalArgumentException("Expected a dynamic body, and that sure isn't dynamic!");
+            }
+            return apply(dBody);
+        }
+
+    }
+
+
+    /**
+     * A node in the Dynamic/Kinematic AABB quad tree
+     */
+    private static class DynamicKinematicAABBQuadTreeNode implements
+            I_DynamicKinematicAABBQuadTreeNode,
+            ChildNodeIterable<I_DynamicKinematicAABBQuadTreeNode, AABB_Quad_Enum>
+    {
+
+
+        private final Vect2D midpoint;
+
+        private final I_DynamicKinematicAABBQuadTreeNode x_min_y_min;
+        private final I_DynamicKinematicAABBQuadTreeNode x_max_y_max;
+        private final I_DynamicKinematicAABBQuadTreeNode x_min_y_max;
+        private final I_DynamicKinematicAABBQuadTreeNode x_max_y_min;
+
+
+        DynamicKinematicAABBQuadTreeNode(
+                final IPair<Vect2D, Vect2D> minAndMidpoint, final int thisDepth, final int depthLimit
+        ) {
+            this(minAndMidpoint.getFirst(), minAndMidpoint.getSecond(), thisDepth, depthLimit);
+        }
+
+        DynamicKinematicAABBQuadTreeNode(
+                final Vect2D min, final Vect2D mid, final int thisDepth, final int depthLimit
+        ){
+            midpoint = mid;
+
+            if (thisDepth==depthLimit){
+                x_min_y_min = new DynamicKinematicAABBQuadTreeLeafNode();
+                x_max_y_max = new DynamicKinematicAABBQuadTreeLeafNode();
+                x_min_y_max = new DynamicKinematicAABBQuadTreeLeafNode();
+                x_max_y_min = new DynamicKinematicAABBQuadTreeLeafNode();
+            } else {
+                final IQuadruplet<
+                        IPair<Vect2D, Vect2D>,
+                        IPair<Vect2D, Vect2D>,
+                        IPair<Vect2D, Vect2D>,
+                        IPair<Vect2D, Vect2D>
+                > lbmids = Vect2DMath.ALL_QUARTER_REGIONS_LOWERBOUND_MIDPOINTS(min, mid);
+
+                x_min_y_min = new DynamicKinematicAABBQuadTreeNode(
+                        lbmids.getFirst(), thisDepth+1, depthLimit
+                );
+                x_max_y_max = new DynamicKinematicAABBQuadTreeNode(
+                        lbmids.getSecond(), thisDepth+1, depthLimit
+                );
+                x_min_y_max = new DynamicKinematicAABBQuadTreeNode(
+                        lbmids.getThird(), thisDepth+1, depthLimit
+                );
+                x_max_y_min = new DynamicKinematicAABBQuadTreeNode(
+                        lbmids.getFourth(), thisDepth+1, depthLimit
+                );
+
+            }
+
+        }
+
+
+        /**
+         * Clears all of the bodies in this tree (retains structure), allowing it to be promptly repopulated in the next
+         * sub-timestep.
+         */
+        @Override
+        public void clearAll() {
+            x_min_y_min.clearAll();
+            x_max_y_max.clearAll();
+            x_min_y_max.clearAll();
+            x_max_y_min.clearAll();
+        }
+
+        @Override
+        public void accept(final CrappyShape_QuadTree_Interface kBody){
+
+            //childNodeIterator(AABB_Quad_Enum.AABB_Choose_Quadtree_Enum.get(midpoint, kBody)).forEachRemaining(a -> a.accept(kBody));
+
+            for (final Iterator<I_DynamicKinematicAABBQuadTreeNode> it =
+                    childNodeIterator(AABB_Quad_Enum.AABB_Choose_Quadtree_Enum.get(midpoint, kBody)); it.hasNext(); ) {
+                it.next().accept(kBody);
+            }
+
+        }
+
+
+        @Override
+        public Set<CrappyShape_QuadTree_Interface> apply(CrappyShape_QuadTree_Interface dBody) {
+            final Set<CrappyShape_QuadTree_Interface> results = new HashSet<>();
+            for (final Iterator<I_DynamicKinematicAABBQuadTreeNode> it =
+                 childNodeIterator(AABB_Quad_Enum.AABB_Choose_Quadtree_Enum.get(midpoint, dBody)); it.hasNext(); ) {
+                results.addAll(it.next().apply(dBody));
+            }
+            return results;
+        }
+
+        /**
+         * Obtains the relevant child layer via an AABB_Quad_Enum
+         * @param e the AABB_Quad_Enum for the relevant child layer
+         * @return the appropriate child layer.
+         */
+        @Override
+        public I_DynamicKinematicAABBQuadTreeNode getChildLayer(final AABB_Quad_Enum e){
+            switch (e){
+                case X_SMALLER_Y_SMALLER:
+                    return x_min_y_min;
+                case X_GREATER_Y_SMALLER:
+                    return x_max_y_min;
+                case X_SMALLER_Y_GREATER:
+                    return x_min_y_max;
+                case X_GREATER_Y_GREATER:
+                default:
+                    return x_max_y_max;
+            }
+        }
+
+
+        /**
+         * A leaf node for dynamic/kinematic quad tree leaf nodes
+         */
+        private static class DynamicKinematicAABBQuadTreeLeafNode implements I_DynamicKinematicAABBQuadTreeNode{
+
+            /**
+             * Holds all the shapes in this set
+             */
+            private final Collection<CrappyShape_QuadTree_Interface> allShapes = new ArrayList<>();
+
+            /**
+             * Boring default empty set for future reference.
+             */
+            private static final Set<CrappyShape_QuadTree_Interface> emptySet =
+                    Collections.unmodifiableSet(new HashSet<>(0));
+
+            DynamicKinematicAABBQuadTreeLeafNode(){}
+
+
+
+            @Override
+            public void clearAll() {
+                allShapes.clear();
+            }
+
+            /**
+             * Use this to add each individual kinematic body shape to the treenode
+             *
+             * @param kBody the kinematic body shape to add
+             */
+            @Override
+            public void accept(final CrappyShape_QuadTree_Interface kBody){
+                allShapes.add(kBody);
+            }
+
+            /**
+             * Use this to add each dynamic body shape to the treenode, and return the set of the other body shapes
+             * which its bounding box overlaps
+             *
+             * @param dBody the dynamic body shape to add
+             *
+             * @return all of the other body shapes (dynamic and kinematic) which dBody's bounding boxes overlap with
+             */
+            @Override
+            public Set<CrappyShape_QuadTree_Interface> apply(final CrappyShape_QuadTree_Interface dBody) {
+                if (allShapes.isEmpty()){
+                    allShapes.add(dBody);
+                    return emptySet;
+                }
+                final Set<CrappyShape_QuadTree_Interface> collidedWith = new LinkedHashSet<>();
+                for (final CrappyShape_QuadTree_Interface s: allShapes) {
+                    if (s.getBoundingBox().check_bb_intersect(s.getBoundingBox())){
+                        collidedWith.add(s);
+                    }
+                }
+                allShapes.add(dBody);
+                return collidedWith;
+            }
+        }
+
 
 
         // TODO:
@@ -546,13 +895,50 @@ public final class AABBQuadTreeTools {
         //           Return found intersections for that object
         //       Combine these found intersections with dynamic/static intersections
         //      Return all found intersections to main update loop, where they can actually be dealt with properly.
+
+
+        private static class DynamicKinematicQuadTreeRootNode extends DynamicKinematicAABBQuadTreeNode implements I_DynamicKinematicAABBQuadTreeRootNode{
+
+            // TODO: factory method
+
+            DynamicKinematicQuadTreeRootNode(final IPair<Vect2D, Vect2D> minAndMidpoint, final int depthLimit) {
+                super(minAndMidpoint, 0, depthLimit);
+            }
+
+            public DynamicKinematicQuadTreeRootNode(Vect2D min, Vect2D mid, int depthLimit) {
+                super(min, mid, 0, depthLimit);
+            }
+        }
+    }
+
+    /**
+     * Simple factory method for dynamicKinematicAABBQuadTree root nodes
+     * @param min lower bound (x,y) coord
+     * @param mid midpoint coord
+     * @param depthLimit how deep will this tree go?
+     * @param kBodies kinematic bodies to add to the tree
+     * @return an initialized dynamic/kinematic body AABB QuadTree, with kinematic bodies in there already,
+     * just waiting for static bodies to be added.
+     */
+    public static I_DynamicKinematicAABBQuadTreeRootNode DYN_KIN_AABB_FACTORY(
+            final Vect2D min, final Vect2D mid, final int depthLimit,
+            final Collection<? extends CrappyBody> kBodies
+    ){
+
+        final I_DynamicKinematicAABBQuadTreeRootNode quadTree =
+                new DynamicKinematicAABBQuadTreeNode.DynamicKinematicQuadTreeRootNode(min,mid, depthLimit);
+
+        quadTree.addAllKinematicBodies(kBodies);
+
+        return quadTree;
+
     }
 
 
     /**
      * An enumeration used to identify sub-regions of a quadtree region
      */
-    public enum AABB_Quad_Enum implements BitmaskPredicate, Comparable<AABB_Quad_Enum> {
+    public enum AABB_Quad_Enum implements BitmaskPredicate, Comparable<AABB_Quad_Enum>{
 
         X_SMALLER_Y_SMALLER(0),
         X_GREATER_Y_SMALLER(1),
@@ -573,12 +959,50 @@ public final class AABBQuadTreeTools {
             return bm_value;
         }
 
+        /**
+         * Returns an iterator over the values of this enum
+         *
+         * @return an Iterator.
+         */
+        public static Iterator<AABB_Quad_Enum> iterator() {
+            return new AABB_Quad_Iter();
+        }
+
+        /**
+         * A rather boring iterator over values of AABB_Quad_Enum
+         */
+        private static class AABB_Quad_Iter implements Iterator<AABB_Quad_Enum>{
+
+            private static final AABB_Quad_Enum[] vals = AABB_Quad_Enum.values();
+
+            private int c = 0;
+
+            AABB_Quad_Iter(){}
+
+            @Override
+            public boolean hasNext() {
+                return c < vals.length;
+            }
+
+            /**
+             * Returns the next element in the iteration.
+             *
+             * @return the next element in the iteration
+             *
+             * @throws NoSuchElementException if the iteration has no more elements
+             */
+            @Override
+            public AABB_Quad_Enum next() {
+                return vals[c++];
+            }
+        }
+
 
         /**
          * An enumeration used to indicate relationship between a bounding box's bounds and a given 'midpoint' it's
          * being compared to
          */
-        public enum AABB_Choose_Quadtree_Enum implements IHaveBitmask {
+        public enum AABB_Choose_Quadtree_Enum implements IHaveBitmask, Iterable<AABB_Quad_Enum> {
 
             // TODO: 9 values, indicating relationship of given AABB to parent midpoint.
 
@@ -658,6 +1082,59 @@ public final class AABBQuadTreeTools {
                     final CrappyShape_QuadTree_Interface shape
             ) {
                 return get(comparisonPoint, shape.getBoundingBox());
+            }
+
+            /**
+             * Returns an iterator over the elements of {@link AABB_Quad_Enum}
+             * which basically return true when they have {@code other.test(this)} applied
+             * to them with this AABB_Choose_Quadtree_Enum value.
+             *
+             * @return an Iterator.
+             */
+            @Override
+            public Iterator<AABB_Quad_Enum> iterator() {
+                return new ChooseEnumQuadEnum_Iter(this);
+            }
+
+            private static class ChooseEnumQuadEnum_Iter implements Iterator<AABB_Quad_Enum>{
+
+                private final IHaveBitmask bm;
+
+                private final AABB_Quad_Iter qiter = new AABB_Quad_Iter();
+
+                private AABB_Quad_Enum next = AABB_Quad_Enum.X_SMALLER_Y_SMALLER;
+
+                ChooseEnumQuadEnum_Iter(final IHaveBitmask bm){
+                    this.bm = bm;
+                }
+
+                /**
+                 * Tries to find the next value in qiter which
+                 *
+                 * @return {@code true} if the iteration has more elements
+                 */
+                @Override
+                public boolean hasNext() {
+                    while (qiter.hasNext()){
+                        next = qiter.next();
+                        if (next.test(bm)){
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+
+                /**
+                 * Returns the next element in the iteration.
+                 *
+                 * @return the next element in the iteration
+                 *
+                 * @throws NoSuchElementException if the iteration has no more elements
+                 */
+                @Override
+                public AABB_Quad_Enum next() {
+                    return next;
+                }
             }
         }
 
