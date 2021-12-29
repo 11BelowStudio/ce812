@@ -15,7 +15,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-
+/**
+ * A utility class with a buttload of inner classes for axis-aligned bounding boxes
+ */
 public final class AABBQuadTreeTools {
 
     /**
@@ -23,29 +25,55 @@ public final class AABBQuadTreeTools {
      */
     public interface AABBQuadTreeNode extends HasCandidates {
 
-        I_Vect2D getComparisonPoint();
+        /**
+         * The vector that is being used for comparisons
+         * @return vector used for comparisons
+         */
+        Vect2D getComparisonPoint();
 
+        /**
+         * Sees which CrappyShape_Quadtree_Interface objects collide with this object
+         * @param attemptBoundingBox bounding box of the object we're trying to get collisions of
+         * @param out a set to hold the CrappyShape_QuadTree_Interface objects that
+         *            have bounding boxes that intersect with the given attemptBoundingBox.
+         *            STUFF (probably) WILL BE PUT INTO THIS SET!
+         *
+         * @return the modified version of out.
+         */
         Set<CrappyShape_QuadTree_Interface> getShapesThatProbablyCollideWithToOut(
                 final I_Crappy_AABB attemptBoundingBox,
                 final Set<CrappyShape_QuadTree_Interface> out
         );
 
-        int getCandidatesLeft();
 
     }
 
+    /**
+     * A root node of an AABB
+     */
     public interface AABBQuadTreeRootNode extends AABBQuadTreeNode{
 
+        /**
+         * A public wrapper for {@link AABBQuadTreeNode#getShapesThatProbablyCollideWithToOut(I_Crappy_AABB, Set)},
+         * which calls that using a new hashset with just enough space to fit every single possible collision, and a
+         * load factor of 1 to prevent it from getting any bigger
+         * @param attemptBoundingBox the bounding box we're attempting to find overlaps of
+         * @return set of CrappyShape_QuadTree_Interface objects that this AABB collides with
+         */
         default Set<CrappyShape_QuadTree_Interface> getShapesThatProbablyCollideWith(
                 final I_Crappy_AABB attemptBoundingBox
         ){
             return getShapesThatProbablyCollideWithToOut(
                     attemptBoundingBox,
-                    new HashSet<>(getCandidatesLeft())
+                    new HashSet<>(getCandidatesLeft(), 1)
             );
         }
     }
 
+    /**
+     * interface to let us see how many 'candidate' items are in a given node
+     */
+    @FunctionalInterface
     private interface HasCandidates{
         int getCandidatesLeft();
     }
@@ -151,16 +179,18 @@ public final class AABBQuadTreeTools {
 
 
     /**
-     * An implementation of a quadtree for axis-aligned bounding boxes
+     * Starting an implementation of a quadtree for axis-aligned bounding boxes (used for static geometry)
+     * This just keeps track of how many items are in this tree node (and children of it)
      */
-    abstract static class A_AABBQuadTree implements AABBQuadTreeNode {
+    private abstract static class A_StaticAABBQuadTreeNode implements AABBQuadTreeNode {
 
+        /**
+         * How many 'candidate' shapes are in this node (and all of its children)?
+         */
         final int candidatesLeft;
 
-        // TODO: this
 
-
-        A_AABBQuadTree(final int candidates){
+        A_StaticAABBQuadTreeNode(final int candidates){
             candidatesLeft = candidates;
         }
 
@@ -171,53 +201,90 @@ public final class AABBQuadTreeTools {
         }
     }
 
+    /**
+     * An empty unmodifiable list of CrappyShape_QuadTree_Interface with capacity 0, for use later on.
+     */
+    @SuppressWarnings("StaticCollection")
+    private static final List<CrappyShape_QuadTree_Interface> empty = Collections.unmodifiableList(new ArrayList<>(0));
+
+    /**
+     * An empty unmodifiable set of CrappyShape_QuadTree_Interface with capacity 0, for use later on.
+     */
+    @SuppressWarnings("StaticCollection")
+    private static final Set<CrappyShape_QuadTree_Interface> emptySet = Collections.unmodifiableSet(
+            new HashSet<>(0, 1)
+    );
 
 
-    private abstract static class QuadTreeLeafNode extends A_AABBQuadTree {
+    /**
+     * Leaf node for static geometry.
+     * Implements root node just in case.
+     */
+    private abstract static class StaticGeomQuadTreeLeafNode extends A_StaticAABBQuadTreeNode {
 
+        /**
+         * All the children contained in this leaf node
+         */
         final List<CrappyShape_QuadTree_Interface> all_children;
 
-        @SuppressWarnings("StaticCollection")
-        static final List<CrappyShape_QuadTree_Interface> empty = Collections.unmodifiableList(new ArrayList<>(0));
-
-        @SuppressWarnings("StaticCollection")
-        static final Set<CrappyShape_QuadTree_Interface> emptySet = Collections.unmodifiableSet(
-                new HashSet<>(0)
-        );
-
-
-        QuadTreeLeafNode(
-                CrappyShape_QuadTree_Interface... children
+        /**
+         * varargs constructor
+         * @param children child nodes passes via a varargs list
+         */
+        StaticGeomQuadTreeLeafNode(
+                final CrappyShape_QuadTree_Interface... children
         ) {
             this(Collections.unmodifiableList(Arrays.asList(children)));
         }
 
-
-
-        QuadTreeLeafNode(List<CrappyShape_QuadTree_Interface> immutableChildren){
+        /**
+         * Super constructor with contents
+         * @param immutableChildren contents as an immutable list
+         */
+        StaticGeomQuadTreeLeafNode(final List<CrappyShape_QuadTree_Interface> immutableChildren){
             super(immutableChildren.size());
             all_children = immutableChildren;
         }
 
-        QuadTreeLeafNode(){
+        /**
+         * Super constructor for 0 children
+         */
+        StaticGeomQuadTreeLeafNode(){
             super(0);
-            all_children = empty;
+            all_children = AABBQuadTreeTools.empty;
         }
 
-        public I_Vect2D getComparisonPoint() {
+        /**
+         * We don't care about midpoints here
+         * @return zero vector
+         */
+        public Vect2D getComparisonPoint() {
             return Vect2D.ZERO;
         }
 
+
+
     }
 
-    private static class EmptyQuadtreeLeafNode extends QuadTreeLeafNode {
+    /**
+     * Implementation of an empty tree leaf node for static geometry
+     */
+    private static class EmptyQuadtreeLeafNodeStaticGeom extends StaticGeomQuadTreeLeafNode implements I_StaticGeometryQuadTreeRootNode {
 
 
-
-        EmptyQuadtreeLeafNode() {
+        /**
+         * Explicitly call super constructor (for 0 capacity)
+         */
+        EmptyQuadtreeLeafNodeStaticGeom() {
             super();
         }
 
+        /**
+         * There's no static geometry here, so we return results as-is.
+         * @param attemptBoundingBox bounding box of the object we're trying to get collisions of
+         * @param results a set of results
+         * @return results, as-is, unmodified
+         */
         public Set<CrappyShape_QuadTree_Interface> getShapesThatProbablyCollideWithToOut(
                 final I_Crappy_AABB attemptBoundingBox,
                 final Set<CrappyShape_QuadTree_Interface> results
@@ -225,17 +292,65 @@ public final class AABBQuadTreeTools {
             return results;
         }
 
+        /**
+         * returns 0, holds nothing
+         * @return 0.
+         */
+        public int getCandidatesLeft(){
+            return 0;
+        }
 
+
+        @Override
+        public Iterator<A_CrappyShape> iterator() {
+            return new EmptyIter();
+        }
+
+        /**
+         * A public wrapper for {@link AABBQuadTreeNode#getShapesThatProbablyCollideWithToOut(I_Crappy_AABB, Set)},
+         * which just returns emptySet, as there's nothing to collide with.
+         *
+         * @param attemptBoundingBox the bounding box we're attempting to find overlaps of
+         *
+         * @return set of CrappyShape_QuadTree_Interface objects that this AABB collides with
+         */
+        @Override
+        public Set<CrappyShape_QuadTree_Interface> getShapesThatProbablyCollideWith(I_Crappy_AABB attemptBoundingBox) {
+            return emptySet;
+        }
+
+        /**
+         * iterator over nothing (in case this is empty)
+         */
+        private static class EmptyIter implements Iterator<A_CrappyShape>{
+
+            private final Iterator<CrappyShape_QuadTree_Interface> iter = empty.iterator();
+
+            EmptyIter(){}
+
+            @Override
+            public A_CrappyShape next() {
+                return iter.next().getShape();
+            }
+
+            @Override
+            public boolean hasNext() {
+                return false;
+            }
+        }
     }
 
-    private static class SingleItemQuadtreeLeafNode extends QuadTreeLeafNode {
+    /**
+     * Leaf node that only holds one item
+     */
+    private static class SingleItemQuadtreeLeafNodeStaticGeom extends StaticGeomQuadTreeLeafNode {
 
         // TODO: this
 
         private final CrappyShape_QuadTree_Interface theShape;
 
 
-        SingleItemQuadtreeLeafNode(CrappyShape_QuadTree_Interface s) {
+        SingleItemQuadtreeLeafNodeStaticGeom(CrappyShape_QuadTree_Interface s) {
             super(Collections.singletonList(s));
             theShape = s;
         }
@@ -252,9 +367,12 @@ public final class AABBQuadTreeTools {
 
     }
 
-    private static class MultipleItemQuadtreeLeafNode extends QuadTreeLeafNode {
+    /**
+     * Leaf node that holds multiple items (for when we can't split it any further)
+     */
+    private static class MultipleItemQuadtreeLeafNodeStaticGeom extends StaticGeomQuadTreeLeafNode {
 
-        MultipleItemQuadtreeLeafNode(List<CrappyShape_QuadTree_Interface> mutableShapes){
+        MultipleItemQuadtreeLeafNodeStaticGeom(List<CrappyShape_QuadTree_Interface> mutableShapes){
             super(Collections.unmodifiableList(mutableShapes));
         }
 
@@ -273,9 +391,18 @@ public final class AABBQuadTreeTools {
 
     }
 
+    /**
+     * Public factory method to generate an AABB Quadtree for static geometry.
+     * @param geometryShapes collection of CrappyShape_QuadTree_Interface objects for static bodies
+     * @return an AABB quadtree for static geometry
+     */
     public static I_StaticGeometryQuadTreeRootNode STATIC_GEOMETRY_AABB_QUADTREE_FACTORY(
             final Collection<CrappyShape_QuadTree_Interface> geometryShapes
     ){
+        if (geometryShapes.isEmpty()){
+            // if there's no geometry, we return an empty leaf node.
+            return new EmptyQuadtreeLeafNodeStaticGeom();
+        }
         return new StaticGeometryAABBTreeNode.StaticGeometryRootNode(
                 geometryShapes.stream()
                     .unordered()
@@ -293,21 +420,36 @@ public final class AABBQuadTreeTools {
     }
 
 
+
     public interface I_StaticGeometryQuadTreeRootNode extends AABBQuadTreeRootNode, Iterable<A_CrappyShape>{
 
     }
 
 
-    private static class StaticGeometryAABBTreeNode extends A_AABBQuadTree implements ChildNodeIterable<A_AABBQuadTree, AABB_Quad_Enum>{
+    /**
+     * A non-leaf node for static geometry.
+     */
+    private static class StaticGeometryAABBTreeNode extends A_StaticAABBQuadTreeNode
+            implements ChildNodeIterable<A_StaticAABBQuadTreeNode, AABB_Quad_Enum>{
 
 
+        /**
+         * A standard root node for static geometry.
+         */
         private static class StaticGeometryRootNode
                 extends StaticGeometryAABBTreeNode
                 implements I_StaticGeometryQuadTreeRootNode, Iterable<A_CrappyShape>
         {
 
+            /**
+             * All the shapes contained within
+             */
             private final List<A_CrappyShape> allShapes;
 
+            /**
+             * Creates the root node
+             * @param geometryShapes the collection of all the static geometry shapes as CrappyShape_QuadTree_Interface
+             */
             private StaticGeometryRootNode(final Collection<CrappyShape_QuadTree_Interface> geometryShapes) {
                 super(geometryShapes);
 
@@ -339,22 +481,22 @@ public final class AABBQuadTreeTools {
         /**
          * x bigger y bigger
          */
-        final A_AABBQuadTree GG;
+        final A_StaticAABBQuadTreeNode GG;
 
         /**
          * x bigger y smaller
          */
-        final A_AABBQuadTree GL;
+        final A_StaticAABBQuadTreeNode GL;
 
         /**
          * x smaller y smaller
          */
-        final A_AABBQuadTree LL;
+        final A_StaticAABBQuadTreeNode LL;
 
         /**
          * x smaller y bigger
          */
-        final A_AABBQuadTree LG;
+        final A_StaticAABBQuadTreeNode LG;
 
         /**
          * midpoint of the node
@@ -367,7 +509,7 @@ public final class AABBQuadTreeTools {
          * @param q AABB_Quad_Enum value to turn into subtree
          * @return the appropriate subtree
          */
-        public A_AABBQuadTree getChildLayer(final AABB_Quad_Enum q){
+        public A_StaticAABBQuadTreeNode getChildLayer(final AABB_Quad_Enum q){
             switch (q){
                 case X_SMALLER_Y_SMALLER:
                     return LL;
@@ -382,38 +524,53 @@ public final class AABBQuadTreeTools {
         }
 
 
-
-
-        StaticGeometryAABBTreeNode(
+        /**
+         * superclass constructor reserved exclusively for the root node
+         * @param geometryShapes all the static geometry.
+         */
+        private StaticGeometryAABBTreeNode(
                 final Collection<CrappyShape_QuadTree_Interface> geometryShapes
         ){
             this(
                     geometryShapes,
                     geometryShapes.size() * 2,
-                    MEDIAN_OPS.MEDIAN_OF_MIDPOINTS
+                    MIDPOINT_SELECTION_MODE.MEDIAN_OF_MIDPOINTS
             );
         }
 
+        /**
+         * constructor for 1st non-root layer
+         * @param geometryShapes what shapes does this node have?
+         * @param parentShapesCount how many shapes were in parent layer?
+         * @param thingUsedForMidpoint how are we defining the midpoint?
+         */
         StaticGeometryAABBTreeNode(
                 final Collection<CrappyShape_QuadTree_Interface> geometryShapes,
                 final int parentShapesCount,
-                final MEDIAN_OPS thingUsedForMedian
+                final MIDPOINT_SELECTION_MODE thingUsedForMidpoint
         ){
-            this(geometryShapes, parentShapesCount * 2, parentShapesCount, thingUsedForMedian);
+            this(geometryShapes, parentShapesCount * 2, parentShapesCount, thingUsedForMidpoint);
         }
 
+        /**
+         * Creates this node and all of its children
+         * @param geometryShapes what shapes does this node have?
+         * @param grandparentShapesCount How many shapes were in the layer before the layer before this layer?
+         * @param parentShapesCount How many shapes were in the prior layer?
+         * @param thingUsedForMidpoint how are we defining the midpoint?
+         */
         StaticGeometryAABBTreeNode(
                 final Collection<CrappyShape_QuadTree_Interface> geometryShapes,
                 final int grandparentShapesCount,
                 final int parentShapesCount,
-                final MEDIAN_OPS thingUsedForMedian
+                final MIDPOINT_SELECTION_MODE thingUsedForMidpoint
         ){
             super(geometryShapes.size());
 
             final List<I_Crappy_AABB> boundingBoxes = new ArrayList<>(candidatesLeft);
             geometryShapes.forEach(s -> boundingBoxes.add(s.getBoundingBox()));
 
-            midpoint = MEDIAN_OPS.MEDIAN_OF_AABBS(boundingBoxes, thingUsedForMedian);
+            midpoint = MIDPOINT_SELECTION_MODE.MEDIAN_OF_AABBS(boundingBoxes, thingUsedForMidpoint);
 
             Map<AABB_Quad_Enum, List<CrappyShape_QuadTree_Interface>> map = new HashMap<>(4, 1f);
 
@@ -477,9 +634,9 @@ public final class AABBQuadTreeTools {
          * @param currentLayerShapeCount how many shapes were on this current layer?
          * @param shapesFromThisLayerOnOtherSide how many shapes are in the region on the opposite diagonal region
          *                                       to the region we're creating with this method?
-         * @return a new A_AABBQuadTree node, for static geometry, attempting to
+         * @return a new A_AABBQuadTree node, for static geometry, with the given next layer shapes
          */
-        private static A_AABBQuadTree NEXT_LAYER_FACTORY_FOR_STATIC_GEOMETRY(
+        private static A_StaticAABBQuadTreeNode NEXT_LAYER_FACTORY_FOR_STATIC_GEOMETRY(
                 final List<CrappyShape_QuadTree_Interface> nextLayerShapes,
                 final int grandparentLayerShapeCount,
                 final int parentLayerShapeCount,
@@ -487,9 +644,9 @@ public final class AABBQuadTreeTools {
                 final int shapesFromThisLayerOnOtherSide
         ){
             if (nextLayerShapes.isEmpty()){
-                return new EmptyQuadtreeLeafNode();
+                return new EmptyQuadtreeLeafNodeStaticGeom();
             } else if (nextLayerShapes.size() == 1){
-                return new SingleItemQuadtreeLeafNode(nextLayerShapes.get(0));
+                return new SingleItemQuadtreeLeafNodeStaticGeom(nextLayerShapes.get(0));
             }
 
             // if this child has all the children from the parent
@@ -500,7 +657,7 @@ public final class AABBQuadTreeTools {
                     // if we've had no improvement over 2 generations, we give up.
                     if (nextLayerShapes.size() == grandparentLayerShapeCount){
 
-                        return new MultipleItemQuadtreeLeafNode(nextLayerShapes);
+                        return new MultipleItemQuadtreeLeafNodeStaticGeom(nextLayerShapes);
                     }
                     // we try again, with a completely random median for midpoint
                     return new StaticGeometryAABBTreeNode(
@@ -508,9 +665,9 @@ public final class AABBQuadTreeTools {
                             parentLayerShapeCount,
                             currentLayerShapeCount,
                             (nextLayerShapes.size() == parentLayerShapeCount)
-                                    ? StaticGeometryAABBTreeNode.MEDIAN_OPS.WHATEVER
+                                    ? MIDPOINT_SELECTION_MODE.WHATEVER
                                     // we panic if no improvement since parent
-                                    : StaticGeometryAABBTreeNode.MEDIAN_OPS.MEDIAN_OF_MAX
+                                    : MIDPOINT_SELECTION_MODE.MEDIAN_OF_MAX
                             // otherwise we calmly attempt comparing maximums
                     );
 
@@ -522,9 +679,9 @@ public final class AABBQuadTreeTools {
                             parentLayerShapeCount,
                             currentLayerShapeCount,
                             (nextLayerShapes.size() == grandparentLayerShapeCount)
-                                    ? StaticGeometryAABBTreeNode.MEDIAN_OPS.WHATEVER
+                                    ? MIDPOINT_SELECTION_MODE.WHATEVER
                                     // we panic if no improvement since grandparent
-                                    : StaticGeometryAABBTreeNode.MEDIAN_OPS.MEDIAN_OF_MAX
+                                    : MIDPOINT_SELECTION_MODE.MEDIAN_OF_MAX
                             // otherwise we calmly attempt comparing maximums
                     );
                 } else {
@@ -533,7 +690,7 @@ public final class AABBQuadTreeTools {
                             nextLayerShapes,
                             parentLayerShapeCount,
                             currentLayerShapeCount,
-                            StaticGeometryAABBTreeNode.MEDIAN_OPS.MEDIAN_OF_MIDPOINTS
+                            MIDPOINT_SELECTION_MODE.MEDIAN_OF_MIDPOINTS
                     );
                 }
             }
@@ -542,13 +699,13 @@ public final class AABBQuadTreeTools {
                     nextLayerShapes,
                     parentLayerShapeCount,
                     currentLayerShapeCount,
-                    StaticGeometryAABBTreeNode.MEDIAN_OPS.MEDIAN_OF_MIDPOINTS
+                    MIDPOINT_SELECTION_MODE.MEDIAN_OF_MIDPOINTS
             );
 
         }
 
         @Override
-        public I_Vect2D getComparisonPoint() {
+        public Vect2D getComparisonPoint() {
             return midpoint;
         }
 
@@ -558,7 +715,7 @@ public final class AABBQuadTreeTools {
                 final Set<CrappyShape_QuadTree_Interface> results
         ) {
 
-            for (final Iterator<A_AABBQuadTree> it = childNodeIterator(AABB_Quad_Enum.AABB_Choose_Quadtree_Enum.get(
+            for (final Iterator<A_StaticAABBQuadTreeNode> it = childNodeIterator(AABB_Quad_Enum.AABB_Choose_Quadtree_Enum.get(
                     midpoint,
                     attemptBoundingBox
             )); it.hasNext(); ) {
@@ -572,13 +729,34 @@ public final class AABBQuadTreeTools {
 
         }
 
-        enum MEDIAN_OPS {
+        /**
+         * Used for picking what we're using to get a midpoint
+         */
+        private enum MIDPOINT_SELECTION_MODE {
+            /**
+             * median of midpoints of AABBs
+             */
             MEDIAN_OF_MIDPOINTS,
+            /**
+             * median of upper bounds of AABBs
+             */
             MEDIAN_OF_MAX,
+            /**
+             * median of lower bounds of AABBs
+             */
             MEDIAN_OF_MIN,
+            /**
+             * median of arbitrary points within AABBs
+             */
             WHATEVER;
 
-            static Vect2D get_from_aabb(final I_Crappy_AABB aabb, final MEDIAN_OPS thingToGet){
+            /**
+             * Get the appropriate single vector from an AABB
+             * @param aabb axis aligned bounding box we want to get a value from
+             * @param thingToGet which value are we getting?
+             * @return the appropriate value
+             */
+            static Vect2D get_from_aabb(final I_Crappy_AABB aabb, final MIDPOINT_SELECTION_MODE thingToGet){
 
                 switch (thingToGet){
                     case MEDIAN_OF_MAX:
@@ -594,7 +772,13 @@ public final class AABBQuadTreeTools {
 
             }
 
-            static Vect2D MEDIAN_OF_AABBS(final Collection<I_Crappy_AABB> boundingBoxes, final MEDIAN_OPS opType) {
+            /**
+             * Method for obtaining the appropriate midpoint value from the bounding boxes
+             * @param boundingBoxes all of the bounding boxes
+             * @param opType which variety of midpoint are we getting?
+             * @return the appropriate midpoint
+             */
+            static Vect2D MEDIAN_OF_AABBS(final Collection<I_Crappy_AABB> boundingBoxes, final MIDPOINT_SELECTION_MODE opType) {
 
                 final List<Double> xList = new ArrayList<>(boundingBoxes.size());
                 final List<Double> yList = new ArrayList<>(boundingBoxes.size());
@@ -628,17 +812,10 @@ public final class AABBQuadTreeTools {
     }
 
 
-    public interface RegionTreeNode extends AABBQuadTreeNode{
-
-        boolean isRoot();
-
-        RegionTreeNode getFrom(AABB_Quad_Enum e);
-
-
-
-    }
-
-    interface I_DynamicKinematicAABBQuadTreeNode extends
+    /**
+     * An interface for nodes of a quadtree used for dynamic + kinematic bodies.
+     */
+    private interface I_DynamicKinematicAABBQuadTreeNode extends
             Consumer<CrappyShape_QuadTree_Interface>,
             Function<CrappyShape_QuadTree_Interface, Set<CrappyShape_QuadTree_Interface>>
     {
@@ -830,12 +1007,6 @@ public final class AABBQuadTreeTools {
              */
             private final Collection<CrappyShape_QuadTree_Interface> allShapes = new ArrayList<>();
 
-            /**
-             * Boring default empty set for future reference.
-             */
-            private static final Set<CrappyShape_QuadTree_Interface> emptySet =
-                    Collections.unmodifiableSet(new HashSet<>(0));
-
             DynamicKinematicAABBQuadTreeLeafNode(){}
 
 
@@ -950,7 +1121,7 @@ public final class AABBQuadTreeTools {
          */
         private final int bm_value;
 
-        private AABB_Quad_Enum(final int bitPos) {
+        AABB_Quad_Enum(final int bitPos) {
             bm_value = 0b0001 << bitPos;
         }
 
@@ -960,7 +1131,7 @@ public final class AABBQuadTreeTools {
         }
 
         /**
-         * Returns an iterator over the values of this enum
+         * Returns an iterator over all of the values of this enum
          *
          * @return an Iterator.
          */
@@ -973,8 +1144,10 @@ public final class AABBQuadTreeTools {
          */
         private static class AABB_Quad_Iter implements Iterator<AABB_Quad_Enum>{
 
+            // yep just a shortcut to AABB_Quad_Enum.values()
             private static final AABB_Quad_Enum[] vals = AABB_Quad_Enum.values();
 
+            // counter
             private int c = 0;
 
             AABB_Quad_Iter(){}
@@ -1016,7 +1189,9 @@ public final class AABBQuadTreeTools {
             X_GREATER_Y_EITHER(AABB_Quad_Enum.X_GREATER_Y_SMALLER, AABB_Quad_Enum.X_GREATER_Y_GREATER),
             X_GREATER_Y_GREATER(AABB_Quad_Enum.X_GREATER_Y_GREATER.getAsInt());
 
-
+            /**
+             * The bitmask value of this enum member (combination of appropriate AABB_Quad_Enum bitmask values)
+             */
             public final int bm_value;
 
             private AABB_Choose_Quadtree_Enum(final int bits) {
@@ -1032,6 +1207,13 @@ public final class AABBQuadTreeTools {
                 return bm_value;
             }
 
+            /**
+             * Gets the AABB_Choose_Quadtree_Enum describing relationship of a set of bounds to a comparison point
+             * @param comparisonPoint bounds are being compared to this. FIXED
+             * @param min upper bound of bounds
+             * @param max lower bound from bounds
+             * @return those bounds, compared to comparison point
+             */
             public static AABB_Choose_Quadtree_Enum get(
                     final I_Vect2D comparisonPoint,
                     final I_Vect2D min,
@@ -1068,6 +1250,13 @@ public final class AABBQuadTreeTools {
                 }
             }
 
+            /**
+             * Compares bounding box to bounds
+             * @param comparisonPoint compare to this
+             * @param aabbBeingCompared the bounding box
+             * @return comparison of comparisonPoint and aabbBeingCompared
+             * @see #get(I_Vect2D, I_Vect2D, I_Vect2D)
+             */
             public static AABB_Choose_Quadtree_Enum get(
                     final I_Vect2D comparisonPoint,
                     final I_Crappy_AABB aabbBeingCompared
@@ -1077,6 +1266,13 @@ public final class AABBQuadTreeTools {
                 );
             }
 
+            /**
+             * Compares CrappyShape_QuadTree_Interface to bounds
+             * @param comparisonPoint compare to this
+             * @param shape theCrappyShape_QuadTree_Interface
+             * @return comparison of comparisonPoint and shape's bounding box
+             * @see #get(I_Vect2D, I_Vect2D, I_Vect2D)
+             */
             public static AABB_Choose_Quadtree_Enum get(
                     final I_Vect2D comparisonPoint,
                     final CrappyShape_QuadTree_Interface shape
@@ -1096,22 +1292,42 @@ public final class AABBQuadTreeTools {
                 return new ChooseEnumQuadEnum_Iter(this);
             }
 
+            /**
+             * Iterator over the appropriate AABB_Quad_Enum values that a given AABB_Choose_Quadtree_Enum
+             * can correspond to.
+             */
             private static class ChooseEnumQuadEnum_Iter implements Iterator<AABB_Quad_Enum>{
 
+                /**
+                 * Our AABB_Choose_Quadtree_Enum value
+                 */
                 private final IHaveBitmask bm;
 
-                private final AABB_Quad_Iter qiter = new AABB_Quad_Iter();
+                /**
+                 * The inner iterator of all AABB_Quad_Enum values
+                 */
+                private final Iterator<AABB_Quad_Enum> qiter = AABB_Quad_Enum.iterator();
 
+                /**
+                 * Placeholder for the 'next' valid value.
+                 */
                 private AABB_Quad_Enum next = AABB_Quad_Enum.X_SMALLER_Y_SMALLER;
 
+                /**
+                 * Creates this iterator
+                 * @param bm the AABB_Choose_Quadtree_Enum value, passed via IHaveBitmask, which we want to get
+                 *           the matching AABB_Quad_Enum values of
+                 */
                 ChooseEnumQuadEnum_Iter(final IHaveBitmask bm){
                     this.bm = bm;
                 }
 
                 /**
-                 * Tries to find the next value in qiter which
+                 * Tries to find the next value in qiter which has a value that
+                 * is partially described by this.bm's bitmask, and updates next
+                 * to be that valid element (if that valid next element exists)
                  *
-                 * @return {@code true} if the iteration has more elements
+                 * @return {@code true} if the iteration has more valid elements
                  */
                 @Override
                 public boolean hasNext() {
@@ -1125,11 +1341,9 @@ public final class AABBQuadTreeTools {
                 }
 
                 /**
-                 * Returns the next element in the iteration.
+                 * Returns the next valid AABB_Quad_Enum value.
                  *
-                 * @return the next element in the iteration
-                 *
-                 * @throws NoSuchElementException if the iteration has no more elements
+                 * @return next
                  */
                 @Override
                 public AABB_Quad_Enum next() {

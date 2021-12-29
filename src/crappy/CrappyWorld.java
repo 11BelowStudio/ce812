@@ -7,7 +7,6 @@ import crappy.utils.LazyFinal;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.Vector;
 
 /**
  * The physics world within CRAPPY
@@ -65,11 +64,11 @@ public class CrappyWorld {
 
             final Crappy_AABB combinedAABB = new Crappy_AABB();
             dynamicBodies.forEach(c -> {
-                c.post_euler_update_cleanup();
+                c.applyAllTempChanges();
                 combinedAABB.add_aabb(c.getAABB());
             });
             kinematicBodies.forEach(c -> {
-                c.post_euler_update_cleanup();
+                c.applyAllTempChanges();
                 combinedAABB.add_aabb(c.getAABB());
             });
 

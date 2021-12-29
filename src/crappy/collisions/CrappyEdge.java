@@ -3,6 +3,7 @@ package crappy.collisions;
 import crappy.CrappyBody_Shape_Interface;
 import crappy.I_Transform;
 import crappy.math.Vect2D;
+import crappy.math.Vect2DMath;
 
 public class CrappyEdge extends A_CrappyShape{
 
@@ -28,11 +29,10 @@ public class CrappyEdge extends A_CrappyShape{
 
     CrappyEdge(
             final CrappyBody_Shape_Interface body,
-            final CRAPPY_SHAPE_TYPE shapeType,
             final Vect2D localStart,
             final Vect2D localProj
     ) {
-        super(body, shapeType, localStart.addScaled(localProj, 0.5));
+        super(body, CRAPPY_SHAPE_TYPE.EDGE, localStart.addScaled(localProj, 0.5));
 
         this.localStart = localStart;
         this.localProj = localProj;
@@ -41,6 +41,14 @@ public class CrappyEdge extends A_CrappyShape{
         this.localNorm = localTang.rotate90degreesAnticlockwise();
 
         updateShape(body);
+    }
+
+    CrappyEdge(
+            final Vect2D localStart,
+            final Vect2D localEnd,
+            final CrappyBody_Shape_Interface body
+    ){
+        this(body, localStart, Vect2DMath.VECTOR_BETWEEN(localStart, localEnd));
     }
 
     @Override
@@ -76,6 +84,30 @@ public class CrappyEdge extends A_CrappyShape{
         super.timestepEndUpdate();
         circle.endUpdateAABB();
     }
+
+    public I_CrappyCircle getEndPointCircle(){
+        return circle;
+    }
+
+    public Vect2D getWorldStart(){
+        return worldStart;
+    }
+
+    public Vect2D getWorldProj(){
+        return worldProj;
+    }
+
+    public Vect2D getWorldNorm(){
+        return worldNorm;
+    }
+
+    public Vect2D getWorldTang(){ return worldTang; }
+
+    public double getLength(){return length;}
+
+    public Vect2D getLocalTang(){ return localTang; }
+
+
 
     /**
      * A wrapper class which allows the start point of the edge to be expressed as a CrappyCircle,

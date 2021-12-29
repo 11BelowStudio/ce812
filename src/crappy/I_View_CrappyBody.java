@@ -37,28 +37,52 @@ public interface I_View_CrappyBody extends I_Transform, IHaveBitmask {
 
         private final I_View_CrappyBody cb;
 
+        private Vect2D tempPos;
+
+        private Vect2D tempVel;
+
+        private Rot2D tempRot;
+
+        private double tempAngVel;
+
         I_CrappyBody_Temp_Transform(final I_View_CrappyBody cb){
             this.cb = cb;
         }
 
+        void update(){
+            tempPos = cb.getTempPos().toVect2D();
+            tempVel = cb.getTempVel().toVect2D();
+            tempRot = cb.getTempRot().toRot2D();
+            tempAngVel = cb.getTempAngVel();
+        }
+
         @Override
         public Vect2D getPos() {
-            return cb.getTempPos().toVect2D();
+            return tempPos;
         }
 
         @Override
         public Rot2D getRot() {
-            return cb.getTempRot().toRot2D();
+            return tempRot;
         }
 
         @Override
         public Vect2D getVel() {
-            return cb.getTempVel().toVect2D();
+            return tempVel;
         }
 
         @Override
         public double getAngVel() {
-            return cb.getTempAngVel();
+            return tempAngVel;
+        }
+
+        /**
+         * Returns the 'root' transform of the crappybody this is a temp transform of
+         * @return the 'root' transform of the attached crappybody.
+         */
+        @Override
+        public I_Transform getRootTransform(){
+            return cb;
         }
 
 

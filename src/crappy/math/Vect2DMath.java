@@ -5,6 +5,8 @@ import crappy.utils.containers.IPair;
 import crappy.utils.containers.IQuadruplet;
 import crappy.utils.containers.ITriplet;
 
+import java.util.Vector;
+
 /**
  * A utility class holding static Vect2D math-related methods.
  *
@@ -16,6 +18,26 @@ public final class Vect2DMath {
      * No constructing.
      */
     private Vect2DMath(){}
+
+    /**
+     * Multiplies vector V by S, returns mutable
+     * @param v vector
+     * @param s scalar
+     * @return v*s
+     */
+    public static M_Vect2D MULTIPLY_M(final I_Vect2D v, final double s){
+        return M_Vect2D.GET(v).mult(s);
+    }
+
+    /**
+     * Multiplies vector V by S, returns immutable
+     * @param v vector
+     * @param s scalar
+     * @return v*s
+     */
+    public static Vect2D MULTIPLY(final I_Vect2D v, final double s){
+        return MULTIPLY_M(v,s).finished();
+    }
 
     /**
      * returns a vector equal to v1 - v2
@@ -181,7 +203,18 @@ public final class Vect2DMath {
      * @return vector that's lerpScale of the way between start and end
      */
     public static Vect2D LERP(final I_Vect2D start, final I_Vect2D end, final double lerpScale){
-        return M_Vect2D.GET(start).lerp(end, lerpScale).finished();
+        return LERP_M(start, end, lerpScale).finished();
+    }
+
+    /**
+     * Linearly interpolates from start to end, but returns an immutable result.
+     * @param start start from here
+     * @param end go to here
+     * @param lerpScale how much to lerp by (0: return start. 1: return end. 0.5: midpoint)
+     * @return vector that's lerpScale of the way between start and end
+     */
+    public static M_Vect2D LERP_M(final I_Vect2D start, final I_Vect2D end, final double lerpScale){
+        return M_Vect2D.GET(start).lerp(end, lerpScale);
     }
 
     /**
@@ -244,7 +277,7 @@ public final class Vect2DMath {
             final Vect2D[] outNorms
     ){
         for (int i = locals.length-1; i >= 0; i--) {
-            out[i] = locals[i].localToWorldCoordinates(bodyPos, bodyRotation);
+            out[i] = LOCAL_TO_WORLD_M(locals[i], bodyPos, bodyRotation).finished();
             outNorms[i] = localNorms[i].rotate(bodyRotation);
         }
     }
@@ -297,7 +330,7 @@ public final class Vect2DMath {
         final M_Vect2D min = M_Vect2D.GET(outCoords[0]);
         final M_Vect2D max = M_Vect2D.GET(min);
         for (int i = 1; i < localCoords.length; i++){
-            outCoords[i] = localCoords[i].localToWorldCoordinates(bodyPos, bodyRotation);
+            outCoords[i] = LOCAL_TO_WORLD_M(localCoords[i], bodyPos, bodyRotation).finished();
             outNormals[i] = localNormals[i].rotate(bodyRotation);
             if (outCoords[i].x < min.x){
                 min.x = outCoords[i].x;
@@ -331,7 +364,7 @@ public final class Vect2DMath {
         final M_Vect2D min = M_Vect2D.GET(out[0]);
         final M_Vect2D max = M_Vect2D.GET(min);
         for (int i = locals.length-1; i > 0; i--) {
-            out[i] = locals[i].localToWorldCoordinates(pos, rot);
+            out[i] = LOCAL_TO_WORLD_M(locals[i], pos, rot).finished();
             if (out[i].x < min.x){
                 min.x = out[i].x;
             } else if (out[i].x > max.x) {
@@ -374,11 +407,79 @@ public final class Vect2DMath {
             final Vect2D[] out
     ){
         for (int i = locals.length-1; i >= 0; i--) {
-            out[i] = locals[i].localToWorldCoordinates(pos, rot);
+            out[i] = LOCAL_TO_WORLD_M(locals[i], pos, rot).finished();
+        //locals[i].localToWorldCoordinates(pos, rot);
         }
     }
 
+    /**
+     * Moves a local coordinate to world coordinates
+     * @param localPos local coordinate in body
+     * @param trans transform describing world position/rotation of body
+     * @return world position of that local position.
+     */
+    public static M_Vect2D LOCAL_TO_WORLD_M(I_Vect2D localPos, I_Transform trans){
+        return LOCAL_TO_WORLD_M(localPos, trans.getPos(), trans.getRot());
+    }
 
+    /**
+     * Moves a local coordinate to world coordinates
+     * @param localPos local coordinate in body
+     * @param worldPos world position of body
+     * @param worldRot world rotation of body
+     * @return world position of that local position.
+     */
+    public static M_Vect2D LOCAL_TO_WORLD_M(I_Vect2D localPos, I_Vect2D worldPos, I_Rot2D worldRot){
+        return M_Vect2D.GET(localPos).rotate(worldRot).add(worldPos);
+    }
+
+    /**
+     * Turns a world coordinate into a local coordinate of a body
+     * @param worldPos initial world coordinate
+     * @param trans transform of that body
+     * @return the worldPos but as a local coordinate of the body with the transform described by trans.
+     */
+    public static M_Vect2D WORLD_TO_LOCAL_M(I_Vect2D worldPos, I_Transform trans){
+        return WORLD_TO_LOCAL_M(worldPos, trans.getPos(), trans.getRot());
+    }
+
+    /**
+     * Turns a world coordinate into a local coordinate of a body
+     * @param worldPos initial world coordinate
+     * @param bodyWorldPos world position of body
+     * @param bodyWorldRot world rotation of body
+     * @return the worldPos but as a local coordinate of the body described by bodyWorldPos and bodyWorldRot
+     */
+    public static M_Vect2D WORLD_TO_LOCAL_M(I_Vect2D worldPos, I_Vect2D bodyWorldPos, I_Rot2D bodyWorldRot){
+        return M_Vect2D.GET(worldPos).sub(bodyWorldPos).rotate_opposite(bodyWorldRot);
+    }
+
+
+    /**
+     * Obtains the world velocity of local coordinate localPos on a body with transform trans
+     * @param localPos local coordinate
+     * @param trans transform of that body
+     * @return world velocity of that local coordinate
+     */
+    public static M_Vect2D WORLD_VEL_OF_LOCAL_COORD_M(final I_Vect2D localPos, final I_Transform trans){
+        return WORLD_VEL_OF_LOCAL_COORD_M(localPos, trans.getAngVel(), trans.getVel());
+    }
+
+    /**
+     * Obtains the world velocity of local coordinate localPos on a body described by all the other arguments here
+     *
+     * vCOM + angVel x r
+     *
+     * @param localPos local pos of coord on body
+     * @param angVel angular velocity of body
+     * @param vel linear velocity of body
+     * @return the velocity, in world scale, of the local position on that body
+     */
+    public static M_Vect2D WORLD_VEL_OF_LOCAL_COORD_M(final I_Vect2D localPos, final double angVel, final I_Vect2D vel){
+        return M_Vect2D.GET(localPos)
+                .cross(angVel, false) // angVel X r
+                .add(vel); // adding main body vel
+    }
 
     /**
      * Obtain the lower bound of a couple of I_Vect2Ds, outputting them into the given M_Vect2D
@@ -610,6 +711,38 @@ public final class Vect2DMath {
             max_mag = Math.max(max_mag, vects[i].mag());
         }
         return max_mag;
+    }
+
+    public static IPair<Double, Double> MIN_MAX_MAGNITUDE(final I_Vect2D... vects){
+        double minSquared = vects[0].magSquared();
+        double maxSquared = minSquared;
+
+        for (int i = vects.length-1; i > 0; i--) {
+            double m = vects[i].magSquared();
+            if (m > maxSquared){
+                maxSquared = m;
+            } else if (m < minSquared){
+                minSquared = m;
+            }
+        }
+        return IPair.of(Math.sqrt(minSquared), Math.sqrt(maxSquared));
+    }
+
+    public static IPair<Double, Double> MIN_MAX_MAGNITUDE_OFFSET(final I_Vect2D offset, final I_Vect2D... vects){
+        final M_Vect2D temp = M_Vect2D.GET(vects[0]).sub(offset);
+        double minSquared = temp.magSquared();
+        double maxSquared = minSquared;
+
+        for (int i = vects.length-1; i > 0; i--) {
+            final double m = temp.set(vects[i]).sub(offset).magSquared();
+            if (m > maxSquared){
+                maxSquared = m;
+            } else if (m < minSquared){
+                minSquared = m;
+            }
+        }
+        temp.discard();
+        return IPair.of(Math.sqrt(minSquared), Math.sqrt(maxSquared));
     }
 
     /**
@@ -1036,6 +1169,7 @@ public final class Vect2DMath {
                 2
         );
     }
+
 
 
 

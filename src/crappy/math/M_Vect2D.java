@@ -226,6 +226,15 @@ public final class M_Vect2D implements I_Vect2D {
     }
 
     /**
+     * Subtracts the other vector from this vector
+     * @param other other vector to subtract
+     * @return this-x
+     */
+    public M_Vect2D sub(final I_Vect2D other){
+        return this.addScaled(other, -1);
+    }
+
+    /**
      * Adds the other M_Vect2D to this, and promptly discards the other M_Vect2D, returning this updated M_Vect2D
      * @param other the other M_Vect2D to add to this and discard
      * @return this + other
@@ -300,9 +309,9 @@ public final class M_Vect2D implements I_Vect2D {
      * @return this vector but with a length of 1 instead.
      */
     public M_Vect2D norm(){
-        final double mag = mag();
-        if (mag != 0){
-            return divide(mag);
+        final double sqMag = magSquared();
+        if (sqMag != 0){
+            return divide(Math.sqrt(magSquared()));
         }
         return this;
     }
@@ -363,6 +372,19 @@ public final class M_Vect2D implements I_Vect2D {
         //final double old_y = y;
         x = old_x * rot.get_cos() - y * rot.get_sin();
         y = old_x * rot.get_sin() + y * rot.get_cos();
+        return this;
+    }
+
+    /**
+     * Rotates this by the opposite rotation to whatever rotation rot described.
+     * @param rot Rotation to perform the opposite rotation of
+     * @return this, rotated by the opposite of what rot said to rotate by.
+     */
+    public M_Vect2D rotate_opposite(final I_Rot2D rot){
+        final double old_x = x;
+        //final double old_y = y;
+        x = old_x * (-rot.get_cos()) - y * (-rot.get_sin());
+        y = old_x * (-rot.get_sin()) + y * (-rot.get_cos());
         return this;
     }
 

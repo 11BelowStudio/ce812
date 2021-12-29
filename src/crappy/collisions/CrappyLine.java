@@ -6,33 +6,23 @@ import crappy.math.M_Vect2D;
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
-public class CrappyLine extends A_CrappyShape{
+
+public class CrappyLine extends A_CrappyShape implements Iterable<CrappyEdge>{
 
     // TODO: refactor so it's functionally just two CrappyEdges that are the reverse of each other
 
-    final int vertexCount;
+    final CrappyEdge edgeA;
+
+    final CrappyEdge edgeB;
+
 
     final Vect2D[] localVertices;
 
-
     final Vect2D[] worldVertices;
 
-    final Vect2D localProj;
-
-    final Vect2D localNorm;
-
-    final double length;
-
-    /**
-     * This is the world vector between the 'start' and the 'end' vector
-     */
-    Vect2D worldProj;
-
-    /**
-     * This is the world normal vector for this line.
-     */
-    Vect2D worldNorm;
 
     /**
      * Constructor for a CrappyLine with a specified end point (implicitly with a point at 0,0 local coords)
@@ -52,20 +42,19 @@ public class CrappyLine extends A_CrappyShape{
      */
     public CrappyLine(final CrappyBody_Shape_Interface body, final Vect2D start, final Vect2D end) {
         super(CRAPPY_SHAPE_TYPE.LINE, body, Vect2DMath.MIDPOINT(start, end),  2);
-        vertexCount = 2;
-        this.localVertices = new Vect2D[]{start, end};
-        this.localProj = Vect2DMath.VECTOR_BETWEEN(start, end);
-        this.localNorm = M_Vect2D.GET(localProj).rotate90degreesAnticlockwise().norm().finished();
-        this.worldVertices = new Vect2D[vertexCount];
 
-        length = localProj.mag();
+
+        edgeA = new CrappyEdge(start, end, body);
+        edgeB = new CrappyEdge(end, start, body);
+
+
+        this.localVertices = new Vect2D[]{start, end};
+        this.worldVertices = new Vect2D[2];
+
 
         this.aabb.update_aabb(
                 Vect2DMath.LOCAL_TO_WORLD_FOR_BODY_TO_OUT_AND_GET_BOUNDS(body, localVertices, worldVertices)
         );
-
-        worldProj = localProj.rotate(body.getRot());
-        worldNorm = localNorm.rotate(body.getRot());
 
         body.setMomentOfInertia(Vect2DMath.LINE_MOMENT_OF_INERTIA(start, end, body.getMass()));
 
@@ -76,36 +65,96 @@ public class CrappyLine extends A_CrappyShape{
         aabb.update_aabb(
                 Vect2DMath.LOCAL_TO_WORLD_FOR_BODY_TO_OUT_AND_GET_BOUNDS(rootTransform, localVertices, worldVertices)
         );
-        worldProj = localProj.rotate(rootTransform.getRot());
-        worldNorm = localNorm.rotate(rootTransform.getRot());
+
+        edgeA.updateShape(rootTransform);
+        edgeB.updateShape(rootTransform);
         return aabb;
     }
 
     @Override
     public void updateFinalWorldVertices() {
         Vect2DMath.LOCAL_TO_WORLD_FOR_BODY_TO_OUT(body, localVertices, finalWorldVertices);
-        worldProj = localProj.rotate(body.getRot());
-        worldNorm = localNorm.rotate(body.getRot());
+        edgeA.updateFinalWorldVertices();
+        edgeB.updateFinalWorldVertices();
     }
 
     public Vect2D getWorldStart(){
         return worldVertices[0];
     }
 
-    public Vect2D getWorldProj(){
-        return worldProj;
-    }
-
-    public Vect2D getWorldNorm(){
-        return worldNorm;
-    }
 
     public Vect2D getWorldEnd(){
         return worldVertices[1];
     }
 
-    public double getLength(){
-        return length;
+
+    public void timestepStartUpdate(){
+        super.timestepStartUpdate();
+        edgeA.timestepStartUpdate();
+        edgeB.timestepStartUpdate();
     }
 
+    @Override
+    public void midTimestepUpdate() {
+        super.midTimestepUpdate();
+        edgeA.midTimestepUpdate();
+        edgeB.midTimestepUpdate();
+    }
+
+    @Override
+    public void timestepEndUpdate(){
+        super.timestepEndUpdate();
+        edgeA.timestepEndUpdate();
+        edgeB.timestepEndUpdate();
+    }
+
+    /**
+     * Returns an iterator over the edges which this line technically consists of
+     *
+     * @return an Iterator.
+     */
+    @Override
+    public Iterator<CrappyEdge> iterator() {
+        return new LineEdgeIterator(this);
+    }
+
+    private static class LineEdgeIterator implements Iterator<CrappyEdge>{
+
+        private final CrappyLine l;
+
+        private int count = 0;
+
+        private LineEdgeIterator(final CrappyLine c){
+            l = c;
+        }
+
+        /**
+         * Returns {@code true} if the iteration has more elements. (In other words, returns {@code true} if {@link
+         * #next} would return an element rather than throwing an exception.)
+         *
+         * @return {@code true} if the iteration has more elements
+         */
+        @Override
+        public boolean hasNext() {
+            return count++ < 2;
+        }
+
+        /**
+         * Returns the next element in the iteration.
+         *
+         * @return the next element in the iteration
+         *
+         * @throws NoSuchElementException if the iteration has no more elements
+         */
+        @Override
+        public CrappyEdge next() throws NoSuchElementException {
+            switch (count){
+                case 1:
+                    return l.edgeA;
+                case 2:
+                    return l.edgeB;
+            }
+            throw new NoSuchElementException("out of edges!");
+        }
+    }
 }

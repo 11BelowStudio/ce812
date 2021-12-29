@@ -23,6 +23,11 @@ public class CrappyPolygon extends A_CrappyShape{
 
     final double area;
 
+    /**
+     * Basically the distance between the centroid and the closest point to centroid (anything within this distance can be considered a circle).
+     */
+    final double innerCircleRadius;
+
     public CrappyPolygon(final CrappyBody_Shape_Interface body, final Vect2D[] vertices){
         this(body, vertices, Vect2DMath.AREA_AND_CENTROID_OF_VECT2D_POLYGON(vertices));
     }
@@ -59,7 +64,12 @@ public class CrappyPolygon extends A_CrappyShape{
             }
         }
         A_CrappyShape.NORMALS_TO_OUT(vertices, localNormals);
-        radius = Vect2DMath.MAX_MAGNITUDE(localVertices);
+
+        IPair<Double, Double> min_max_radius = Vect2DMath.MIN_MAX_MAGNITUDE_OFFSET(getCentroid(), localVertices);
+
+        innerCircleRadius = min_max_radius.getFirst();
+        radius = min_max_radius.getSecond();
+
         updateShape(body);
 
         System.arraycopy(worldVertices, 0, finalWorldVertices, 0, vertexCount);

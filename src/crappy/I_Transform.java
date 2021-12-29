@@ -28,6 +28,7 @@ public interface I_Transform {
      */
     Vect2D getVel();
 
+
     /**
      * Get angular velocity of body
      * (expressed as Z axis of this as a 3D vector, aka parallel to axis of rotation, aka the actually important bit)
@@ -39,8 +40,18 @@ public interface I_Transform {
      * This method can be overridden to return a different I_Transform instance
      * which is intended to return a view of the thing this transform is attached to mid-timestep.
      * Default behaviour just returns this transform as-is.
+     * Should not be overridden by a temp transform.
      * @return a view of this transform, mid timestep.
      */
     default I_Transform getTempTransform(){ return this; }
+
+    /**
+     * Intended to be overridden by a tempTransform to get the 'root' transform of it,
+     * being the version of this transform from the last full timestep.
+     *
+     * Default behaviour returns this transform as-is. Should not be overridden unless by a temp transform.
+     * @return a view of this transform, pre timestep.
+     */
+    default I_Transform getRootTransform(){ return this; }
 
 }

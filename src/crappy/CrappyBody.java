@@ -123,7 +123,7 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
     /**
      * This is a view of the CrappyBody's transform mid-timestep.
      */
-    public final I_Transform intermediateTransform = new I_CrappyBody_Temp_Transform(this);
+    final I_CrappyBody_Temp_Transform intermediateTransform = new I_CrappyBody_Temp_Transform(this);
 
     /**
      * How much drag is this CrappyBody experiencing?
@@ -195,8 +195,15 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
         this.bodyType = bodyType;
         if (bodyType == CRAPPY_BODY_TYPE.STATIC){
             this.mass = 0;
+        } else if (Double.isFinite(mass)){
+            double aMass = Math.abs(mass);
+            if (aMass > 0){
+                this.mass = aMass;
+            } else {
+                throw new IllegalArgumentException("Cannot give a non-static body a mass of zero!");
+            }
         } else {
-            this.mass = mass;
+            throw new IllegalArgumentException("Cannot use a mass of infinity/NaN!");
         }
 
         inertia = 0;
@@ -383,9 +390,9 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
     @Override
     public void applyForce(final I_Vect2D force, final FORCE_SOURCE source){
 
-        if (canApplyThisForce(source)) {
+        if (canApplyThisForce(source) && force.isNotZero()) {
 
-            pending_forces_mid_timestep.add_discardOther(Vect2DMath.DIVIDE_M(force, mass));
+            pending_forces_mid_timestep.add(force);
         }
     }
 
@@ -416,10 +423,10 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
     @Override
     public void applyMidTimestepForce(final I_Vect2D force, final I_Vect2D localForcePos, final FORCE_SOURCE source){
 
-        if (canApplyThisForce(source)) {
+        if (canApplyThisForce(source) && force.isNotZero()) {
             pending_forces_mid_timestep.add_discardOther(Vect2DMath.DIVIDE_M(force, mass));
 
-            pending_torque_mid_timestep += M_Vect2D.GET(localForcePos).rotate(rotation).cross_discard(force);
+            pending_torque_mid_timestep += M_Vect2D.GET(localForcePos).cross_discard(force);
         }
 
     }
@@ -443,7 +450,7 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
      */
     @Override
     public void applyMidTimestepForce(final I_Vect2D force, final FORCE_SOURCE source){
-        if (canApplyThisForce(source)){
+        if (canApplyThisForce(source) && force.isNotZero()){
             pending_forces_mid_timestep.add_discardOther(Vect2DMath.DIVIDE_M(force, mass));
         }
     }
@@ -458,7 +465,7 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
      */
     public void applyTorque(final double torque, final FORCE_SOURCE source){
 
-        if (canApplyThisForce(source)){
+        if (canApplyThisForce(source) && inertia > 0){
             pending_torque_this_timestep += torque;
         }
 
@@ -481,7 +488,7 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
      */
     public void applyMidTimestepTorque(final double torque, final FORCE_SOURCE source){
 
-        if (canApplyThisForce(source)){
+        if (canApplyThisForce(source) && inertia > 0){
             pending_torque_mid_timestep += torque;
         }
     }
@@ -493,8 +500,6 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
     public void applyMidTimestepTorque(final double torque){
         applyMidTimestepTorque(torque, FORCE_SOURCE.MANUAL);
     }
-
-
 
 
     @Override
@@ -594,13 +599,23 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
 
         pending_torque_mid_timestep = 0;
 
+        intermediateTransform.update();
+
     }
 
-   void post_euler_update_cleanup(){
+
+    void clearAllPendingForces(){
+
         pending_forces_mid_timestep.reset();
         pending_torque_mid_timestep = 0;
         pending_forces_this_timestep.reset();
         pending_torque_this_timestep = 0;
+    }
+
+
+
+    void applyAllTempChanges(){
+
         velocity = new Vect2D(tempVel);
         position = new Vect2D(tempPosition);
         angVelocity = tempAngVelocity;
@@ -612,6 +627,8 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
         tempPosition.set(position);
         tempRot.set(rotation);
         tempAngVelocity = angVelocity;
+
+        intermediateTransform.update();
     }
 
     @Override

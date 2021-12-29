@@ -13,7 +13,7 @@ import static crappy.math.Vect2DMath.MINUS_M;
 /**
  * A shape class
  */
-public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface {
+public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I_CrappyShape {
 
     public final CRAPPY_SHAPE_TYPE shapeType;
 
@@ -162,12 +162,20 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface {
     }
 
 
+    @Override
+    public CrappyBody_Shape_Interface getBody() {
+        return body;
+    }
+
+
     public abstract Crappy_AABB updateShape(final I_Transform rootTransform);
 
     public abstract void updateFinalWorldVertices();
 
     public I_Transform getBodyTransform(){
-        return body;
+
+        //return body;
+        return body.getTempTransform();
     }
 
     public double getRestitution(){
@@ -177,6 +185,8 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface {
     public double getMass(){
         return body.getMass();
     }
+
+    public double getMInertia(){ return body.getMomentOfInertia(); }
 
     @Override
     public boolean equals(Object o) {

@@ -27,7 +27,7 @@ public interface I_Vect2D extends IPair<Double, Double>, Comparable<I_Vect2D> {
     default double mag(){ return Math.hypot(getX(), getY()); }
 
     /**
-     * Obtains magnitude squared
+     * Obtains magnitude squared. Cheaper than mag because no square roots are involved.
      * @return magnitude^2
      */
     default double magSquared(){
@@ -164,6 +164,15 @@ public interface I_Vect2D extends IPair<Double, Double>, Comparable<I_Vect2D> {
         }
         return x_comp;
     }
+
+    /**
+     * Quick check for whether or not this vector is zero by looking at magSquared
+     * @return true if magSquared is greater than 0 (as, if it's 0, that means this is zero).
+     */
+    default boolean isNotZero(){
+        return magSquared() > 0;
+    }
+
 
 }
 

@@ -184,7 +184,7 @@ public final class Vect2D implements Serializable, I_Vect2D {
      * @param fac how much that other vector will be scaled by
      * @return a vector equal to this + (v * fac)
      */
-    Vect2D addScaled(final I_Vect2D v, final double fac){
+    public Vect2D addScaled(final I_Vect2D v, final double fac){
         return new Vect2D(x + (v.getX() * fac), y + (v.getY() * fac));
     }
 
@@ -261,11 +261,20 @@ public final class Vect2D implements Serializable, I_Vect2D {
      * @return normalized version of this vector. if this vector is 0,0, returns this vector.
      */
     public Vect2D norm() {
-        final double len = mag();
-        if (len == 0){
+        final double sqMag = magSquared();
+        if (sqMag == 0){
             return this;
         }
-        return new Vect2D(x/len, y/len);
+        return this.divide(Math.sqrt(magSquared()));
+    }
+
+    /**
+     * Divides this vector by given divisor
+     * @param divisor amount to divide X and Y by
+     * @return new vector, equal to this/divisor
+     */
+    public Vect2D divide(double divisor){
+        return new Vect2D(x/divisor, y/divisor);
     }
 
 
@@ -326,11 +335,11 @@ public final class Vect2D implements Serializable, I_Vect2D {
      * @return this local coordinate translated into a world coordinate
      */
     public Vect2D localToWorldCoordinates(final I_Vect2D bodyPos, final I_Rot2D bodyRot){
-        return M_Vect2D.GET(this).rotate(bodyRot).add(bodyPos).finished();
+        return Vect2DMath.LOCAL_TO_WORLD_M(this, bodyPos, bodyRot).finished();
     }
 
     public Vect2D worldToLocalCoordinates(final I_Vect2D bodyPos, final I_Rot2D bodyRot){
-        return M_Vect2D.GET(this).addScaled(bodyPos, -1).rotate(new Rot2D(-bodyRot.angle())).finished();
+        return Vect2DMath.WORLD_TO_LOCAL_M(this, bodyPos, bodyRot).finished();
     }
 
     /**
