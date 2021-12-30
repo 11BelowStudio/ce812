@@ -151,6 +151,16 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
     }
 
     /**
+     * Adds the area of this circle to this aabb
+     * @param mid midpoint of circle
+     * @param radius circle radius
+     */
+    void add_circle(final I_Vect2D mid, final double radius){
+        min = Vect2DMath.LOWER_BOUND(min, Vect2DMath.ADD(mid, -radius));
+        max = Vect2DMath.UPPER_BOUND(max, Vect2DMath.ADD(mid, radius));
+    }
+
+    /**
      * Updates this AABB to be a copy of the other one
      * @param other the other AABB to copy
      */

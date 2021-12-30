@@ -334,8 +334,18 @@ public final class M_Vect2D implements I_Vect2D {
      * @return this * scale
      */
     public M_Vect2D mult(final double scale){
-        this.x *= scale;
-        this.y *= scale;
+        return this.mult(scale, scale);
+    }
+
+    /**
+     * Multiplies this vector componentwise by given scale
+     * @param xScale how much should x be multiplied by?
+     * @param yScale how much should y be multiplied by?
+     * @return this but with each element multiplied by the appropriate scale.
+     */
+    public M_Vect2D mult(final double xScale, final double yScale){
+        this.x *= xScale;
+        this.y *= yScale;
         return this;
     }
 
@@ -404,6 +414,17 @@ public final class M_Vect2D implements I_Vect2D {
     public double dot_discard(final I_Vect2D v){
         final double d = dot(v);
         discard();
+        return d;
+    }
+    /**
+     * Dot product of this vector and other vector, discards this vector and the other one
+     * @param other other vector (WILL BE DISCARDED!)
+     * @return this.other
+     */
+    public double dot_discardBoth(final M_Vect2D other){
+        final double d = dot(other);
+        discard();
+        other.discard();
         return d;
     }
 

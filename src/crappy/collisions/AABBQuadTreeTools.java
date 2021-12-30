@@ -5,6 +5,7 @@ import crappy.math.I_Vect2D;
 import crappy.math.M_Vect2D;
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
+import crappy.utils.ArrayIterator;
 import crappy.utils.bitmasks.BitmaskPredicate;
 import crappy.utils.bitmasks.IHaveBitmask;
 import crappy.utils.containers.IPair;
@@ -1136,38 +1137,7 @@ public final class AABBQuadTreeTools {
          * @return an Iterator.
          */
         public static Iterator<AABB_Quad_Enum> iterator() {
-            return new AABB_Quad_Iter();
-        }
-
-        /**
-         * A rather boring iterator over values of AABB_Quad_Enum
-         */
-        private static class AABB_Quad_Iter implements Iterator<AABB_Quad_Enum>{
-
-            // yep just a shortcut to AABB_Quad_Enum.values()
-            private static final AABB_Quad_Enum[] vals = AABB_Quad_Enum.values();
-
-            // counter
-            private int c = 0;
-
-            AABB_Quad_Iter(){}
-
-            @Override
-            public boolean hasNext() {
-                return c < vals.length;
-            }
-
-            /**
-             * Returns the next element in the iteration.
-             *
-             * @return the next element in the iteration
-             *
-             * @throws NoSuchElementException if the iteration has no more elements
-             */
-            @Override
-            public AABB_Quad_Enum next() {
-                return vals[c++];
-            }
+            return new ArrayIterator<>(values());
         }
 
 

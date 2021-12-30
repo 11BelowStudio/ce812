@@ -2,10 +2,7 @@ package crappy.collisions;
 
 import crappy.CrappyBody;
 import crappy.CrappyBody_Shape_Interface;
-import crappy.math.I_Vect2D;
-import crappy.math.M_Vect2D;
-import crappy.math.Vect2D;
-import crappy.math.Vect2DMath;
+import crappy.math.*;
 
 import java.util.Iterator;
 
@@ -150,6 +147,9 @@ public final class CrappyCollisionMath {
 
         bLocalWorldVel.discard();
         aLocalWorldVel.discard();
+
+        a.getBody().accept(b.getBody());
+        b.getBody().accept(a.getBody());
     }
 
 
@@ -159,8 +159,13 @@ public final class CrappyCollisionMath {
         final double t = GET_EXACT_COLLISION_TIME_CIRCLE_CIRCLE(a, b);
 
         // if the collision didn't happen in this timestep, we ignore it.
-
-        if (t > 0 || t < -deltaT) {
+        if (
+                t > 0 || t < -deltaT ||
+                    // also we ignore it if the two objects are going in completely different directions to each other
+                Vect2DMath.MINUS_M(b.getVel(), a.getVel()).dot_discardBoth(
+                        Vect2DMath.MINUS_M(b.getPos(), a.getPos())
+                ) > 0
+        ) {
             return false;
         }
         COLLIDE_CIRCLE_CIRCLE_KNOWN_TIME(a, b, t);
@@ -269,11 +274,11 @@ public final class CrappyCollisionMath {
     }
 
 
-    public static boolean COLLIDE_CIRCLE_EDGE(final CrappyCircle c, final CrappyEdge e, final double deltaT){
+    public static boolean COLLIDE_CIRCLE_EDGE(final I_CrappyShape c, final I_CrappyEdge e, final double deltaT){
 
 
         if( // first, we attempt to collide the circle with the end point edge of this body.
-                c.getBoundingBox().check_bb_intersect(e.getEndPointCircle().getBody().getAABB())
+                c.getBoundingBox().check_bb_intersect(e.getEndPointCircle().getBoundingBox())
                 && COLLIDE_CIRCLE_CIRCLE(c, e.getEndPointCircle(), deltaT)
         ){
             // if they collided, we stop here.
@@ -314,7 +319,7 @@ public final class CrappyCollisionMath {
     }
 
 
-    public static boolean COLLIDE_CIRCLE_LINE(final CrappyCircle c, final CrappyLine l, final double deltaT) {
+    public static boolean COLLIDE_CIRCLE_LINE(final I_CrappyShape c, final CrappyLine l, final double deltaT) {
 
         for (final CrappyEdge crappyEdge : l) {
             if (COLLIDE_CIRCLE_EDGE(c, crappyEdge, deltaT)) {
@@ -400,8 +405,157 @@ public final class CrappyCollisionMath {
         // If these two tests succeed then the earlier calculation of the actual intersection point can be applied.
 
 
+    }
 
+
+    public static boolean COLLIDE_CIRCLE_POLYGON(I_CrappyShape circle, CrappyPolygon polygon, final double deltaT){
+
+        // we first see if the circle collides with the polygon's inner circle.
+        if (
+                circle.getBoundingBox().check_bb_intersect(polygon.getIncircle().getBoundingBox()) &&
+                        COLLIDE_CIRCLE_CIRCLE(circle, polygon.getIncircle(), deltaT)
+        ){
+            return true;
+        }
+
+        // if the inner circles didn't collide, we see if each edge of the polygon collided with the circle.
+        for (final CrappyEdge crappyEdge : polygon) {
+            if (COLLIDE_CIRCLE_EDGE(circle, crappyEdge, deltaT)) {
+                return true;
+            }
+        }
+
+        return false;
+
+        // TODO: circle-polygon collision
+
+    }
+
+    /**
+     * Attempts to perform collisions between a line and an edge.
+     * @param l
+     * @param e
+     * @param deltaT
+     * @return
+     */
+    public static boolean COLLIDE_LINE_EDGE(final CrappyLine l, final I_CrappyEdge e, final double deltaT){
+
+        if (!l.getBoundingBox().check_bb_intersect(e.getBoundingBox())){
+            return false;
+        }
+        for (final I_CrappyEdge lineEdge: l) {
+
+            if (
+                    e.getEndPointCircle().getBoundingBox().check_bb_intersect(lineEdge.getEndPointCircle().getBoundingBox()) &&
+                            COLLIDE_CIRCLE_CIRCLE(lineEdge.getEndPointCircle(), e.getEndPointCircle(), deltaT)
+            ){
+                return true;
+            }
+        }
+
+        return COLLIDE_EDGE_EDGE(l.getEdge(), e, deltaT);
 
 
     }
+
+    /**
+     * Attempts to collide two edge shapes together.
+     * Somewhat based on https://martin-thoma.com/how-to-check-if-two-line-segments-intersect/.
+     * @param e1 first edge
+     * @param e2 second edge
+     * @param deltaT timestep
+     * @return true if the edges are deemed to have collided.
+     * @see <a href="https://martin-thoma.com/how-to-check-if-two-line-segments-intersect/">https://martin-thoma.com/how-to-check-if-two-line-segments-intersect/</a>
+     */
+    public static boolean COLLIDE_EDGE_EDGE(I_CrappyEdge e1, I_CrappyEdge e2, final double deltaT){
+
+        if (!e1.getBoundingBox().check_bb_intersect(e2.getBoundingBox())){
+            return false;
+        }
+
+        if (COLLIDE_CIRCLE_EDGE(e1.getEndPointCircle(), e2, deltaT) || COLLIDE_CIRCLE_EDGE(e2.getEndPointCircle(), e1, deltaT)){
+            return true;
+        }
+
+        if (
+                (!(DO_LINES_INTERSECT(e1, e2) || DO_LINES_INTERSECT(e2, e1))) // if the lines don't intersect
+                        // or if they're going in completely different directions to each other
+                || Vect2DMath.MINUS_M(e2.getVel(), e1.getVel())
+                        .dot_discardBoth(Vect2DMath.MINUS_M(e2.getPos(), e1.getPos())) > 0
+        ){
+            return false;
+        }
+
+        final Vect2D intersectionPointWorld = GET_INTERSECTION_POINT(e1, e2);
+
+
+        CALCULATE_AND_APPLY_IMPULSE(
+                e1, Vect2DMath.MINUS(intersectionPointWorld, e1.getPos()),
+                e2, Vect2DMath.MINUS(intersectionPointWorld, e2.getPos()),
+                Vect2DMath.VECTOR_BETWEEN_M(e1.getPos(), e2.getPos()).norm().finished()
+        );
+
+        return true;
+
+    }
+
+    /**
+     * Obtains the point where edges e1 and e2 intersect.
+     *
+     * Uses maths from <a href="http://paulbourke.net/geometry/pointlineplane/">http://paulbourke.net/geometry/pointlineplane/</a>
+     * @param e1 first edge
+     * @param e2 other edge
+     * @return point (world coords) where edges e1 and e2 intersect.
+     * @see <a href="http://paulbourke.net/geometry/pointlineplane/">http://paulbourke.net/geometry/pointlineplane/</a>
+     */
+    private static Vect2D GET_INTERSECTION_POINT(final I_CrappyEdge e1, final I_CrappyEdge e2){
+        final Vect2D e1End = e1.getWorldEnd();
+        final Vect2D e2End = e2.getWorldEnd();
+
+        final double denominator = e1.getWorldProj().cross(e2.getWorldProj());
+
+        if (Vect2DMath.COMPARE_DOUBLES_EPSILON(denominator, 0) == 0){
+            // if cross product is 0, we just get a point that isn't at the very end of the lines.
+            return Vect2DMath.GET_MIDDLE_VECTOR(e1.getWorldStart(), e2.getWorldStart(), e1.getWorldEnd());
+        }
+
+        return Vect2DMath.MULTIPLY_M(
+                e1.getWorldProj(),
+                ((e2.getWorldProj().x * (e1.getWorldStart().y - e2.getWorldStart().y))
+                        - (e2.getWorldProj().y * (e1.getWorldStart().x - e2.getWorldStart().x))
+                ) / denominator,
+                ((e1.getWorldProj().x * (e1.getWorldStart().y - e2.getWorldStart().y))
+                        - (e1.getWorldProj().y * (e1.getWorldStart().x - e2.getWorldStart().x))
+                ) / denominator
+        ).add(e1.getWorldStart()).finished();
+
+    }
+
+    /**
+     * Once again, somewhat based on
+     * <a href="https://martin-thoma.com/how-to-check-if-two-line-segments-intersect/">https://martin-thoma.com/how-to-check-if-two-line-segments-intersect/</a>
+     * @param e1 first edge
+     * @param otherEdge the other edge
+     * @return true if the two lines intersect, false otherwise
+     * @see <a href="https://martin-thoma.com/how-to-check-if-two-line-segments-intersect/">https://martin-thoma.com/how-to-check-if-two-line-segments-intersect/</a>
+     */
+    static boolean DO_LINES_INTERSECT(final I_CrappyEdge e1, final I_CrappyEdge otherEdge){
+
+        final double toOtherStart = ANGLE_BETWEEN_LINE_PROJ_AND_POINT(e1, otherEdge.getWorldStart());
+        final double toOtherEnd = ANGLE_BETWEEN_LINE_PROJ_AND_POINT(e1, otherEdge.getWorldEnd());
+
+        return Vect2DMath.COMPARE_DOUBLES_EPSILON(toOtherStart, 0) == 0 ||
+                Vect2DMath.COMPARE_DOUBLES_EPSILON(toOtherEnd, 0) == 0 ||
+                (toOtherStart < 0 ^ toOtherEnd < 0);
+
+    }
+
+    static double ANGLE_BETWEEN_LINE_PROJ_AND_POINT(final I_CrappyEdge line, final Vect2D v){
+        return line.getWorldProj().cross(Vect2DMath.MINUS(v, line.getWorldStart()));
+    }
+
+    // TODO:
+    //  polygon -> line
+    //  polygon -> edge
+    //  polygon -> polygon
 }

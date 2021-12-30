@@ -30,6 +30,11 @@ public final class Vect2D implements Serializable, I_Vect2D {
     public static final Vect2D ZERO = new Vect2D(0,0);
 
     /**
+     * A vector of (1, 1), for use in certain situations.
+     */
+    public static final Vect2D ONES = new Vect2D(1, 1);
+
+    /**
      * Creates a null vector (0,0).
      * Please use ZERO instead of trying to create yet another Vect2D with value (0,0).
      */

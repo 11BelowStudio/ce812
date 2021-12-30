@@ -49,6 +49,8 @@ public interface I_CrappyShape extends I_HaveRestitution, I_HaveMass {
         return getBodyTransform().getAngVel();
     }
 
+    I_Crappy_AABB getBoundingBox();
+
 }
 
 interface I_HaveRestitution{

@@ -87,6 +87,8 @@ public class CrappyLine extends A_CrappyShape implements Iterable<CrappyEdge>{
         return worldVertices[1];
     }
 
+    public I_CrappyEdge getEdge(){ return edgeA; }
+
 
     public void timestepStartUpdate(){
         super.timestepStartUpdate();

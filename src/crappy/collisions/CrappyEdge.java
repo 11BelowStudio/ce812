@@ -5,7 +5,7 @@ import crappy.I_Transform;
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
 
-public class CrappyEdge extends A_CrappyShape{
+public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge{
 
     final Vect2D localStart;
 
@@ -119,12 +119,10 @@ public class CrappyEdge extends A_CrappyShape{
 
         private final Crappy_AABB point_aabb;
 
-        private Vect2D lastFramePos;
 
         EdgePointCircle(final CrappyEdge e){
             edge = e;
             point_aabb = new Crappy_AABB(e.worldStart);
-            lastFramePos = e.worldStart;
         }
 
         void startUpdateAABB(){
@@ -137,7 +135,6 @@ public class CrappyEdge extends A_CrappyShape{
 
         void endUpdateAABB(){
             point_aabb.add_point(edge.worldStart);
-            lastFramePos = edge.worldStart;
         }
 
         @Override
@@ -167,12 +164,17 @@ public class CrappyEdge extends A_CrappyShape{
 
         @Override
         public Vect2D getPos() {
-            return edge.worldStart;
+            return edge.getPos();
         }
 
         @Override
         public Vect2D getVel() {
             return edge.localStart.getWorldVelocityOfLocalCoordinate(getBodyTransform());
+        }
+
+        @Override
+        public I_Crappy_AABB getBoundingBox() {
+            return point_aabb;
         }
     }
 }

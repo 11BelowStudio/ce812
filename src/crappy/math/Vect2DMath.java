@@ -20,6 +20,43 @@ public final class Vect2DMath {
     private Vect2DMath(){}
 
     /**
+     * The epsilon value used for {@link #COMPARE_DOUBLES_EPSILON(double, double)}
+     * @see #COMPARE_DOUBLES_EPSILON(double, double)
+     * @see #COMPARE_DOUBLES_EPSILON(double, double, double)
+     */
+    public final static double EPSILON = 0.000001d;
+
+    /**
+     * Compares d1 to d2, except using a 'close enough' value of {@link #EPSILON}.
+     * @param d1 first double
+     * @param d2 second double
+     * @return 0 if {@code |d1-d2| < {@link #EPSILON}}, -1 if {@code d1 < d2}, and 1 if {@code d1 > d2}
+     * @see #COMPARE_DOUBLES_EPSILON(double, double, double)
+     */
+    public static int COMPARE_DOUBLES_EPSILON(final double d1, final double d2){
+        return COMPARE_DOUBLES_EPSILON(d1, d2, EPSILON);
+    }
+
+    /**
+     * Compares d1 to d2.
+     * @param d1 first double
+     * @param d2 second double
+     * @param epsilon a 'close enough' value.
+     *                If the difference between d1 and d2 is no larger than epsilon, they're considered equal enough.
+     * @return 0 if {@code |d1-d2| < epsilon}, -1 if {@code d1 < d2}, and 1 if {@code d1 > d2}
+     */
+    public static int COMPARE_DOUBLES_EPSILON(final double d1, final double d2, final double epsilon){
+        final double diff = d1 - d2;
+        if (Math.abs(diff) <= epsilon){
+            return 0;
+        } else if (diff > 0){
+            return 1;
+        } else {
+            return -1;
+        }
+    }
+
+    /**
      * Multiplies vector V by S, returns mutable
      * @param v vector
      * @param s scalar
@@ -40,12 +77,66 @@ public final class Vect2DMath {
     }
 
     /**
-     * returns a vector equal to v1 - v2
-     * @param v1 the initial vector
-     * @param v2 the vector being subtracted
-     * @return a vector equal to v1 - v2
+     * Multiplies this vector componentwise by given scale
+     * @param v vector to multiply
+     * @param xScale how much should x be multiplied by?
+     * @param yScale how much should y be multiplied by?
+     * @return MUTABLE copy of V but with each element multiplied by the appropriate scale.
      */
-    public static Vect2D MINUS(final Vect2D v1, final Vect2D v2) { return v2.addScaled(v1, -1); }
+    public static M_Vect2D MULTIPLY_M(final I_Vect2D v, final double xScale, final double yScale){
+        return M_Vect2D.GET(v).mult(xScale, yScale);
+    }
+
+    /**
+     * Multiplies this vector componentwise by given scale
+     * @param v vector to multiply by
+     * @param xScale how much should x be multiplied by?
+     * @param yScale how much should y be multiplied by?
+     * @return IMMUTABLE copy of V but with each element multiplied by the appropriate scale.
+     */
+    public static Vect2D MULTIPLY(final I_Vect2D v, final double xScale, final double yScale){
+        return MULTIPLY_M(v, xScale, yScale).finished();
+    }
+
+    /**
+     * Adds v1 to v2, returns mutable
+     * @param v1 vector
+     * @param v2 other vector
+     * @return v1 + v2
+     */
+    public static M_Vect2D ADD_M(final I_Vect2D v1, final I_Vect2D v2){
+        return M_Vect2D.GET(v1).add(v2);
+    }
+
+    /**
+     * Adds v1 to v2, returns immutable
+     * @param v1 vector
+     * @param v2 other vector
+     * @return v1 + v2
+     */
+    public static Vect2D ADD(final I_Vect2D v1, final I_Vect2D v2){
+        return ADD_M(v1, v2).finished();
+    }
+
+    /**
+     * Adds d to both components of v1, returns mutable
+     * @param v1 vector
+     * @param d add this to x and y of v1
+     * @return v1 + (d, d)
+     */
+    public static M_Vect2D ADD_M(final I_Vect2D v1, final double d){
+        return M_Vect2D.GET(v1).addScaled(Vect2D.ONES, d);
+    }
+
+    /**
+     * Adds d to both components of v1, returns immutable
+     * @param v1 vector
+     * @param d add this to x and y of v1
+     * @return v1 + (d, d)
+     */
+    public static Vect2D ADD(final I_Vect2D v1, final double d){
+        return ADD_M(v1, d).finished();
+    }
 
     /**
      * returns a vector equal to v1 - v2
@@ -53,7 +144,15 @@ public final class Vect2DMath {
      * @param v2 the vector being subtracted
      * @return a vector equal to v1 - v2
      */
-    public static Vect2D MINUS(final I_Vect2D v1, final Vect2D v2){ return v2.addScaled(v1, -1); }
+    public static Vect2D MINUS(final Vect2D v1, final Vect2D v2) { return v1.addScaled(v2, -1); }
+
+    /**
+     * returns a vector equal to v1 - v2
+     * @param v1 the initial vector
+     * @param v2 the vector being subtracted
+     * @return a vector equal to v1 - v2
+     */
+    public static Vect2D MINUS(final Vect2D v1, final I_Vect2D v2){ return v1.addScaled(v2, -1); }
 
     /**
      * returns a vector equal to v1 - v2
@@ -72,11 +171,11 @@ public final class Vect2DMath {
      * @return v1 - v2 but the result is mutable.
      */
     public static M_Vect2D MINUS_M(final I_Vect2D v1, final I_Vect2D v2){
-        return ADD_SCALED_M(v2, v1, -1);
+        return ADD_SCALED_M(v1, v2, -1);
     }
 
     /**
-     * Returns the vector between start and end {@code start->end}. Or, in other words, {@code start-end}.
+     * Returns the vector between start and end {@code start->end}. Or, in other words, {@code end-start}.
      * @param start where we're starting from
      * @param end where we're going
      * @return vector from start to end.
@@ -86,7 +185,7 @@ public final class Vect2DMath {
     }
 
     /**
-     * Returns the vector between start and end {@code start->end}. Or, in other words, {@code start-end}.
+     * Returns the vector between start and end {@code start->end}. Or, in other words, {@code end-start}.
      * @param start where we're starting from
      * @param end where we're going
      * @return MUTABLE vector from start to end.
@@ -165,6 +264,32 @@ public final class Vect2DMath {
      */
     public static Vect2D MIDPOINT(final I_Vect2D a, final I_Vect2D b){
         return MIDPOINT_MIN_MAX(LOWER_BOUND(a, b), UPPER_BOUND(a, b));
+    }
+
+    /**
+     * Given 3 vectors, returns the vector that's in the middle of them
+     * @param a first vector
+     * @param b second vector
+     * @param c third vector
+     * @return the vector out of a, b, c that's in the middle of the others (via compareTo)
+     */
+    public static Vect2D GET_MIDDLE_VECTOR(final Vect2D a, final Vect2D b, final Vect2D c){
+
+        if (a.compareTo(b) > 0){
+            if (b.compareTo(c) > 0){
+                return b;
+            } else if (c.compareTo(a) > 0){
+                return a;
+            } else{
+                return c;
+            }
+        } else if (c.compareTo(b) > 0){
+            return b;
+        } else if (a.compareTo(c) > 0){
+            return a;
+        } else {
+            return c;
+        }
     }
 
     /**
@@ -746,6 +871,55 @@ public final class Vect2DMath {
     }
 
     /**
+     * Obtains the radius of the incircle from the centroid,
+     * as well as the distance between the furthest vector from the centroid and the centroid.
+     * @param centroid position of the centroid within local coordinates
+     * @param vects corners of the polygon in local coordinates
+     * @return pair of {@code <incircle radius, max magnitude>}
+     */
+    public static IPair<Double, Double> INCIRCLE_AND_MAX_MAGNITUDE_OFFSET(final I_Vect2D centroid, final I_Vect2D... vects){
+
+        final M_Vect2D last = M_Vect2D.GET(vects[vects.length-1]).sub(centroid);
+        final M_Vect2D current = M_Vect2D._GET_RAW();
+        double minIncircle = last.magSquared();
+        double maxMag = 0;
+        for (int i = 0; i < vects.length-1; i++) {
+
+            current.set(vects[i]).sub(centroid);
+
+            final double thisMag = current.mag();
+            if (thisMag > maxMag){
+                maxMag = thisMag;
+            }
+
+            last.set(
+                    VECTOR_BETWEEN_M(current, last).finished()
+            );
+            // given triangle with sides ab, ac, bc:
+            //
+            //     C __
+            // bc  |   \__ ac
+            //     B ------\A
+            //        ab
+            // height = ab * sin(A)
+            // https://www.mathsisfun.com/algebra/trig-area-triangle-without-right-angle.html
+            //
+            final double currentHeight = thisMag * Math.sin(ANGLE(last, current));
+
+            if (currentHeight < minIncircle){
+                minIncircle = currentHeight;
+            }
+
+            last.set(current);
+        }
+
+        current.discard();
+        last.discard();
+
+        return IPair.of(minIncircle, maxMag);
+    }
+
+    /**
      * This uses the shoelace formula to compute the area of an arbitrary polygon defined by some Vect2Ds.
      * Heavily based on the C++ implementation found here:
      * <a href=https://iq.opengenus.org/area-of-polygon-shoelace/>https://iq.opengenus.org/area-of-polygon-shoelace/</a>,
@@ -859,6 +1033,7 @@ public final class Vect2DMath {
         return IPair.of(area, centroid.finished()); // and that's us done!
 
     }
+
 
     /**
      * Attempts to find the moment of inertia for an arbitrary polygon with corners defined by the 'corners' list,
