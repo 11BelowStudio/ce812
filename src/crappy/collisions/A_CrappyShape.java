@@ -113,16 +113,7 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I
     }
 
 
-    /**
-     * Something to define what each of these collision shapes are
-     */
-    public static enum CRAPPY_SHAPE_TYPE{
-        CIRCLE,
-        POLYGON,
-        //COMPOUND_POLYGON,
-        LINE,
-        EDGE
-    }
+
 
     public double getRadius() {
         return radius;
@@ -147,12 +138,12 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I
     }
 
     public void midTimestepUpdate(){
-        aabb.add_aabb(updateShape(body.getTempTransform()));
+        aabb.add_aabb(updateShape(getBodyTransform()));
     }
 
     public void timestepEndUpdate(){
 
-        updateShape(body);
+        updateShape(getBodyTransform());
 
         aabb.update_aabb_compound(lastFrameAABB, thisFrameAABB);
 
@@ -203,6 +194,12 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I
 
     @Override
     public A_CrappyShape getShape(){ return this; }
+
+    @Override
+    public Vect2D getLocalCentroid() {
+        return localCentroid;
+    }
+
 
     /**
      * Computes the normals for a polygon shape

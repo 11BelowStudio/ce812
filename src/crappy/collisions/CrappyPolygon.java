@@ -12,31 +12,60 @@ import crappy.utils.containers.IPair;
 import java.util.Iterator;
 
 
-public class CrappyPolygon extends A_CrappyShape implements Iterable<CrappyEdge>{
+public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdge>, I_CrappyPolygon{
 
     // TODO refactor so it's just an array of CrappyEdges with outward-facing normals connected to each other
 
     final int vertexCount;
 
+    /**
+     * Positions of the vertices relative to origin (local coords, unrotated)
+     */
     final Vect2D[] localVertices;
 
-    final Vect2D[] localNormals;
+    /**
+     * Positions of those vertices relative to centroid (local coords, unrotated)
+     */
+    final Vect2D[] localWhiskers;
 
+    /**
+     * pre-normalized local whiskers.
+     */
+    final Vect2D[] normalWhiskers;
+
+    /**
+     * Positions of vertices in world (relative to world (0,0), rotated)
+     */
     final Vect2D[] worldVertices;
 
-    final Vect2D[] worldNormals;
+    /**
+     * Projections from centroid to vertices (rotated)
+     */
+    final Vect2D[] worldWhiskers;
 
+    /**
+     * Pre-normalized world orientation whiskers.
+     */
+    final Vect2D[] worldNormalWhiskers;
+
+    /**
+     * The outer edges of this CrappyPolygon
+     */
     final CrappyEdge[] edges;
 
     final double area;
 
+    /**
+     * The incircle (largest possible circle from centroid fully enclosed within the shape).
+     * Anything within this distance from the centroid can be treated like a circle.
+     */
+    final CrappyPolygonIncircle circle;
 
     /**
-     * Basically the distance between the centroid and the closest point to centroid (anything within this distance can be considered a circle).
+     * The radius of aforementioned incircle.
      */
     final double innerCircleRadius;
 
-    final CrappyPolygonIncircle circle;
 
     public CrappyPolygon(final CrappyBody_Shape_Interface body, final Vect2D[] vertices){
         this(body, vertices, Vect2DMath.AREA_AND_CENTROID_OF_VECT2D_POLYGON(vertices));
@@ -53,10 +82,13 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<CrappyEdge>
         area = areaCentroid.getFirst();
         vertexCount = vertices.length;
         localVertices = new Vect2D[vertexCount];
-        localNormals = new Vect2D[vertexCount];
         worldVertices = new Vect2D[vertexCount];
-        worldNormals = new Vect2D[vertexCount];
         edges = new CrappyEdge[vertexCount];
+
+        localWhiskers = new Vect2D[vertexCount];
+        worldWhiskers = new Vect2D[vertexCount];
+        normalWhiskers = new Vect2D[vertexCount];
+        worldNormalWhiskers = new Vect2D[vertexCount];
 
         body.setMomentOfInertia(Vect2DMath.POLYGON_MOMENT_OF_INERTIA_ABOUT_ZERO(body.getMass(), vertices));
 
@@ -76,13 +108,22 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<CrappyEdge>
         }
         Vect2D current = localVertices[0];
         for (int i = 1; i < vertexCount; i++) {
-            Vect2D next = localVertices[(i < vertexCount-1)? i : 0];
-            edges[i-1] = new CrappyEdge(current, next, body);
+            final Vect2D next = localVertices[(i < vertexCount-1)? i : 0];
+            edges[i-1] = new CrappyEdge(current, next, body, localCentroid);
             worldVertices[i-1] = edges[i-1].getWorldStart();
             current = next;
         }
 
-        IPair<Double, Double> min_max_radius = Vect2DMath.INCIRCLE_AND_MAX_MAGNITUDE_OFFSET(getCentroid(), localVertices);
+        //final IPair<Double, Double> min_max_radius = Vect2DMath.INCIRCLE_AND_MAX_MAGNITUDE_OFFSET(getCentroid(), localVertices);
+
+        final IPair<Double, Double> min_max_radius =
+                Vect2DMath.INCIRCLE_AND_MAX_MAGNITUDE_OFFSET_ALSO_CENTROID_TO_CORNERS_TO_OUT(
+                        getCentroid(), localVertices, localWhiskers
+                );
+
+        for (int i = 0; i < vertexCount; i++) {
+            normalWhiskers[i] = localWhiskers[i].norm();
+        }
 
         innerCircleRadius = min_max_radius.getFirst();
         radius = min_max_radius.getSecond();
@@ -97,18 +138,27 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<CrappyEdge>
 
     public void timestepStartUpdate(){
         super.timestepStartUpdate();
+        for (int i = vertexCount; i >= 0; i--) {
+            edges[i].timestepStartUpdate();
+        }
         circle.startUpdateAABB();
     }
 
     @Override
     public void midTimestepUpdate() {
         super.midTimestepUpdate();
+        for (int i = vertexCount; i >= 0; i--) {
+            edges[i].midTimestepUpdate();
+        }
         circle.midUpdateAABB();
     }
 
     @Override
     public void timestepEndUpdate(){
         super.timestepEndUpdate();
+        for (int i = vertexCount; i >= 0; i--) {
+            edges[i].timestepEndUpdate();
+        }
         circle.endUpdateAABB();
     }
 
@@ -118,17 +168,25 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<CrappyEdge>
                 Vect2DMath.LOCAL_TO_WORLD_FOR_BODY_TO_OUT_AND_GET_BOUNDS(
                         rootTransform,
                         localVertices,
-                        localNormals,
+                        localWhiskers,
+                        normalWhiskers,
                         worldVertices,
-                        worldNormals
+                        worldWhiskers,
+                        worldNormalWhiskers
                 )
         );
+        for (int i = vertexCount; i >= 0; i--) {
+            edges[i].updateShape(rootTransform);
+        }
         return thisFrameAABB;
     }
 
     @Override
     public void updateFinalWorldVertices() {
         Vect2DMath.LOCAL_TO_WORLD_FOR_BODY_TO_OUT(body, localVertices, finalWorldVertices);
+        for (int i = vertexCount; i >= 0; i--) {
+            edges[i].updateFinalWorldVertices();
+        }
     }
 
     public I_CrappyCircle getIncircle(){
@@ -141,10 +199,72 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<CrappyEdge>
      * @return an Iterator.
      */
     @Override
-    public Iterator<CrappyEdge> iterator() {
+    public Iterator<I_CrappyEdge> iterator() {
         return new ArrayIterator<>(edges);
     }
 
+    /**
+     * Obtains the 'whiskers' from the centroid in world rotation
+     *
+     * @return the rotated 'whiskers' between centroid and vertices
+     */
+    @Override
+    public Vect2D[] getWorldWhiskers() {
+        return worldWhiskers;
+    }
+
+    /**
+     * Obtains the normalized 'whiskers' in world rotation
+     *
+     * @return the normalized versions of the whiskers
+     */
+    @Override
+    public Vect2D[] getWorldNormalWhiskers() {
+        return worldNormalWhiskers;
+    }
+
+    /**
+     * Get world whisker at given index
+     *
+     * @param i index of world whisker to get
+     *
+     * @return whisker at index i of getWorldWhiskers
+     */
+    @Override
+    public Vect2D getWorldWhisker(final int i) {
+        return worldWhiskers[i];
+    }
+
+    /**
+     * Get normalized world whisker at given index
+     *
+     * @param i index of normalized world whisker to get
+     *
+     * @return whisker at index i of getWorldNormalWhiskers
+     */
+    @Override
+    public Vect2D getWorldNormalWhisker(final int i) {
+        return worldNormalWhiskers[i];
+    }
+
+    /**
+     * Returns vertex count
+     *
+     * @return number of vertices
+     */
+    @Override
+    public int getVertexCount() {
+        return vertexCount;
+    }
+
+    /**
+     * Obtains the centroid of this body in world coords.
+     * @return centroid.
+     * @implNote Overridden, centroid is different.
+     */
+    public Vect2D getCentroid(){
+        return Vect2DMath.LOCAL_TO_WORLD_M(localCentroid, getBodyTransform()).finished();
+    }
 
 
     private static class CrappyPolygonIncircle implements I_CrappyCircle, I_Transform {
@@ -157,12 +277,14 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<CrappyEdge>
 
         private final Crappy_AABB aabb;
 
-        CrappyPolygonIncircle(CrappyPolygon p, Vect2D centroid, double radius){
+
+        CrappyPolygonIncircle(final CrappyPolygon p, final Vect2D centroid, final double radius){
             this.p = p;
             this.localCentroid = centroid;
             this.radius = radius;
             aabb = new Crappy_AABB();
             aabb.update_aabb_circle(getPos(), radius);
+
         }
 
         @Override
@@ -178,6 +300,16 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<CrappyEdge>
         @Override
         public double getRadius() {
             return radius;
+        }
+
+        /**
+         * Obtains the centroid of this body in local coords.
+         *
+         * @return centroid.
+         */
+        @Override
+        public Vect2D getLocalCentroid() {
+            return localCentroid;
         }
 
         /**
@@ -240,6 +372,8 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<CrappyEdge>
         }
 
     }
+
+
 
 
 }

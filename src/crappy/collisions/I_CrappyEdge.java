@@ -4,6 +4,7 @@ import crappy.math.Vect2D;
 
 public interface I_CrappyEdge extends I_CrappyShape {
 
+    Vect2D getLocalStart();
 
     Vect2D getWorldStart();
 

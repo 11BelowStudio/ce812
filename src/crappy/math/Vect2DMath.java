@@ -1,6 +1,7 @@
 package crappy.math;
 
 import crappy.I_Transform;
+import crappy.collisions.I_CrappyEdge;
 import crappy.utils.containers.IPair;
 import crappy.utils.containers.IQuadruplet;
 import crappy.utils.containers.ITriplet;
@@ -273,7 +274,7 @@ public final class Vect2DMath {
      * @param c third vector
      * @return the vector out of a, b, c that's in the middle of the others (via compareTo)
      */
-    public static Vect2D GET_MIDDLE_VECTOR(final Vect2D a, final Vect2D b, final Vect2D c){
+    public static I_Vect2D GET_MIDDLE_VECTOR(final I_Vect2D a, final I_Vect2D b, final I_Vect2D c){
 
         if (a.compareTo(b) > 0){
             if (b.compareTo(c) > 0){
@@ -455,21 +456,116 @@ public final class Vect2DMath {
         final M_Vect2D min = M_Vect2D.GET(outCoords[0]);
         final M_Vect2D max = M_Vect2D.GET(min);
         for (int i = 1; i < localCoords.length; i++){
-            outCoords[i] = LOCAL_TO_WORLD_M(localCoords[i], bodyPos, bodyRotation).finished();
-            outNormals[i] = localNormals[i].rotate(bodyRotation);
-            if (outCoords[i].x < min.x){
-                min.x = outCoords[i].x;
-            } else if (outCoords[i].x > max.x) {
-                max.x = outCoords[i].x;
-            }
-            if (outCoords[i].y < min.y){
-                min.y = outCoords[i].y;
-            } else if (outCoords[i].y > max.y) {
-                max.y = outCoords[i].y;
-            }
+            innerUpdateCoordsAndNormAndMinMax(
+                    bodyPos, bodyRotation, localCoords,
+                    localNormals, outCoords, outNormals,
+                    min, max, i
+            );
         }
         return IPair.of(min.finished(), max.finished());
     }
+
+    /**
+     * Performs the 'local coordinates to world coordinates' transformation on the coordinates in the given 'localCoords'
+     * list, and outputs them into the given 'out' list, and also returns a pair with the bounds of the translated vectors
+     * @param bodyTransform the transform for the body
+     * @param localCoords local positions of everything in the body
+     * @param localProj local projections in the body
+     * @param localNorm local normals of the edges in the body
+     * @param outCoords the list which the world positions of everything in the body will be put into
+     * @param outProj list where rotated projections will be put into
+     * @param outNorm the list which the rotated world normals will be put into
+     * @throws ArrayIndexOutOfBoundsException if outCoords is shorter than localCoords,
+     * if outNormals is shorter than localNormals, or if localNormals is shorter than localCoords
+     */
+    public static IPair<Vect2D, Vect2D> LOCAL_TO_WORLD_FOR_BODY_TO_OUT_AND_GET_BOUNDS(
+            final I_Transform bodyTransform,
+            final Vect2D[] localCoords,
+            final Vect2D[] localProj,
+            final Vect2D[] localNorm,
+            final Vect2D[] outCoords,
+            final Vect2D[] outProj,
+            final Vect2D[] outNorm
+    ){
+        return LOCAL_TO_WORLD_FOR_BODY_TO_OUT_AND_GET_BOUNDS(
+                bodyTransform.getPos(), bodyTransform.getRot(), localCoords, localProj, localNorm, outCoords, outProj, outNorm
+        );
+    }
+
+    public static IPair<Vect2D, Vect2D> LOCAL_TO_WORLD_FOR_BODY_TO_OUT_AND_GET_BOUNDS(
+            final I_Vect2D bodyPos,
+            final I_Rot2D bodyRotation,
+            final Vect2D[] localCoords,
+            final Vect2D[] localProj,
+            final Vect2D[] localNorm,
+            final Vect2D[] outCoords,
+            final Vect2D[] outProj,
+            final Vect2D[] outNorm
+    ){
+        outCoords[0] = localCoords[0].localToWorldCoordinates(bodyPos, bodyRotation);
+        outProj[0] = localProj[0].rotate(bodyRotation);
+        outNorm[0] = localNorm[0].rotate(bodyRotation);
+        final M_Vect2D min = M_Vect2D.GET(outCoords[0]);
+        final M_Vect2D max = M_Vect2D.GET(min);
+        for (int i = 1; i < localCoords.length; i++){
+            outProj[i] = localProj[i].rotate(bodyRotation);
+            innerUpdateCoordsAndNormAndMinMax(bodyPos, bodyRotation, localCoords, localNorm, outCoords, outNorm, min, max, i);
+        }
+        return IPair.of(min.finished(), max.finished());
+    }
+
+    /**
+     * Actually updates coordinates lists and recalculates min/max
+     * @param bodyPos body position
+     * @param bodyRotation body rotation
+     * @param localCoords input list of local coords (to rotate + translate)
+     * @param localNorm input list of local normals (to rotate)
+     * @param outCoords output list of world coords (to be written to)
+     * @param outNorm output list of world normals (to be written to)
+     * @param min ongoing record of lower bound of world coords
+     * @param max ongoing record of upper bound of world coords
+     * @param i cursor
+     */
+    private static void innerUpdateCoordsAndNormAndMinMax(
+            final I_Vect2D bodyPos,
+            final I_Rot2D bodyRotation,
+            final Vect2D[] localCoords,
+            final Vect2D[] localNorm,
+            final Vect2D[] outCoords,
+            final Vect2D[] outNorm,
+            final M_Vect2D min,
+            final M_Vect2D max,
+            final int i
+    ) {
+        outCoords[i] = LOCAL_TO_WORLD_M(localCoords[i], bodyPos, bodyRotation).finished();
+        outNorm[i] = localNorm[i].rotate(bodyRotation);
+        updateMinAndMaxWithNewValue(min, max, outCoords[i]);
+    }
+
+    /**
+     * Helper method to update OUT_MIN and OUT_MAX (M_Vect2Ds) to hold updated x and y values
+     * to reflect new known upper/lower bounds when given newValue
+     * @param OUT_MIN M_Vect2D holding the lower bound
+     * @param OUT_MAX M_Vect2D holding the upper bound
+     * @param newValue new value to potentially update the upper/lower bounds with
+     */
+    private static void updateMinAndMaxWithNewValue(
+            final M_Vect2D OUT_MIN,
+            final M_Vect2D OUT_MAX,
+            final Vect2D newValue
+    ){
+        if (newValue.x < OUT_MIN.x){
+            OUT_MIN.x = newValue.x;
+        } else if (newValue.x > OUT_MAX.x) {
+            OUT_MAX.x = newValue.x;
+        }
+        if (newValue.y < OUT_MIN.y){
+            OUT_MIN.y = newValue.y;
+        } else if(newValue.y > OUT_MAX.y) {
+            OUT_MAX.y = newValue.y;
+        }
+    }
+
 
     public static IPair<Vect2D, Vect2D> LOCAL_TO_WORLD_FOR_BODY_TO_OUT_AND_GET_BOUNDS(
             final I_Transform trans,
@@ -490,16 +586,7 @@ public final class Vect2DMath {
         final M_Vect2D max = M_Vect2D.GET(min);
         for (int i = locals.length-1; i > 0; i--) {
             out[i] = LOCAL_TO_WORLD_M(locals[i], pos, rot).finished();
-            if (out[i].x < min.x){
-                min.x = out[i].x;
-            } else if (out[i].x > max.x) {
-                max.x = out[i].x;
-            }
-            if (out[i].y < min.y){
-                min.y = out[i].y;
-            } else if (out[i].y > max.y) {
-                max.y = out[i].y;
-            }
+            updateMinAndMaxWithNewValue(min, max, out[i]);
         }
         return IPair.of(min.finished(), max.finished());
     }
@@ -917,6 +1004,63 @@ public final class Vect2DMath {
         last.discard();
 
         return IPair.of(minIncircle, maxMag);
+    }
+
+    /**
+     * Obtains the radius of the incircle from the centroid,
+     * as well as the distance between the furthest vector from the centroid and the centroid
+     * @param centroid position of the centroid within local coordinates
+     * @param vects corners of the polygon in local coordinates
+     * @param out array which will hold centroid->localCorner vectors.
+     * @return pair of {@code <incircle radius, max magnitude>}
+     */
+    public static IPair<Double, Double> INCIRCLE_AND_MAX_MAGNITUDE_OFFSET_ALSO_CENTROID_TO_CORNERS_TO_OUT(
+            final I_Vect2D centroid,
+            final I_Vect2D[] vects,
+            final Vect2D[] out
+    ){
+        final M_Vect2D last = M_Vect2D.GET(vects[vects.length-1]).sub(centroid);
+        final M_Vect2D current = M_Vect2D._GET_RAW();
+        double minIncircle = last.magSquared();
+        double maxMag = 0;
+
+        for (int i = 0; i < vects.length-1; i++) {
+
+            current.set(vects[i]).sub(centroid);
+
+            out[i] = new Vect2D(current);
+
+            final double thisMag = current.mag();
+            if (thisMag > maxMag){
+                maxMag = thisMag;
+            }
+
+            last.set(
+                    VECTOR_BETWEEN_M(current, last).finished()
+            );
+            // given triangle with sides ab, ac, bc:
+            //
+            //     C __
+            // bc  |   \__ ac
+            //     B ------\A
+            //        ab
+            // height = ab * sin(A)
+            // https://www.mathsisfun.com/algebra/trig-area-triangle-without-right-angle.html
+            //
+            final double currentHeight = thisMag * Math.sin(ANGLE(last, current));
+
+            if (currentHeight < minIncircle){
+                minIncircle = currentHeight;
+            }
+
+            last.set(current);
+        }
+
+        current.discard();
+        last.discard();
+
+        return IPair.of(minIncircle, maxMag);
+
     }
 
     /**
@@ -1346,7 +1490,93 @@ public final class Vect2DMath {
     }
 
 
+    /**
+     * Once again, somewhat based on
+     * <a href="https://martin-thoma.com/how-to-check-if-two-line-segments-intersect/">https://martin-thoma.com/how-to-check-if-two-line-segments-intersect/</a>
+     * @param line1start start of first line
+     * @param line1proj projection of first line
+     * @param line2start start of second line
+     * @param line2proj projection of second line
+     * @return true if the two lines intersect, false otherwise
+     * @see <a href="https://martin-thoma.com/how-to-check-if-two-line-segments-intersect/">https://martin-thoma.com/how-to-check-if-two-line-segments-intersect/</a>
+     */
+    public static boolean DO_LINES_INTERSECT(
+            final I_Vect2D line1start, final I_Vect2D line1proj,
+            final I_Vect2D line2start, final I_Vect2D line2proj
+    ){
 
+        final double toOtherStart = ANGLE_BETWEEN_LINE_PROJ_AND_POINT(line1start, line1proj, line2start);
+        final double toOtherEnd = ANGLE_BETWEEN_LINE_PROJ_AND_POINT(
+                line1start, line1proj, Vect2DMath.ADD(line2start, line2proj)
+        );
+
+        return Vect2DMath.COMPARE_DOUBLES_EPSILON(toOtherStart, 0) == 0 ||
+                Vect2DMath.COMPARE_DOUBLES_EPSILON(toOtherEnd, 0) == 0 ||
+                (toOtherStart < 0 ^ toOtherEnd < 0);
+
+    }
+
+    /**
+     * Performs {@link #DO_LINES_INTERSECT(I_Vect2D, I_Vect2D, I_Vect2D, I_Vect2D)} but in both directions (treating
+     * each line as line1 and also as line2), but it's an OR thing so chances are the second check won't be needed
+     * @param line1start where line 1 starts
+     * @param line1proj projection of line 1
+     * @param line2start where line 2 starts
+     * @param line2proj projection of line 2
+     * @return true if both lines intersect
+     */
+    public static boolean DO_LINES_INTERSECT_CHECK_BOTH(
+            final I_Vect2D line1start, final I_Vect2D line1proj,
+            final I_Vect2D line2start, final I_Vect2D line2proj
+    ){
+        return DO_LINES_INTERSECT(line1start, line1proj, line2start, line2proj) ||
+                DO_LINES_INTERSECT(line2start, line2proj, line1start, line1proj);
+    }
+
+    /**
+     * Obtains the point where lines 1 and 2 intersect.
+     *
+     * Uses maths from <a href="http://paulbourke.net/geometry/pointlineplane/">http://paulbourke.net/geometry/pointlineplane/</a>
+     * @param line1start where line 1 starts
+     * @param line1proj projection of line 1
+     * @param line2start where line 2 starts
+     * @param line2proj projection of line 2
+     * @return point (world coords) where lines 1 and 2 intersect.
+     * @see <a href="http://paulbourke.net/geometry/pointlineplane/">http://paulbourke.net/geometry/pointlineplane/</a>
+     */
+    public static Vect2D GET_INTERSECTION_POINT(
+            final I_Vect2D line1start, final I_Vect2D line1proj,
+            final I_Vect2D line2start, final I_Vect2D line2proj
+    ){
+
+        final double denominator = line1proj.cross(line2proj);
+
+        if (Vect2DMath.COMPARE_DOUBLES_EPSILON(denominator, 0) == 0){
+            // if cross product is 0, we just get a point that isn't at the very end of the lines.
+            return Vect2DMath.GET_MIDDLE_VECTOR(line1start, line2start, ADD(line1start, line1proj)).toVect2D();
+        }
+
+        final Vect2D start1MinusStart2 = Vect2DMath.MINUS(line1start, line2start);
+
+        return Vect2DMath.MULTIPLY_M(
+                line1proj,
+                line2proj.cross(start1MinusStart2) / denominator,
+                line1proj.cross(start1MinusStart2) / denominator
+        ).add(line1start).finished();
+
+    }
+
+    /**
+     * Given a line going in lineProj from lineStart along with a random point, find the angle between
+     * the end of the line and that random point, as viewed from the start of the line
+     * @param lineStart where the line starts
+     * @param lineProj projection of the line
+     * @param point the point we're trying to get the angle of
+     * @return angle between lineStart->lineProj and lineStart->point
+     */
+    public static double ANGLE_BETWEEN_LINE_PROJ_AND_POINT(final I_Vect2D lineStart, final I_Vect2D lineProj, final I_Vect2D point){
+        return lineProj.cross(Vect2DMath.MINUS(point, lineStart));
+    }
 
 
 }

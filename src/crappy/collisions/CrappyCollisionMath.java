@@ -147,13 +147,16 @@ public final class CrappyCollisionMath {
 
         bLocalWorldVel.discard();
         aLocalWorldVel.discard();
-
-        a.getBody().accept(b.getBody());
-        b.getBody().accept(a.getBody());
     }
 
 
     public static boolean COLLIDE_CIRCLE_CIRCLE(final I_CrappyShape a, final I_CrappyShape b, final double deltaT) {
+
+        // double-check bounding boxes, return false if they don't intersect.
+        if (!a.getBoundingBox().check_bb_intersect(b.getBoundingBox())){
+            return false;
+        }
+
 
         // we find out when the collision actually happened
         final double t = GET_EXACT_COLLISION_TIME_CIRCLE_CIRCLE(a, b);
@@ -168,7 +171,10 @@ public final class CrappyCollisionMath {
         ) {
             return false;
         }
-        COLLIDE_CIRCLE_CIRCLE_KNOWN_TIME(a, b, t);
+
+        if (a.getBody().isTangible() && b.getBody().isTangible()) {
+            COLLIDE_CIRCLE_CIRCLE_KNOWN_TIME(a, b, t);
+        }
         return true;
     }
 
@@ -258,20 +264,6 @@ public final class CrappyCollisionMath {
     }
 
 
-    public static void COLLIDE_CIRCLE_EDGE(final I_CrappyCircle circle, final CrappyEdge edge){
-        // TODO: this.
-    }
-
-
-    public static void COLLIDE_TWO_LOCAL_POINTS(
-            final Vect2D aPoint, final CrappyBody_Shape_Interface aBody,
-            final Vect2D bPoint, final CrappyBody_Shape_Interface bBody,
-            final Vect2D aToB_world
-    ){
-
-        // TODO finish this
-
-    }
 
 
     public static boolean COLLIDE_CIRCLE_EDGE(final I_CrappyShape c, final I_CrappyEdge e, final double deltaT){
@@ -288,7 +280,7 @@ public final class CrappyCollisionMath {
         final Vect2D ap = Vect2DMath.MINUS(c.getBodyTransform().getPos(), e.getWorldStart());
 
         // we obtain the signed distance between the edge itself and the circle
-        double distOnCorrectSideOfBarrierToCentre = ap.dot(e.getWorldNorm());
+        final double distOnCorrectSideOfBarrierToCentre = ap.dot(e.getWorldNorm());
 
         if (distOnCorrectSideOfBarrierToCentre > c.getRadius() || // if circle is too far away from the barrier
                 (distOnCorrectSideOfBarrierToCentre < -c.getRadius())// if circle is already past the barrier
@@ -296,119 +288,41 @@ public final class CrappyCollisionMath {
             return false; // if the circle's too deep, we move along
         }
 
-        double distAlongBarrier = ap.dot(e.getWorldTang());
+        final double distAlongBarrier = ap.dot(e.getWorldTang());
 
         if (distAlongBarrier < 0 || distAlongBarrier > e.getLength()){
             return false; // if the circle isn't in the barrier, we ignore it.
         }
 
-        // we get where (in local coords) on the edge the collision happened
-        final Vect2D localCollisionPosOnEdge = e.getLocalTang().mult(distAlongBarrier);
+        if (c.getBody().isTangible() && e.getBody().isTangible()) {
+            // if the two objects are actually tangible, we actually calculate the collision forces.
 
-        // we find local position of where the collision happened in the circle
-        final Vect2D localCollisionPosInCircle = Vect2DMath.WORLD_TO_LOCAL_M(
-                e.getWorldStart().addScaled(e.getWorldProj(), distAlongBarrier),
-                c.getBodyTransform()
-        ).finished();
+            // we get where (in local coords) on the edge the collision happened
+            final Vect2D localCollisionPosOnEdge = e.getLocalTang().mult(distAlongBarrier);
+
+            // we find local position of where the collision happened in the circle
+            final Vect2D localCollisionPosInCircle = Vect2DMath.WORLD_TO_LOCAL_M(
+                    e.getWorldStart().addScaled(e.getWorldProj(), distAlongBarrier),
+                    c.getBodyTransform()
+            ).finished();
 
 
-        CALCULATE_AND_APPLY_IMPULSE(c, localCollisionPosInCircle, e, localCollisionPosOnEdge, e.getWorldNorm());
+            CALCULATE_AND_APPLY_IMPULSE(c, localCollisionPosInCircle, e, localCollisionPosOnEdge, e.getWorldNorm());
+        }
 
         return true;
 
     }
 
 
-    public static boolean COLLIDE_CIRCLE_LINE(final I_CrappyShape c, final CrappyLine l, final double deltaT) {
+    public static boolean COLLIDE_CIRCLE_LINE(final I_CrappyShape c, final I_CrappyLine l, final double deltaT) {
 
-        for (final CrappyEdge crappyEdge : l) {
-            if (COLLIDE_CIRCLE_EDGE(c, crappyEdge, deltaT)) {
-                return true;
-            }
-        }
-
-        return false;
-
-
-
-        //Points P (x,y) on a line defined by two points P1 (x1,y1) and P2 (x2,y2) is described by
-        //P = P1 + u (P2 - P1)
-        //
-        //or in each coordinate
-        //x = x1 + u (x2 - x1)
-        //y = y1 + u (y2 - y1)
-        //
-        //A sphere centered at P3 (x3,y3) with radius r is described by
-        //(x - x3)2 + (y - y3)2  = r2
-        //
-        //Substituting the equation of the line into the sphere gives a quadratic equation of the form
-        //a u2 + b u + c = 0
-        //
-        //where:
-        //a = (x2 - x1)2 + (y2 - y1)2
-        //
-        //b = 2[ (x2 - x1) (x1 - x3) + (y2 - y1) (y1 - y3)]
-        //
-        //c = x32 + y32 + x12 + y12 - 2[x3 x1 + y3 y1] - r2
-        //
-        // can be solved like a quadratic
-        //
-        // The exact behaviour is determined by the expression within the square root
-        //
-        //  b * b - 4 * a * c
-        //
-        //    If this is less than 0 then the line does not intersect the sphere.
-        //
-        //    If it equals 0 then the line is a tangent to the sphere intersecting it at one point, namely at u = -b/2a.
-        //
-        //    If it is greater then 0 the line intersects the sphere at two points.
-        //
-        //To apply this to two dimensions, that is, the intersection of a line and a circle simply remove the z component from the above mathematics.
-
-
-        // For a line segment between P1 and P2 there are 5 cases to consider.
-        //
-        //    Line segment doesn't intersect and on outside of sphere,
-        //    in which case both values of u will either be less than 0 or greater than 1.
-        //
-        //    Line segment doesn't intersect and is inside sphere,
-        //    in which case one value of u will be negative and the other greater than 1.
-        //
-        //    Line segment intersects at one point,
-        //    in which case one value of u will be between 0 and 1 and the other not.
-        //
-        //    Line segment intersects at two points,
-        //    in which case both values of u will be between 0 and 1.
-        //
-        //    Line segment is tangential to the sphere,
-        //    in which case both values of u will be the same and between 0 and 1.
-        //
-        //When dealing with a line segment it may be more efficient to first determine
-        // whether the line actually intersects the sphere or circle.
-        // This is achieved by noting that the closest point on the line through P1P2 to
-        // the point P3 is along a perpendicular from P3 to the line.
-        //
-        // In other words if P is the closest point on the line then
-        //(P3 - P) dot (P2 - P1) = 0
-        //
-        //Substituting the equation of the line into this
-        //[P3 - P1 - u(P2 - P1)] dot (P2 - P1) = 0
-        //
-        //Solving the above for u =
-        //(x3 - x1)(x2 - x1) + (y3 - y1)(y2 - y1)
-        //-----------------------------------------------------------
-        //(x2 - x1)(x2 - x1) + (y2 - y1)(y2 - y1)
-        //
-        //If u is not between 0 and 1 then the closest point is not between P1 and P2
-        // Given u, the intersection point can be found, it must also be less than the radius r.
-        //
-        // If these two tests succeed then the earlier calculation of the actual intersection point can be applied.
-
+        return COLLIDE_CIRCLE_EDGE(c, l.getEdgeA(), deltaT) || COLLIDE_CIRCLE_EDGE(c, l.getEdgeB(), deltaT);
 
     }
 
 
-    public static boolean COLLIDE_CIRCLE_POLYGON(I_CrappyShape circle, CrappyPolygon polygon, final double deltaT){
+    public static boolean COLLIDE_CIRCLE_POLYGON(I_CrappyShape circle, I_CrappyPolygon polygon, final double deltaT){
 
         // we first see if the circle collides with the polygon's inner circle.
         if (
@@ -418,9 +332,14 @@ public final class CrappyCollisionMath {
             return true;
         }
 
+        final Vect2D polyToCircleNorm = Vect2DMath.VECTOR_BETWEEN_M(polygon.getCentroid(), circle.getCentroid()).norm().finished();
+
         // if the inner circles didn't collide, we see if each edge of the polygon collided with the circle.
-        for (final CrappyEdge crappyEdge : polygon) {
-            if (COLLIDE_CIRCLE_EDGE(circle, crappyEdge, deltaT)) {
+        for (final I_CrappyEdge crappyEdge : polygon) {
+            // first we make sure it's pointing the right way
+            if (crappyEdge.getWorldNorm().dot(polyToCircleNorm) > 0 &&
+                    COLLIDE_CIRCLE_EDGE(circle, crappyEdge, deltaT)
+            ) {
                 return true;
             }
         }
@@ -433,12 +352,12 @@ public final class CrappyCollisionMath {
 
     /**
      * Attempts to perform collisions between a line and an edge.
-     * @param l
-     * @param e
-     * @param deltaT
-     * @return
+     * @param l line
+     * @param e edge
+     * @param deltaT timestep
+     * @return true if they collided, false otherwise.
      */
-    public static boolean COLLIDE_LINE_EDGE(final CrappyLine l, final I_CrappyEdge e, final double deltaT){
+    public static boolean COLLIDE_LINE_EDGE(final I_CrappyLine l, final I_CrappyEdge e, final double deltaT){
 
         if (!l.getBoundingBox().check_bb_intersect(e.getBoundingBox())){
             return false;
@@ -453,8 +372,28 @@ public final class CrappyCollisionMath {
             }
         }
 
-        return COLLIDE_EDGE_EDGE(l.getEdge(), e, deltaT);
+        return COLLIDE_EDGE_EDGE(l.getEdgeA(), e, deltaT);
+    }
 
+    public static boolean COLLIDE_LINE_LINE(final I_CrappyLine l1, final I_CrappyLine l2, final double deltaT){
+
+        if (!l1.getBoundingBox().check_bb_intersect(l2.getBoundingBox())){
+            return false;
+        }
+        for (final I_CrappyEdge e1: l1) {
+
+            for (final I_CrappyEdge e2: l2) {
+                if (
+                        e1.getEndPointCircle().getBoundingBox().check_bb_intersect(e2.getEndPointCircle().getBoundingBox()) &&
+                                COLLIDE_CIRCLE_CIRCLE(e1.getEndPointCircle(), e2.getEndPointCircle(), deltaT)
+                ){
+                    return true;
+                }
+            }
+
+        }
+
+        return COLLIDE_EDGE_EDGE(l1.getEdgeA(), l2.getEdgeA(), deltaT);
 
     }
 
@@ -478,7 +417,7 @@ public final class CrappyCollisionMath {
         }
 
         if (
-                (!(DO_LINES_INTERSECT(e1, e2) || DO_LINES_INTERSECT(e2, e1))) // if the lines don't intersect
+                (!DO_EDGES_INTERSECT(e1, e2)) // if the lines don't intersect
                         // or if they're going in completely different directions to each other
                 || Vect2DMath.MINUS_M(e2.getVel(), e1.getVel())
                         .dot_discardBoth(Vect2DMath.MINUS_M(e2.getPos(), e1.getPos())) > 0
@@ -486,76 +425,210 @@ public final class CrappyCollisionMath {
             return false;
         }
 
-        final Vect2D intersectionPointWorld = GET_INTERSECTION_POINT(e1, e2);
+
+        if (e1.getBody().isTangible() && e2.getBody().isTangible()) {
+            // again, we only calculate the collision forces if both bodies are tangible.
+
+            final Vect2D intersectionPointWorld = Vect2DMath.GET_INTERSECTION_POINT(
+                    e1.getWorldStart(), e1.getWorldProj(), e2.getWorldStart(), e2.getWorldProj()
+            );
 
 
-        CALCULATE_AND_APPLY_IMPULSE(
-                e1, Vect2DMath.MINUS(intersectionPointWorld, e1.getPos()),
-                e2, Vect2DMath.MINUS(intersectionPointWorld, e2.getPos()),
-                Vect2DMath.VECTOR_BETWEEN_M(e1.getPos(), e2.getPos()).norm().finished()
-        );
+            CALCULATE_AND_APPLY_IMPULSE(
+                    e1, Vect2DMath.MINUS(intersectionPointWorld, e1.getPos()),
+                    e2, Vect2DMath.MINUS(intersectionPointWorld, e2.getPos()),
+                    Vect2DMath.VECTOR_BETWEEN_M(e1.getPos(), e2.getPos()).norm().finished()
+            );
+        }
 
         return true;
 
     }
+    private static boolean COLLIDE_EDGE_VECTOR(
+            final I_CrappyEdge e, final I_Vect2D start,
+            final I_Vect2D proj, final I_Vect2D projNorm,
+            final I_CrappyShape vectorShape
+    ){
 
-    /**
-     * Obtains the point where edges e1 and e2 intersect.
-     *
-     * Uses maths from <a href="http://paulbourke.net/geometry/pointlineplane/">http://paulbourke.net/geometry/pointlineplane/</a>
-     * @param e1 first edge
-     * @param e2 other edge
-     * @return point (world coords) where edges e1 and e2 intersect.
-     * @see <a href="http://paulbourke.net/geometry/pointlineplane/">http://paulbourke.net/geometry/pointlineplane/</a>
-     */
-    private static Vect2D GET_INTERSECTION_POINT(final I_CrappyEdge e1, final I_CrappyEdge e2){
-        final Vect2D e1End = e1.getWorldEnd();
-        final Vect2D e2End = e2.getWorldEnd();
-
-        final double denominator = e1.getWorldProj().cross(e2.getWorldProj());
-
-        if (Vect2DMath.COMPARE_DOUBLES_EPSILON(denominator, 0) == 0){
-            // if cross product is 0, we just get a point that isn't at the very end of the lines.
-            return Vect2DMath.GET_MIDDLE_VECTOR(e1.getWorldStart(), e2.getWorldStart(), e1.getWorldEnd());
+        // if the projection of the vector and the normal of the edge are pointing in the same direction as each other,
+        // we skip this.
+        if (e.getWorldNorm().dot(projNorm) > 0){
+            return false;
         }
 
-        return Vect2DMath.MULTIPLY_M(
-                e1.getWorldProj(),
-                ((e2.getWorldProj().x * (e1.getWorldStart().y - e2.getWorldStart().y))
-                        - (e2.getWorldProj().y * (e1.getWorldStart().x - e2.getWorldStart().x))
-                ) / denominator,
-                ((e1.getWorldProj().x * (e1.getWorldStart().y - e2.getWorldStart().y))
-                        - (e1.getWorldProj().y * (e1.getWorldStart().x - e2.getWorldStart().x))
-                ) / denominator
-        ).add(e1.getWorldStart()).finished();
+        if ((!DOES_EDGE_INTERSECT_WITH_PROJ_POSITION_VECTOR(e, start, proj))
+            || Vect2DMath.MINUS_M(vectorShape.getVelOfWorldPoint(start), e.getVel())
+                .dot_discardBoth(Vect2DMath.MINUS_M(start, e.getPos())) > 0){
+            return false;
+        }
+
+
+        if (e.getBody().isTangible() && vectorShape.getBody().isTangible()) {
+            // if both bodies are tangible, we properly collide them.
+
+            final Vect2D intersectionPointWorld = Vect2DMath.GET_INTERSECTION_POINT(
+                    e.getWorldStart(), e.getWorldProj(), start, proj
+            );
+
+
+            CALCULATE_AND_APPLY_IMPULSE(
+                    e, Vect2DMath.MINUS(intersectionPointWorld, e.getPos()),
+                    vectorShape, Vect2DMath.MINUS(intersectionPointWorld, vectorShape.getPos()),
+                    Vect2DMath.VECTOR_BETWEEN_M(e.getPos(), vectorShape.getPos()).norm().finished()
+            );
+
+        }
+
+        return true;
+    }
+
+
+    private static boolean DO_EDGES_INTERSECT(final I_CrappyEdge e1, final I_CrappyEdge e2){
+
+        return Vect2DMath.DO_LINES_INTERSECT_CHECK_BOTH(
+                e1.getWorldStart(), e1.getWorldProj(), e2.getWorldStart(), e2.getWorldProj()
+        );
+    }
+
+    private static boolean DOES_EDGE_INTERSECT_WITH_PROJ_POSITION_VECTOR(
+            final I_CrappyEdge e, final I_Vect2D worldPos, final I_Vect2D worldProj
+    ){
+        return Vect2DMath.DO_LINES_INTERSECT_CHECK_BOTH(e.getWorldStart(), e.getWorldProj(), worldPos, worldProj);
+    }
+
+
+
+
+    /**
+     * Call this to collide a polygon with an edge when we don't know what the normalized 'polygon centroid to edge
+     * centroid' vector is
+     * @param p the polygon
+     * @param e the edge
+     * @param deltaT timestep
+     * @return true if they collide, false otherwise
+     */
+    public static boolean POLYGON_EDGE_COLLISIONS(final I_CrappyPolygon p, final I_CrappyEdge e, final double deltaT) {
+
+        return POLYGON_EDGE_COLLISIONS(p, e, deltaT, Vect2DMath.VECTOR_BETWEEN_M(p.getCentroid(), e.getCentroid()).norm().finished());
+    }
+
+    /**
+     * Call this to collide a polygon with an edge when we know what the normalized 'polygon centroid to edge centroid'
+     * vector is.
+     * @param p the polygon
+     * @param e the edge
+     * @param deltaT timestep
+     * @param polygonToEdgeCentroid normalize polygon from polygon centroid to edge centroid
+     * @return true if they collided, false otherwise.
+     */
+    static boolean POLYGON_EDGE_COLLISIONS(
+            final I_CrappyPolygon p, final I_CrappyEdge e, final  double deltaT, final Vect2D polygonToEdgeCentroid
+    ){
+
+        // we attempt to collide this polygon's incircle with the edge (returning true if it works)
+        if (COLLIDE_CIRCLE_EDGE(p.getIncircle(), e, deltaT)){
+            return true;
+        }
+
+        // if the edge's normal is pointing away from the polygon, return false.
+        if (polygonToEdgeCentroid.dot(e.getWorldNorm()) > 0){
+            return false;
+        }
+
+        for (int i = p.getVertexCount()-1; i >= 0; i--) {
+            // if the ith world whisker's normal is pointing towards the centroid of the edge
+            if (p.getWorldNormalWhisker(i).dot(polygonToEdgeCentroid) > 0 &&
+                    // we attempt to collide the edge with that whisker
+                    COLLIDE_EDGE_VECTOR(e, p.getCentroid(), p.getWorldWhisker(i), p.getWorldNormalWhisker(i), p)
+            ){
+                // if that worked, we return true.
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static boolean POLYGON_LINE_COLLISIONS(final I_CrappyPolygon p, final I_CrappyLine l, final double deltaT){
+
+        if (COLLIDE_CIRCLE_LINE(p.getIncircle(), l, deltaT)){
+            return true;
+        }
+
+        final Vect2D normPolyCentroidToLineCentroid =
+                Vect2DMath.VECTOR_BETWEEN_M(p.getCentroid(), l.getCentroid()).norm().finished();
+
+        return POLYGON_EDGE_COLLISIONS(p, l.getEdgeA(), deltaT, normPolyCentroidToLineCentroid) ||
+                POLYGON_EDGE_COLLISIONS(p, l.getEdgeB(), deltaT, normPolyCentroidToLineCentroid);
 
     }
 
     /**
-     * Once again, somewhat based on
-     * <a href="https://martin-thoma.com/how-to-check-if-two-line-segments-intersect/">https://martin-thoma.com/how-to-check-if-two-line-segments-intersect/</a>
-     * @param e1 first edge
-     * @param otherEdge the other edge
-     * @return true if the two lines intersect, false otherwise
-     * @see <a href="https://martin-thoma.com/how-to-check-if-two-line-segments-intersect/">https://martin-thoma.com/how-to-check-if-two-line-segments-intersect/</a>
+     * Attempts to collide two polygons with each other
+     * @param p1 first polygon
+     * @param p2 other polygon
+     * @param deltaT timestep
+     * @return whether or not they collided.
      */
-    static boolean DO_LINES_INTERSECT(final I_CrappyEdge e1, final I_CrappyEdge otherEdge){
+    public static boolean POLYGON_POLYGON_COLLISIONS(final I_CrappyPolygon p1, final I_CrappyPolygon p2, final double deltaT){
 
-        final double toOtherStart = ANGLE_BETWEEN_LINE_PROJ_AND_POINT(e1, otherEdge.getWorldStart());
-        final double toOtherEnd = ANGLE_BETWEEN_LINE_PROJ_AND_POINT(e1, otherEdge.getWorldEnd());
+        if (COLLIDE_CIRCLE_CIRCLE(p1.getIncircle(), p2.getIncircle(), deltaT)){
+            return true;
+        }
 
-        return Vect2DMath.COMPARE_DOUBLES_EPSILON(toOtherStart, 0) == 0 ||
-                Vect2DMath.COMPARE_DOUBLES_EPSILON(toOtherEnd, 0) == 0 ||
-                (toOtherStart < 0 ^ toOtherEnd < 0);
+        final Vect2D norm_p1_to_p2 = Vect2DMath.VECTOR_BETWEEN_M(p1.getCentroid(), p2.getCentroid()).norm().finished();
 
+        return TEST_POLYGON_A_ON_POLYGON_B(p1, p2, deltaT, norm_p1_to_p2) ||
+                TEST_POLYGON_A_ON_POLYGON_B(p2, p1, deltaT, norm_p1_to_p2.invert());
     }
 
-    static double ANGLE_BETWEEN_LINE_PROJ_AND_POINT(final I_CrappyEdge line, final Vect2D v){
-        return line.getWorldProj().cross(Vect2DMath.MINUS(v, line.getWorldStart()));
-    }
+    /**
+     * Attempts to collide polygon A onto polygon B.
+     * This method treats polygon A as a complete polygon, and attempts to collide it against the components of polygon B.
+     * Easier than having to write out these tests in full in both directions in POLYGON_POLYGON_COLLISIONS.
+     * @param a the polygon we are testing
+     * @param b the polygon we are testing against.
+     * @param deltaT timestep
+     * @param knownAToBNorm known normalized vector of A to B
+     * @return true if we found a collision of A against B, false otherwise
+     */
+    private static boolean TEST_POLYGON_A_ON_POLYGON_B(
+            final I_CrappyPolygon a, final I_CrappyPolygon b, final double deltaT, final Vect2D knownAToBNorm
+    ){
 
-    // TODO:
-    //  polygon -> line
-    //  polygon -> edge
-    //  polygon -> polygon
+
+        // keeps track of which 'whiskers' from A could potentially collide with an edge in B.
+        final boolean[] whichWhiskersMightWork = new boolean[a.getVertexCount()];
+
+        for (int i = a.getVertexCount()-1; i>=0; i--) {
+            whichWhiskersMightWork[i] = a.getWorldNormalWhisker(i).dot(knownAToBNorm) > 0;
+            // only bothering with whiskers that point roughly from A to B.
+        }
+
+        for (final I_CrappyEdge e: b) {
+            // skip
+            if (e.getWorldNorm().dot(knownAToBNorm) > 0){
+                continue; // if the edge of polygon b is pointing away from polygon a, we skip it
+            }
+            if (COLLIDE_CIRCLE_EDGE(a.getIncircle(), e, deltaT)){
+                return true;
+            }
+            // we then try looking at A's whiskers, specifically,
+            // the ones that can potentially intersect with an edge of the polygon
+            for (int i = a.getVertexCount()-1; i >= 0; i--) {
+                // if the current whisker is noted as being potential intersect
+                if (whichWhiskersMightWork[i] &&
+                        // and if it actually does intersect
+                        COLLIDE_EDGE_VECTOR(
+                                e, a.getCentroid(), a.getWorldWhisker(i), a.getWorldNormalWhisker(i), a
+                        )
+                ){
+                    // well, it's collided, so we return true.
+                    return true;
+                }
+            }
+        }
+        // if nothing collided, we return false.
+        return false;
+    }
 }

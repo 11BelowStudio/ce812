@@ -1,6 +1,8 @@
 package crappy.collisions;
 
 import crappy.CrappyBody;
+import crappy.CrappyBody_Shape_Interface;
+import crappy.I_CrappyBody;
 import crappy.math.I_Vect2D;
 import crappy.math.M_Vect2D;
 import crappy.math.Vect2D;
@@ -423,7 +425,10 @@ public final class AABBQuadTreeTools {
 
 
     public interface I_StaticGeometryQuadTreeRootNode extends AABBQuadTreeRootNode, Iterable<A_CrappyShape>{
+    }
 
+    public static I_StaticGeometryQuadTreeRootNode DEFAULT_STATIC_GEOMETRY_TREE(){
+        return new EmptyQuadtreeLeafNodeStaticGeom();
     }
 
 
@@ -519,8 +524,9 @@ public final class AABBQuadTreeTools {
                 case X_SMALLER_Y_GREATER:
                     return LG;
                 case X_GREATER_Y_GREATER:
-                default:
                     return GG;
+                default:
+                    throw new AssertionError("case "+ q + " not handled!");
             }
         }
 
@@ -767,8 +773,9 @@ public final class AABBQuadTreeTools {
                     case MEDIAN_OF_MIDPOINTS:
                         return aabb.getMidpoint();
                     case WHATEVER:
-                    default:
                         return Vect2DMath.RANDOM_VECTOR_IN_BOUNDS(aabb.getMin(), aabb.getMax());
+                    default:
+                        throw new AssertionError("Case "+ thingToGet + " not handled!");
                 }
 
             }
@@ -856,11 +863,12 @@ public final class AABBQuadTreeTools {
          * @param kinematics all the kinematic bodies to add
          */
         default void addAllKinematicBodies(Collection<? extends CrappyBody> kinematics){
-            for (final CrappyBody k: kinematics) {
+            for (final I_CrappyBody k: kinematics) {
                 if (k.getBodyType() != CrappyBody.CRAPPY_BODY_TYPE.KINEMATIC){
                     throw new IllegalArgumentException("Expected a kinematic shape, got " + k.getBodyType() + "!");
+                } else if (k.isActive()) {
+                    accept(k.getShape());
                 }
-                accept(k.getShape());
             }
         }
 
@@ -874,10 +882,13 @@ public final class AABBQuadTreeTools {
          * @return set of all the other pre-existing CrappyShape_QuadTree_Interface objects that the new shape collides with
          */
         default Set<CrappyShape_QuadTree_Interface> checkDynamicBodyAABB(final CrappyShape_QuadTree_Interface dBody){
-            if (dBody.getShape().body.getBodyType() != CrappyBody.CRAPPY_BODY_TYPE.DYNAMIC){
+            final CrappyBody_Shape_Interface b = dBody.getShape().getBody();
+            if (b.getBodyType() != CrappyBody.CRAPPY_BODY_TYPE.DYNAMIC){
                 throw new IllegalArgumentException("Expected a dynamic body, and that sure isn't dynamic!");
+            } else if (b.isActive()){
+                return apply(dBody);
             }
-            return apply(dBody);
+            return emptySet;
         }
 
     }
@@ -969,7 +980,7 @@ public final class AABBQuadTreeTools {
 
         @Override
         public Set<CrappyShape_QuadTree_Interface> apply(CrappyShape_QuadTree_Interface dBody) {
-            final Set<CrappyShape_QuadTree_Interface> results = new HashSet<>();
+            final Set<CrappyShape_QuadTree_Interface> results = new LinkedHashSet<>();
             for (final Iterator<I_DynamicKinematicAABBQuadTreeNode> it =
                  childNodeIterator(AABB_Quad_Enum.AABB_Choose_Quadtree_Enum.get(midpoint, dBody)); it.hasNext(); ) {
                 results.addAll(it.next().apply(dBody));
@@ -981,9 +992,10 @@ public final class AABBQuadTreeTools {
          * Obtains the relevant child layer via an AABB_Quad_Enum
          * @param e the AABB_Quad_Enum for the relevant child layer
          * @return the appropriate child layer.
+         * @throws AssertionError if I somehow missed a value of e.
          */
         @Override
-        public I_DynamicKinematicAABBQuadTreeNode getChildLayer(final AABB_Quad_Enum e){
+        public I_DynamicKinematicAABBQuadTreeNode getChildLayer(final AABB_Quad_Enum e) throws AssertionError{
             switch (e){
                 case X_SMALLER_Y_SMALLER:
                     return x_min_y_min;
@@ -992,8 +1004,9 @@ public final class AABBQuadTreeTools {
                 case X_SMALLER_Y_GREATER:
                     return x_min_y_max;
                 case X_GREATER_Y_GREATER:
-                default:
                     return x_max_y_max;
+                default:
+                    throw new AssertionError("Case "+ e + " not handled!");
             }
         }
 

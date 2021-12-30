@@ -2,6 +2,7 @@ package crappy;
 
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
+import crappy.utils.PendingStateChange;
 import crappy.utils.containers.IPair;
 
 
@@ -25,6 +26,8 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D> {
     private final boolean canGoSlack;
 
     private final DoubleUnaryOperator truncationRule;
+
+    private boolean isActive = true;
 
 
     public CrappyConnector(
@@ -67,6 +70,22 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D> {
                 ),
                 constant, damping, slack, trunc
         );
+    }
+
+    /**
+     * Are both of the children which this joint connects still active, and is this joint still active?
+     * @return true if this joint is active and both children are active.
+     */
+    public boolean shouldIStillExist(){
+        return isActive && bodyA.isActive() && bodyB.isActive();
+    }
+
+    /**
+     * Updates whether or not this joint should be active.
+     * @param active true if this joint should be considered active.
+     */
+    public void setActive(final boolean active){
+        this.isActive = active;
     }
 
     /**

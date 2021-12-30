@@ -3,12 +3,15 @@ package crappy;
 import crappy.math.*;
 import crappy.collisions.A_CrappyShape;
 import crappy.collisions.Crappy_AABB;
+import crappy.utils.lazyFinal.LazyFinal;
+import crappy.utils.PendingStateChange;
 import crappy.utils.bitmasks.IHaveBitmask;
 
 /**
  * A rigidbody class used by Crappy
  */
-public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_Shape_Interface, CrappyBody_Connector_Interface {
+public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_Shape_Interface,
+        CrappyBody_Connector_Interface, I_ManipulateCrappyBody, I_CrappyBody_CrappyWorld_Interface {
 
     //TODO https://www.myphysicslab.com/explain/physics-engine-en.html hmmmmm
 
@@ -58,8 +61,9 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
      */
     protected final M_Rot2D tempRotChange = M_Rot2D.GET();
 
-    A_CrappyShape shape;
+    //A_CrappyShape shape;
 
+    final LazyFinal<A_CrappyShape> shape = new LazyFinal<>();
 
     /**
      * Current angular velocity of this CrappyBody
@@ -141,19 +145,50 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
     protected double restitution = 0.9;
 
     /**
+     * Whether or not this body is considered 'active'.
+     */
+    protected boolean active = true;
+
+    /**
+     * pending change to activity
+     */
+    protected PendingStateChange pendingActive = PendingStateChange.SAME_AS_IT_EVER_WAS;
+
+    /**
      * Set this to 'false' if this body isn't supposed to have any physics impact when colliding
      */
     protected boolean tangible = true;
 
     /**
+     * pending change to being (in)tangible
+     */
+    protected PendingStateChange pendingIntangbility = PendingStateChange.SAME_AS_IT_EVER_WAS;
+
+    /**
      * Whether or not this body is currently allowed to move
      */
-    protected boolean canMove = true;
+    protected boolean canMoveLinearly = true;
+
+    /**
+     * Whether or not this body is currently allowed to rotate
+     */
+    protected boolean canRotate = true;
+
+    /**
+     * Set this to true if this should stop being able to move linearly
+     */
+    protected PendingStateChange pendingCanMoveLinearly = PendingStateChange.SAME_AS_IT_EVER_WAS;
+
+    /**
+     * Set this to true if this should stop being able to rotate
+     */
+    protected PendingStateChange pendingCanRotate = PendingStateChange.SAME_AS_IT_EVER_WAS;
 
     /**
      * Set this to 'true' if this CrappyBody needs to be removed from the physics engine
      */
     protected boolean pendingRemoval = false;
+
 
     /**
      * Basically a bitmask to indicate what 'tags' the objects this object collided with had.
@@ -176,9 +211,14 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
     final CrappyCollisionCallbackHandler callbackHandler;
 
     /**
-     *
+     * any user-defined data
      */
     final Object userData;
+
+    /**
+     * Also has a string name, for ease of use.
+     */
+    final String name;
 
     public CrappyBody(
             final Vect2D pos,
@@ -190,7 +230,8 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
             final int bodyTagBits,
             final int tagsICanCollideWithBits,
             final CrappyCollisionCallbackHandler callback,
-            final Object userData
+            final Object userData,
+            final String id
     ) {
         this.bodyType = bodyType;
         if (bodyType == CRAPPY_BODY_TYPE.STATIC){
@@ -211,11 +252,14 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
         tagsICanCollideWithBitmask = tagsICanCollideWithBits;
         callbackHandler = callback;
         this.userData = userData;
+        name = id;
     }
 
-    public void setShape(final A_CrappyShape shape){
-        this.shape = shape;
-    }
+    /**
+     * Call this once to set the shape of this object
+     * @param shape the shape of this object
+     */
+    public void setShape(final A_CrappyShape shape){ this.shape.set(shape);}
 
     /**
      * Returns {@link #myBodyTagBits} (the bitmask representing the 'tags' of this object)
@@ -244,8 +288,128 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
      * or if the result of tagsICanCollideWithBitmask & other.getBitmask() is greater than 0.
      * @see #tagsICanCollideWithBitmask
      */
+    @Override
     public boolean anyMatchInBitmasks(final IHaveBitmask other){
         return tagsICanCollideWithBitmask == -1 || ((tagsICanCollideWithBitmask & other.getBitmask()) > 0);
+    }
+
+    /**
+     * Do you want this body to be 'active' or not? Inactive bodies don't have collision and don't recieve forces. Will
+     * update at start of next update loop.
+     *
+     * @param beActive whether or not you want this body to be 'active'
+     */
+    @Override
+    public void setActive(final boolean beActive) {
+        pendingActive = PendingStateChange.TO_PENDING_STATE_CHANGE(active, beActive);
+    }
+
+    /**
+     * Do you want to mark this CrappyBody for removal at the next possible frame? Will update at start of next update
+     * loop.
+     *
+     * @param markForRemoval whether or not you're marking it for removal. If true, this object will be removed at the
+     *                       next frame.
+     */
+    @Override
+    public void setMarkForRemoval(final boolean markForRemoval) {
+        pendingRemoval = true;
+    }
+
+    /**
+     * Should this rigidbody become intangible? No collisions, can recieve forces. Will update at start of next update
+     * loop.
+     *
+     * @param pendingTangibility true if it should become intangible.
+     */
+    @Override
+    public void setTangibility(final boolean pendingTangibility) {
+        this.pendingIntangbility = PendingStateChange.TO_PENDING_STATE_CHANGE(tangible, pendingTangibility);
+    }
+
+    /**
+     * Should this rigidbody be allowed to move linearly?
+     *
+     * @param posLocked true if no, false if yes
+     */
+    @Override
+    public void setPositionLocked(final boolean posLocked) {
+        pendingCanMoveLinearly = PendingStateChange.TO_PENDING_STATE_CHANGE(canMoveLinearly, !posLocked);
+    }
+
+    /**
+     * Should this rigidbody be allowed to turn?
+     *
+     * @param rotLocked true if no, false if yes
+     */
+    @Override
+    public void setRotationLocked(boolean rotLocked) {
+        pendingCanRotate = PendingStateChange.TO_PENDING_STATE_CHANGE(canRotate, !rotLocked);
+    }
+
+    /**
+     * Call this to tell this I_CrappyBody to call the {@link CrappyCollisionCallbackHandler#acceptCollidedWithBitmaskAfterAllCollisions(int)}
+     * method in its {@link CrappyCollisionCallbackHandler}.
+     *
+     * @see CrappyBody#callbackHandler
+     */
+    @Override
+    public void performPostCollisionBitmaskCallback() {
+        callbackHandler.acceptCollidedWithBitmaskAfterAllCollisions(combinedBitsOfOtherObjectsCollidedWith);
+    }
+
+    /**
+     * Resolve any changes to this body's 'active' state
+     *
+     * @return change made to the body's active state
+     */
+    @Override
+    public PendingStateChange resolveActiveChange() {
+        final PendingStateChange psc = pendingActive;
+        //this.active =
+        // TODO: finish the resolve methods,
+        //  and add the loops in the CrappyWorld to perform post collision callbacks + perform resolutions.
+        return psc;
+    }
+
+    /**
+     * Resolve any potential changes to this body's removal state
+     *
+     * @return true if it needs to be removed
+     */
+    @Override
+    public boolean resolveRemovalChange() {
+        return false;
+    }
+
+    /**
+     * Resolve any potential changes needed to this body's position lock change
+     *
+     * @return change made to position lock
+     */
+    @Override
+    public PendingStateChange resolvePositionLockChange() {
+        return null;
+    }
+
+    /**
+     * Resolve any potential changes needed to this body's rotation lock change
+     *
+     * @return change made to rotation lock
+     */
+    @Override
+    public PendingStateChange resolveRotationLockChange() {
+        return null;
+    }
+
+    /**
+     * Resolve any potential changes needed to this body's tangibility
+     *
+     * @return change made to tangibility.
+     */
+    @Override
+    public PendingStateChange resolveTangibilityChange() {
+        return null;
     }
 
     /**
@@ -275,6 +439,28 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
     public void setMomentOfInertia(final double moment) {
         this.inertia = moment;
     }
+
+    /**
+     * Called to notify the CrappyBody that it has, in fact, collided with something.
+     *
+     * @param collidedWith the body it collided with.
+     */
+    @Override
+    public void notifyAboutCollision(final I_View_CrappyBody collidedWith) {
+        accept(collidedWith);
+        callbackHandler.collidedWith(collidedWith);
+    }
+
+    /**
+     * Returns manipulatable interface of this body.
+     *
+     * @return I_ManipulateCrappyBody view of this object CrappyBody
+     */
+    @Override
+    public I_ManipulateCrappyBody getManipulatable() {
+        return this;
+    }
+
 
     @Override
     public Vect2D getPos() {
@@ -314,6 +500,76 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
     @Override
     public double getTempAngVel(){ return tempAngVelocity; }
 
+    /**
+     * mass
+     *
+     * @return the mass
+     */
+    @Override
+    public double getMass() {
+        return mass;
+    }
+
+    /**
+     * collision bounding box
+     *
+     * @return bounding box
+     */
+    @Override
+    public Crappy_AABB getAABB() {
+        return shape.getAssert().getBoundingBox();
+    }
+
+    /**
+     * Collision shape
+     *
+     * @return collision shape
+     */
+    @Override
+    public A_CrappyShape getShape() {
+        return shape.getAssert();
+    }
+
+    /**
+     * Moment of inertia
+     *
+     * @return moment of inertia
+     */
+    @Override
+    public double getMomentOfInertia() {
+        return inertia;
+    }
+
+    /**
+     * body type
+     *
+     * @return static? dynamic? kinematic?
+     */
+    @Override
+    public CRAPPY_BODY_TYPE getBodyType() {
+        return bodyType;
+    }
+
+    /**
+     * Coefficient of restitution for crappybody
+     *
+     * @return restitution
+     */
+    @Override
+    public double getRestitution() {
+        return restitution;
+    }
+
+    /**
+     * Obtains user data object of CrappyBody
+     *
+     * @return user data
+     */
+    @Override
+    public Object getUserData() {
+        return userData;
+    }
+
 
     /**
      * Cannot apply forces to static bodies, and cannot apply ENGINE forces to kinematic bodies
@@ -327,7 +583,7 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
             case KINEMATIC:
                 return source != FORCE_SOURCE.ENGINE;
             default:
-                return canMove;
+                return canMoveLinearly;
         }
 
     }
@@ -502,36 +758,37 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
     }
 
 
+
+
+    /**
+     * Obtains name of crappybody
+     *
+     * @return name
+     */
     @Override
-    public double getMass() {
-        return mass;
+    public String getName() {
+        return null;
     }
 
+    /**
+     * Is this actually tangible (able to give/receive collision forces)? intangible objects can still collide, but not
+     * with forces.
+     *
+     * @return true if yes, false if no
+     */
     @Override
-    public Crappy_AABB getAABB() {
-        return shape.getBoundingBox();
+    public boolean isTangible() {
+        return false;
     }
 
+    /**
+     * Is this actually active? (ie not dormant, still affected by all physics, can collide)
+     *
+     * @return true if is active.
+     */
     @Override
-    public A_CrappyShape getShape() {
-        return shape;
-    }
-
-    @Override
-    public double getMomentOfInertia() {
-        return inertia;
-    }
-
-    public double getRestitution(){ return restitution; }
-
-    @Override
-    public CRAPPY_BODY_TYPE getBodyType() {
-        return bodyType;
-    }
-
-    @Override
-    public Object getUserData() {
-        return userData;
+    public boolean isActive() {
+        return false;
     }
 
 
@@ -640,48 +897,54 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
     public static CrappyBodyCreator GET_CREATOR(){
         return new CrappyBodyCreator();
     }
+
+    /**
+     * Inspired somewhat by JBox2D's BodyDef class,
+     * intended to make it slightly less painful to create a CrappyBody.
+     */
+    public static class CrappyBodyCreator {
+
+        public CrappyWorld world = null;
+
+        public Vect2D pos = Vect2D.ZERO;
+        public Vect2D vel = Vect2D.ZERO;
+
+        public Rot2D angle = Rot2D.IDENTITY;
+
+        public double angVel = 0;
+
+        public double mass = 1;
+
+        public CrappyBody.CRAPPY_BODY_TYPE bodyType = null;
+
+        public boolean tangible = true;
+
+        public double linearDrag = 0.9;
+
+        public double angularDrag = 0.9;
+
+        public static int DEFAULT_THIS_BODY_TAGS_BITMASK = 0;
+
+        public int thisBodyTagsAsBitmask = DEFAULT_THIS_BODY_TAGS_BITMASK;
+
+        public int tagsOfBodiesThatCanBeCollidedWith = -1;
+
+        private static final CrappyCollisionCallbackHandler defaultCallbackHandler = new DEFAULT_CALLBACK_HANDLER();
+
+        public CrappyCollisionCallbackHandler handler = defaultCallbackHandler;
+
+        public Object userData = new Object();
+
+        public String name = "";
+
+        public CrappyBodyCreator(){}
+
+        private static class DEFAULT_CALLBACK_HANDLER implements CrappyCollisionCallbackHandler { }
+
+    }
 }
 
-/**
- * Inspired somewhat by JBox2D's BodyDef class,
- * intended to make it slightly less painful to create a CrappyBody.
- */
-class CrappyBodyCreator {
 
 
-    public CrappyWorld world = null;
-
-    public Vect2D pos = Vect2D.ZERO;
-    public Vect2D vel = Vect2D.ZERO;
-
-    public Rot2D angle = Rot2D.IDENTITY;
-
-    public double angVel = 0;
-
-    public double mass = 1;
-
-    public CrappyBody.CRAPPY_BODY_TYPE bodyType = null;
-
-    public boolean tangible = true;
-
-    public double linearDrag = 0.9;
-
-    public double angularDrag = 0.9;
-
-    public static int DEFAULT_THIS_BODY_TAGS_BITMASK = 0;
-
-    public int thisBodyTagsAsBitmask = DEFAULT_THIS_BODY_TAGS_BITMASK;
-
-    public int tagsOfBodiesThatCanBeCollidedWith = 0;
-
-    public CrappyCollisionCallbackHandler parentObject;
-
-    public Object userData;
-
-    public CrappyBodyCreator(){}
-
-
-
-}
 
 

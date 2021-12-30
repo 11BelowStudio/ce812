@@ -1,4 +1,4 @@
-package crappy.utils;
+package crappy.utils.lazyFinal;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -15,7 +15,7 @@ public final class LazyFinal<T> {
     /**
      * This thing will actually hold our data (when it arrives)
      */
-    private LazyData<T> data;
+    private I_LazyData<T> data;
 
     /**
      * No-arg constructor, feel free to set the lazyData later.
@@ -32,6 +32,14 @@ public final class LazyFinal<T> {
         set(dataToHold);
     }
 
+    /**
+     * A less nullpointer-y exception-y method for external stuff to check whether or not this has data
+     * @return true if data isn't null.
+     */
+    public boolean hasData(){
+        return data != null;
+    }
+
 
     /**
      * Obtains the data held in this LazyFinal, or null if it's not been set yet.
@@ -41,10 +49,19 @@ public final class LazyFinal<T> {
      */
     public T get() {
         if (data != null){
-            return data.theData;
+            return data.getTheData();
         }
         //noinspection ReturnOfNull
         return null;
+    }
+
+    /**
+     * Obtains the data, asserting that it's there
+     * @return the data.
+     */
+    public T getAssert(){
+        assert (data != null);
+        return data.getTheData();
     }
 
     /**
@@ -55,7 +72,7 @@ public final class LazyFinal<T> {
      */
     public Optional<T> getOptional(){
         if (data != null){
-            return data.optData;
+            return data.getOptData();
         }
         return Optional.empty();
     }
@@ -86,7 +103,7 @@ public final class LazyFinal<T> {
     @Override
     public String toString() {
         if (data != null){
-            return data.theData.toString();
+            return data.getTheData().toString();
         }
         return "";
     }
@@ -103,42 +120,5 @@ public final class LazyFinal<T> {
         return Objects.hash(data);
     }
 
-    /**
-     * The inner class with the actual data
-     * @param <T> type of the data
-     */
-    private static class LazyData<T>{
 
-        /**
-         * The main event
-         */
-        private final T theData;
-
-        /**
-         * A wrapper for the main event
-         */
-        @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-        private final Optional<T> optData;
-
-        /**
-         * Creates this to hold the data
-         * @param data the data to hold
-         */
-        LazyData(final T data){
-            theData = data;
-            optData = Optional.of(theData);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            return theData.equals(((LazyData<?>) o).theData);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(theData);
-        }
-    }
 }

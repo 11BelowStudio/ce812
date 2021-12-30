@@ -10,7 +10,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 
-public class CrappyLine extends A_CrappyShape implements Iterable<CrappyEdge>{
+public class CrappyLine extends A_CrappyShape implements Iterable<I_CrappyEdge>, I_CrappyLine{
 
     // TODO: refactor so it's functionally just two CrappyEdges that are the reverse of each other
 
@@ -89,6 +89,10 @@ public class CrappyLine extends A_CrappyShape implements Iterable<CrappyEdge>{
 
     public I_CrappyEdge getEdge(){ return edgeA; }
 
+    public I_CrappyEdge getEdgeA(){return edgeA;}
+
+    public I_CrappyEdge getEdgeB(){return edgeB;}
+
 
     public void timestepStartUpdate(){
         super.timestepStartUpdate();
@@ -116,11 +120,11 @@ public class CrappyLine extends A_CrappyShape implements Iterable<CrappyEdge>{
      * @return an Iterator.
      */
     @Override
-    public Iterator<CrappyEdge> iterator() {
+    public Iterator<I_CrappyEdge> iterator() {
         return new LineEdgeIterator(this);
     }
 
-    private static class LineEdgeIterator implements Iterator<CrappyEdge>{
+    private static class LineEdgeIterator implements Iterator<I_CrappyEdge>{
 
         private final CrappyLine l;
 
@@ -149,12 +153,12 @@ public class CrappyLine extends A_CrappyShape implements Iterable<CrappyEdge>{
          * @throws NoSuchElementException if the iteration has no more elements
          */
         @Override
-        public CrappyEdge next() throws NoSuchElementException {
+        public I_CrappyEdge next() throws NoSuchElementException {
             switch (count){
                 case 1:
-                    return l.edgeA;
+                    return l.getEdgeA();
                 case 2:
-                    return l.edgeB;
+                    return l.getEdgeB();
             }
             throw new NoSuchElementException("out of edges!");
         }

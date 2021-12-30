@@ -8,29 +8,95 @@ import crappy.collisions.A_CrappyShape;
 import crappy.collisions.Crappy_AABB;
 import crappy.utils.bitmasks.IHaveBitmask;
 
+/**
+ * A view-only interface of the CrappyBody.
+ */
 public interface I_View_CrappyBody extends I_Transform, IHaveBitmask {
 
+    /**
+     * mid-timestep position
+     * @return mid-timestep position
+     */
     I_Vect2D getTempPos();
 
+    /**
+     * mid-timestep rotation
+     * @return mid-timestep rotation
+     */
     I_Rot2D getTempRot();
 
+    /**
+     * mid-timestep linear velocity
+     * @return mid-timestep linear velocity
+     */
     I_Vect2D getTempVel();
 
+    /**
+     * mid-timestep angular velocity
+     * @return mid-timestep angular velocity
+     */
     double getTempAngVel();
 
+    /**
+     * mass
+     * @return the mass
+     */
     double getMass();
 
+    /**
+     * collision bounding box
+     * @return bounding box
+     */
     Crappy_AABB getAABB();
 
+    /**
+     * Collision shape
+     * @return collision shape
+     */
     A_CrappyShape getShape();
 
+    /**
+     * Moment of inertia
+     * @return moment of inertia
+     */
     double getMomentOfInertia();
 
+    /**
+     * body type
+     * @return static? dynamic? kinematic?
+     */
     CrappyBody.CRAPPY_BODY_TYPE getBodyType();
 
+    /**
+     * Coefficient of restitution for crappybody
+     * @return restitution
+     */
     double getRestitution();
 
+    /**
+     * Obtains user data object of CrappyBody
+     * @return user data
+     */
     Object getUserData();
+
+    /**
+     * Obtains name of crappybody
+     * @return name
+     */
+    String getName();
+
+    /**
+     * Is this actually tangible (able to give/receive collision forces)?
+     * intangible objects can still collide, but not with forces.
+     * @return true if yes, false if no
+     */
+    boolean isTangible();
+
+    /**
+     * Is this actually active? (ie not dormant, still affected by all physics, can collide)
+     * @return true if is active.
+     */
+    boolean isActive();
 
 
     class I_CrappyBody_Temp_Transform implements I_Transform{

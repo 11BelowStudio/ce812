@@ -1,9 +1,13 @@
 package crappy;
 
 import crappy.collisions.AABBQuadTreeTools;
+import crappy.collisions.CrappyCollisionHandler;
+import crappy.collisions.CrappyShape_QuadTree_Interface;
 import crappy.collisions.Crappy_AABB;
 import crappy.math.Vect2D;
-import crappy.utils.LazyFinal;
+import crappy.utils.lazyFinal.I_LazyFinal;
+import crappy.utils.lazyFinal.LazyFinal;
+import crappy.utils.lazyFinal.LazyFinalDefault;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -31,7 +35,8 @@ public class CrappyWorld {
 
     final Set<CrappyBody> kinematicBodies = new LinkedHashSet<>();
 
-    final LazyFinal<AABBQuadTreeTools.I_StaticGeometryQuadTreeRootNode> staticGeometry = new LazyFinal<>();
+    final I_LazyFinal<AABBQuadTreeTools.I_StaticGeometryQuadTreeRootNode> staticGeometry =
+            new LazyFinalDefault<>(AABBQuadTreeTools.DEFAULT_STATIC_GEOMETRY_TREE());
 
     final Set<CrappyConnector> connectors = new LinkedHashSet<>();
 
@@ -56,7 +61,7 @@ public class CrappyWorld {
 
 
 
-            for (int steps = 1; i < EULER_SUBSTEPS; i++) {
+            for (int steps = 1; steps < EULER_SUBSTEPS; steps++) {
                 connectors.forEach(CrappyConnector::applyForcesToBodies);
                 dynamicBodies.forEach(crappyBody -> crappyBody.euler_substep(delta));
                 kinematicBodies.forEach(crappyBody -> crappyBody.euler_substep(delta));
@@ -77,6 +82,26 @@ public class CrappyWorld {
             final AABBQuadTreeTools.I_DynamicKinematicAABBQuadTreeRootNode qTree =
                     AABBQuadTreeTools.DYN_KIN_AABB_FACTORY(
                     combinedAABB.getMin(), combinedAABB.getMidpoint(), 4, kinematicBodies
+            );
+
+
+            dynamicBodies.forEach(
+                d -> {
+                    if (d.isActive()) {
+                        CrappyCollisionHandler.HANDLE_COLLISIONS(
+                                d.getShape(),
+                                staticGeometry.get().getShapesThatProbablyCollideWithToOut(
+                                        d.getShape().getBoundingBox(),
+                                        qTree.checkDynamicBodyAABB(d.getShape())
+                                ),
+                                delta
+                        );
+                    }
+                }
+            );
+
+            dynamicBodies.forEach(
+                    d->d.
             );
 
             // TODO:
@@ -105,7 +130,10 @@ public class CrappyWorld {
         staticGeometry.set(geom);
     }
 
-    public void addBody(final CrappyBody b){
+    public void addBody(final CrappyBody b) throws IllegalArgumentException{
+        if (b.getShape() == null){
+            throw new IllegalArgumentException("Please initialize a shape for this body first!");
+        }
         switch (b.bodyType){
             case STATIC:
                 break;

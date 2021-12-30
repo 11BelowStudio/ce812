@@ -51,6 +51,22 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge{
         this(body, localStart, Vect2DMath.VECTOR_BETWEEN(localStart, localEnd));
     }
 
+    CrappyEdge(
+            final Vect2D localStart,
+            final Vect2D localEnd,
+            final CrappyBody_Shape_Interface body,
+            final Vect2D centroid
+    ){
+        super(body, CRAPPY_SHAPE_TYPE.EDGE, centroid);
+        this.localStart = localStart;
+        this.localProj = Vect2DMath.VECTOR_BETWEEN(localStart, localEnd);
+        this.length = localProj.mag();
+        this.localTang = localProj.mult(1/length); // probably quicker than calling norm when we already know the length
+        this.localNorm = localTang.rotate90degreesAnticlockwise();
+
+        updateShape(body);
+    }
+
     @Override
     public Crappy_AABB updateShape(I_Transform rootTransform) {
         worldStart = localStart.localToWorldCoordinates(rootTransform);
@@ -107,6 +123,8 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge{
 
     public Vect2D getLocalTang(){ return localTang; }
 
+    public Vect2D getLocalStart(){ return localStart; }
+
 
 
     /**
@@ -115,7 +133,7 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge{
      */
     static class EdgePointCircle implements I_CrappyCircle{
 
-        private final CrappyEdge edge;
+        private final I_CrappyEdge edge;
 
         private final Crappy_AABB point_aabb;
 
@@ -126,20 +144,20 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge{
         }
 
         void startUpdateAABB(){
-            point_aabb.update_aabb(edge.worldStart);
+            point_aabb.update_aabb(edge.getWorldStart());
         }
 
         void midUpdateAABB(){
-            point_aabb.add_point(edge.worldStart);
+            point_aabb.add_point(edge.getWorldStart());
         }
 
         void endUpdateAABB(){
-            point_aabb.add_point(edge.worldStart);
+            point_aabb.add_point(edge.getWorldStart());
         }
 
         @Override
         public CrappyBody_Shape_Interface getBody() {
-            return edge.body;
+            return edge.getBody();
         }
 
         @Override
@@ -162,6 +180,16 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge{
             return 0;
         }
 
+        /**
+         * Obtains the centroid of this body in local coords.
+         *
+         * @return centroid.
+         */
+        @Override
+        public Vect2D getLocalCentroid() {
+            return edge.getLocalStart();
+        }
+
         @Override
         public Vect2D getPos() {
             return edge.getPos();
@@ -169,7 +197,7 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge{
 
         @Override
         public Vect2D getVel() {
-            return edge.localStart.getWorldVelocityOfLocalCoordinate(getBodyTransform());
+            return edge.getLocalStart().getWorldVelocityOfLocalCoordinate(getBodyTransform());
         }
 
         @Override
