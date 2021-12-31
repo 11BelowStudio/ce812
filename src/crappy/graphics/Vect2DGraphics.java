@@ -1,7 +1,10 @@
-package crappy.utils;
+package crappy.graphics;
+
 
 import crappy.math.I_Vect2D;
+import crappy.math.M_Vect2D;
 import crappy.math.Vect2D;
+import crappy.utils.containers.IPair;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,6 +14,7 @@ import java.awt.geom.*;
 /**
  * Class holding some graphics-related utility methods,
  * regarding the conversion between a Path2D.Double and an array of I_Vect2D objects.
+ *
  */
 public final class Vect2DGraphics {
 
@@ -59,9 +63,57 @@ public final class Vect2DGraphics {
                 );
             }
         }
-
         vects.trimToSize();
         return Collections.unmodifiableList(vects);
-
     }
+
+    /**
+     * Turns an I_Vect2D into a Point2D.Double
+     * @param v the vector to turn into a Point2D.Double
+     * @return this vector as a Point2D.Double
+     */
+    public static Point2D.Double VECT_TO_POINT(final I_Vect2D v){
+        return new Point2D.Double(v.getX(), v.getY());
+    }
+
+    /**
+     * Converts an M_Vect2D into a Point2D.Double, promptly discarding that M_Vect2D,
+     * and then returning that Point2D.Double
+     * @param v the mutable vector to turn into a point
+     * @return a point2D.Double representing what the state of that M_Vect2D was.
+     */
+    public static Point2D.Double VECT_TO_POINT_DISPOSE(final M_Vect2D v){
+        final Point2D.Double p = new Point2D.Double(v.x, v.y);
+        v.discard();
+        return p;
+    }
+
+    /**
+     * Turns an IPair of Numbers into a Point2D.Double
+     * @param p the pair of numbers to turn into a Point2D.Double
+     * @return a Point2D.Double representing the values in that pair
+     */
+    public static Point2D.Double PAIR_TO_POINT(final IPair<Number, Number> p){
+        return new Point2D.Double((Double) p.getFirst(), (Double) p.getSecond());
+    }
+
+    /**
+     * Converts a Point2D into a Vect2D
+     * @param p the Point2D
+     * @return a Vect2D representing the same thing as the Point2D did.
+     */
+    public static Vect2D POINT_TO_VECT(final Point2D p){
+        return new Vect2D(p.getX(), p.getY());
+    }
+
+    /**
+     * Converts a Point2D into an M_Vect2D
+     * @param p the Point2D
+     * @return an M_Vect2D holding the same thing that the point held
+     */
+    public static M_Vect2D POINT_TO_VECT_M(final Point2D p){
+        return M_Vect2D.GET(p.getX(), p.getY());
+    }
+
+
 }

@@ -1,6 +1,7 @@
 package crappy.math;
 
 import crappy.utils.containers.IPair;
+import java.awt.geom.Point2D;
 
 /**
  * A read-only interface for 2D vectors.
@@ -72,13 +73,19 @@ public interface I_Vect2D extends IPair<Double, Double>, Comparable<I_Vect2D> {
         return getY();
     }
 
-    /**
-     * Method that turns any subclasses into immutable I_Vect2Ds (for ensuring compatibility)
-     * @return this but definitely immutable
-     */
-    default I_Vect2D to_I_Vect2D(){ return this; }
 
+    /**
+     * Method that constructs a new Vect2D that is a copy of this vector
+     * (for when immutability is guaranteed)
+     * @return a new Vect2D holding the same value as this.
+     */
     default Vect2D toVect2D(){ return new Vect2D(this); }
+
+    /**
+     * Converts this into a Point2D.Double
+     * @return a new Point2D.Double holding the same stuff as this vector held.
+     */
+    default Point2D.Double toPoint2D(){ return new Point2D.Double(getX(), getY()); }
 
 
 

@@ -165,7 +165,11 @@ public class CrappyWorld {
         }
 
 
+        // TODO: overwrite main dynamic/kinematic quadtree
 
+        // TODO: method to accept clicks
+
+        // TODO: debug draw.
 
     }
 

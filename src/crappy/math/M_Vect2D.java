@@ -3,6 +3,7 @@ package crappy.math;
 import crappy.internals.CrappyWarning;
 import crappy.utils.containers.IPair;
 
+import java.awt.geom.Point2D;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -103,6 +104,20 @@ public final class M_Vect2D implements I_Vect2D {
         return _GET_RAW().set(v);
     }
 
+    /**
+     * If the argument is an M_Vect2D, we just use it as-is. Otherwise, if v isn't an M_Vect2D,
+     * we obtain a new M_Vect2D that copies v.
+     * @param v the vector to copy (if not an M_Vect2D), or to return as-is (if it is an M_Vect2D)
+     * @return if v is an M_Vect2D, returns it as-is. Otherwise, obtains an M_Vect2D holding the same value as v.
+     */
+    @CrappyWarning("PLEASE ONLY USE THIS IF YOU KNOW WHAT YOU'RE DOING!")
+    public static M_Vect2D __GET_OR_USE_AS_IS_IF_MVECT2D(final I_Vect2D v){
+        if (v instanceof M_Vect2D){
+            return (M_Vect2D) v;
+        }
+        return GET(v);
+    }
+
 
     /**
      * Obtains an M_Vect2D that's a copy of the given pair
@@ -117,6 +132,13 @@ public final class M_Vect2D implements I_Vect2D {
      * @return an M_Vect2D, with the same x and y values as that Vect3D. Z is discarded.
      */
     public static M_Vect2D GET(final Vect3D v){ return _GET_RAW().set(v.x, v.y); }
+
+    /**
+     * Obtains an M_Vect2D which copies the given Point2D.
+     * @param p a Point2D to cop y the info from
+     * @return an M_Vect2D with the same x and y values as the point.
+     */
+    public static M_Vect2D GET(final Point2D p){ return _GET_RAW().set(p); }
 
     @Override
     public boolean equals(Object o) {
@@ -160,15 +182,6 @@ public final class M_Vect2D implements I_Vect2D {
         return v;
     }
 
-    /**
-     * basically a wrapper for {@link #finished()} but returning it as an I_Vect2D instead of a Vect2D,
-     * but end result is basically that the value becomes immutable (and this M_Vect2D is put back in the pool)
-     * @return an I_Vect2D view of a new immutable Vect2D holding the value held by this M_Vect2D (which gets discarded)
-     */
-    @Override
-    public I_Vect2D to_I_Vect2D(){
-        return finished();
-    }
 
     /**
      * Use this to set this M_Vect2D to have a given x,y value
@@ -204,6 +217,17 @@ public final class M_Vect2D implements I_Vect2D {
         return this;
     }
 
+    /**
+     * Use this to set this M_Vect2D to copy the value held in this Point2D
+     * @param p the Point2D to copy
+     * @return this, but now holding the same data as that Point2D.
+     */
+    public M_Vect2D set(final Point2D p){
+        this.x = p.getX();
+        this.y = p.getY();
+        return this;
+    }
+
     @Override
     public double getX() {
         return x;
@@ -215,13 +239,13 @@ public final class M_Vect2D implements I_Vect2D {
     }
 
     /**
-     * Adds the value of the other I_Vect2D to this M_Vect2D
-     * @param other the I_Vect2D to add to this M_Vect2D
+     * Adds the value in the other IPair to this M_Vect2D
+     * @param other the IPair holding the values to add to this M_Vect2D
      * @return this + other
      */
-    public M_Vect2D add(final I_Vect2D other){
-        this.x += other.getX();
-        this.y += other.getY();
+    public M_Vect2D add(final IPair<Double, Double> other){
+        this.x += other.getFirst();
+        this.y += other.getSecond();
         return this;
     }
 
@@ -230,7 +254,7 @@ public final class M_Vect2D implements I_Vect2D {
      * @param other other vector to subtract
      * @return this-x
      */
-    public M_Vect2D sub(final I_Vect2D other){
+    public M_Vect2D sub(final IPair<Double, Double> other){
         return this.addScaled(other, -1);
     }
 
@@ -322,9 +346,9 @@ public final class M_Vect2D implements I_Vect2D {
      * @param scale what to multiply that other vector by before adding it
      * @return this + (other * scale)
      */
-    public M_Vect2D addScaled(final I_Vect2D other, final double scale){
-        this.x += (other.getX() * scale);
-        this.y += (other.getY() * scale);
+    public M_Vect2D addScaled(final IPair<Double, Double> other, final double scale){
+        this.x += (other.getFirst() * scale);
+        this.y += (other.getSecond() * scale);
         return this;
     }
 
@@ -335,6 +359,15 @@ public final class M_Vect2D implements I_Vect2D {
      */
     public M_Vect2D mult(final double scale){
         return this.mult(scale, scale);
+    }
+
+    /**
+     * Multiplies this vector componentwise by given scale
+     * @param scale how much to multiply each component of this M_Vect2D by
+     * @return {@code <this.x * scale.getFirst(), this.y * scale.getSecond()>}
+     */
+    public M_Vect2D mult(final IPair<Double, Double> scale){
+        return mult(scale.getFirst(), scale.getSecond());
     }
 
     /**
@@ -355,9 +388,28 @@ public final class M_Vect2D implements I_Vect2D {
      * @return this vector, divided by the given divisor.
      */
     public M_Vect2D divide(final double divisor){
-        this.x /= divisor;
-        this.y /= divisor;
+        return divide(divisor, divisor);
+    }
+
+    /**
+     * Divides this componentwise, dividing x by dx, and divides y by dy
+     * @param dx how much to divide x by
+     * @param dy how much to divide y by
+     * @return this with x/=dx and y/=dy
+     */
+    public M_Vect2D divide(final double dx, final double dy){
+        this.x /= dx;
+        this.y /= dy;
         return this;
+    }
+
+    /**
+     * Divides this componentwise, dividing x by dx, and divides y by dy
+     * @param p pair of {@code (x divisor, y divisor)}
+     * @return this with x/=dx and y/=dy
+     */
+    public M_Vect2D divide(final IPair<Double,Double> p){
+        return divide(p.getFirst(), p.getSecond());
     }
 
     /**
@@ -506,6 +558,15 @@ public final class M_Vect2D implements I_Vect2D {
         );
     }
 
-
+    /**
+     * Creates a new Point2D.Double holding the same thing as this M_Vect2D holds/held,
+     * promptly disposes of this M_Vect2D, and then returns that new Point2D.Double
+     * @return a Point2D.Double reflecting what the state of this vector was when it was called.
+     */
+    public Point2D.Double toPoint2D_discard(){
+        final Point2D.Double p = toPoint2D();
+        this.discard();
+        return p;
+    }
 
 }

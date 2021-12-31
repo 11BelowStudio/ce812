@@ -1,12 +1,8 @@
 package crappy.math;
 
 import crappy.I_Transform;
-import crappy.collisions.I_CrappyEdge;
 import crappy.utils.containers.IPair;
 import crappy.utils.containers.IQuadruplet;
-import crappy.utils.containers.ITriplet;
-
-import java.util.Vector;
 
 /**
  * A utility class holding static Vect2D math-related methods.
@@ -133,6 +129,26 @@ public final class Vect2DMath {
      */
     public static M_Vect2D MULTIPLY_M(final I_Vect2D v, final double xScale, final double yScale){
         return M_Vect2D.GET(v).mult(xScale, yScale);
+    }
+
+    /**
+     * Multiplies this vector componentwise by given scale, returns mutable
+     * @param v vector to multiply
+     * @param xyScale pair of {@code <x scale, y scale> }
+     * @return MUTABLE copy of V but with each element multiplied by the appropriate scale.
+     */
+    public static M_Vect2D MULTIPLY_M(final I_Vect2D v, final IPair<? extends Number, ? extends Number> xyScale){
+        return MULTIPLY_M(v, (Double) xyScale.getFirst(), (Double) xyScale.getSecond());
+    }
+
+    /**
+     * Multiplies this vector componentwise by given scale, returns immutable
+     * @param v vector to multiply
+     * @param xyScale pair of {@code <x scale, y scale> }
+     * @return immutable copy of V but with each element multiplied by the appropriate scale.
+     */
+    public static Vect2D MULTIPLY(final I_Vect2D v, final IPair<? extends Number, ? extends Number> xyScale){
+        return MULTIPLY_M(v, xyScale).finished();
     }
 
     /**
@@ -948,9 +964,7 @@ public final class Vect2DMath {
      * @param d denominator for division
      * @return v/d
      */
-    public static Vect2D DIVIDE(final I_Vect2D v, final double d){
-        return new Vect2D(v.getX()/d, v.getY()/d);
-    }
+    public static Vect2D DIVIDE(final I_Vect2D v, final double d){ return DIVIDE_M(v,d).finished(); }
 
     /**
      * Divides vector v by d, returns result in a mutable vector
@@ -958,7 +972,28 @@ public final class Vect2DMath {
      * @param d how much to divide it by
      * @return an M_Vect2D holding the result of v/d
      */
-    public static M_Vect2D DIVIDE_M(final I_Vect2D v, final double d){ return M_Vect2D.GET(v.getX()/d, v.getY()/d);}
+    public static M_Vect2D DIVIDE_M(final I_Vect2D v, final double d){ return DIVIDE_M(v, d, d);}
+
+    /**
+     * Divides vector v componentwise by p, returns result mutable
+     * @param v the vector
+     * @param p pair of {@literal (x divisor, y divisor)}
+     * @return v but with components divided by the appropriate amounts
+     */
+    public static M_Vect2D DIVIDE_M(final I_Vect2D v, final IPair<Double, Double> p){
+        return DIVIDE_M(v, p.getFirst(), p.getSecond());
+    }
+
+    /**
+     * Divides vector v componentwise by dx and dy, returns result mutable
+     * @param v the vector
+     * @param dx x divisor
+     * @param dy y divisor
+     * @return copy of v but with x/=dx and y/=dy
+     */
+    public static M_Vect2D DIVIDE_M(final I_Vect2D v, final double dx, final double dy){
+        return M_Vect2D.GET(v).divide(dx, dy);
+    }
 
     /**
      * Creates a random polar vector at a random angle with a magnitude in the given range
