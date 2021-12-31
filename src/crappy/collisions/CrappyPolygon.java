@@ -183,7 +183,9 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
 
     @Override
     public void updateFinalWorldVertices() {
-        Vect2DMath.LOCAL_TO_WORLD_FOR_BODY_TO_OUT(body, localVertices, finalWorldVertices);
+        synchronized (syncer) {
+            Vect2DMath.LOCAL_TO_WORLD_FOR_BODY_TO_OUT(body, localVertices, finalWorldVertices);
+        }
         for (int i = vertexCount; i >= 0; i--) {
             edges[i].updateFinalWorldVertices();
         }
@@ -355,6 +357,16 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
         @Override
         public I_Crappy_AABB getBoundingBox() {
             return aabb;
+        }
+
+        /**
+         * What type of shape is this shape?
+         *
+         * @return this shape's shape type.
+         */
+        @Override
+        public CRAPPY_SHAPE_TYPE getShapeType() {
+            return CRAPPY_SHAPE_TYPE.CIRCLE;
         }
 
         void startUpdateAABB(){

@@ -22,7 +22,7 @@ public class BasicPhysicsEngine implements Drawable {
 	public static final double WORLD_HEIGHT=SCREEN_HEIGHT*(WORLD_WIDTH/SCREEN_WIDTH);// meters - keeps world dimensions in same aspect ratio as screen dimensions, so that circles get transformed into circles as opposed to ovals
 	public static final double GRAVITY= (60.8 /(double)SCREEN_HEIGHT) * WORLD_HEIGHT;
 
-	// (60.8/650) * (650 * (10/640)) = 10.15625
+	// (60.8/650) * 10.15625 = 0.95
 
 
 	/*
@@ -144,7 +144,9 @@ public class BasicPhysicsEngine implements Drawable {
 
 		// pinball:
 		double r=.2;
-		
+
+
+		System.out.println(GRAVITY);
 
 		
 

@@ -4,12 +4,15 @@ import crappy.collisions.AABBQuadTreeTools;
 import crappy.collisions.CrappyCollisionHandler;
 import crappy.collisions.CrappyShape_QuadTree_Interface;
 import crappy.collisions.Crappy_AABB;
+import crappy.math.I_Vect2D;
 import crappy.math.Vect2D;
 import crappy.utils.lazyFinal.I_LazyFinal;
 import crappy.utils.lazyFinal.LazyFinal;
 import crappy.utils.lazyFinal.LazyFinalDefault;
 
+import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -22,13 +25,15 @@ public class CrappyWorld {
      */
     public static final int EULER_SUBSTEPS = 2;
 
-    public static final int EULER_UPDATES_PER_RENDER_ATTEMPT = 50;
+    public static final int EULER_UPDATES_PER_RENDER_ATTEMPT = 100;
 
     public static final int DELAY = 20;
 
-    public static final double DELTA_T = DELAY / 1000.0 / (double) EULER_UPDATES_PER_RENDER_ATTEMPT / EULER_SUBSTEPS;
+    public static final double DELTA_T = DELAY / 1000.0 / (double) EULER_UPDATES_PER_RENDER_ATTEMPT;
 
-    public static final Vect2D GRAVITY = new Vect2D(0, -10.15625);
+    public static final Vect2D GRAVITY = new Vect2D(0, -0.95);
+
+    public final Vect2D grav;
 
 
     final Set<CrappyBody> dynamicBodies = new LinkedHashSet<>();
@@ -42,40 +47,66 @@ public class CrappyWorld {
 
     private final Object SYNC_OBJECT = new Object();
 
-    public CrappyWorld(){
-
+    public CrappyWorld(final Vect2D gravity){
+        this.grav = gravity;
     }
 
     // TODO: synchronized sets of bodies/connectors that are 'safe' for the programmer using CRAPPY
     //  to use to get a view of the physics world
 
 
-    void update(final double delta, final Vect2D grav){
+    public void update(){
+        update(DELTA_T, grav, EULER_SUBSTEPS);
+    }
+
+    @SuppressWarnings("StatementWithEmptyBody")
+    public void update(final double delta, final I_Vect2D grav, final int eulerSubsteps){
+
+        if (eulerSubsteps <= 0){
+            throw new IllegalArgumentException("Cannot have 0 or fewer euler substeps!");
+        }
+
+        Iterator<? extends I_CrappyBody_CrappyWorld_Interface> iter;
+        Iterator<CrappyConnector> conIter;
+
+        final double subDelta = delta/(double) eulerSubsteps;
+
 
         for (int i = 0; i < EULER_UPDATES_PER_RENDER_ATTEMPT; i++) {
 
-            connectors.forEach(CrappyConnector::applyForcesToBodies);
+            //connectors.forEach(CrappyConnector::applyForcesToBodies);
 
-            dynamicBodies.forEach(c -> c.first_euler_sub_update(delta, grav));
-            kinematicBodies.forEach(c->c.first_euler_sub_update(delta,grav));
 
+            //dynamicBodies.forEach(c -> c.first_euler_sub_update(delta, grav));
+            //kinematicBodies.forEach(c->c.first_euler_sub_update(delta,grav));
+
+            // time for some for abuse.
+            for (conIter = connectors.iterator(); conIter.hasNext(); conIter.next().applyForcesToBodies());
+            for (iter = dynamicBodies.iterator(); iter.hasNext(); iter.next().first_euler_sub_update(delta, grav, subDelta));
+            for (iter = kinematicBodies.iterator(); iter.hasNext(); iter.next().first_euler_sub_update(delta, grav, subDelta));
 
 
             for (int steps = 1; steps < EULER_SUBSTEPS; steps++) {
-                connectors.forEach(CrappyConnector::applyForcesToBodies);
-                dynamicBodies.forEach(crappyBody -> crappyBody.euler_substep(delta));
-                kinematicBodies.forEach(crappyBody -> crappyBody.euler_substep(delta));
+                for (conIter = connectors.iterator(); conIter.hasNext(); conIter.next().applyForcesToBodies());
+                for (iter = dynamicBodies.iterator(); iter.hasNext(); iter.next().euler_substep(subDelta));
+                for (iter = kinematicBodies.iterator(); iter.hasNext(); iter.next().euler_substep(subDelta));
             }
 
             final Crappy_AABB combinedAABB = new Crappy_AABB();
-            dynamicBodies.forEach(c -> {
-                c.applyAllTempChanges();
-                combinedAABB.add_aabb(c.getAABB());
-            });
-            kinematicBodies.forEach(c -> {
-                c.applyAllTempChanges();
-                combinedAABB.add_aabb(c.getAABB());
-            });
+
+
+
+            for (iter = dynamicBodies.iterator(); iter.hasNext(); ){
+                I_CrappyBody_CrappyWorld_Interface b = iter.next();
+                b.applyAllTempChanges();
+                combinedAABB.add_aabb(b.getAABB());
+            }
+            for (iter = kinematicBodies.iterator(); iter.hasNext(); ){
+                I_CrappyBody_CrappyWorld_Interface b = iter.next();
+                b.applyAllTempChanges();
+                combinedAABB.add_aabb(b.getAABB());
+            }
+
 
 
 
@@ -84,25 +115,34 @@ public class CrappyWorld {
                     combinedAABB.getMin(), combinedAABB.getMidpoint(), 4, kinematicBodies
             );
 
-
-            dynamicBodies.forEach(
-                d -> {
-                    if (d.isActive()) {
-                        CrappyCollisionHandler.HANDLE_COLLISIONS(
-                                d.getShape(),
-                                staticGeometry.get().getShapesThatProbablyCollideWithToOut(
-                                        d.getShape().getBoundingBox(),
-                                        qTree.checkDynamicBodyAABB(d.getShape())
-                                ),
-                                delta
-                        );
-                    }
+            for (iter = dynamicBodies.iterator(); iter.hasNext(); ) {
+                I_CrappyBody_CrappyWorld_Interface b = iter.next();
+                if (b.isActive()){
+                    CrappyCollisionHandler.HANDLE_COLLISIONS(
+                            b.getShape(),
+                            staticGeometry.get().getShapesThatProbablyCollideWithToOut(
+                                    b.getShape().getBoundingBox(),
+                                    qTree.checkDynamicBodyAABB(b.getShape())
+                            ),
+                            delta
+                    );
                 }
-            );
+            }
 
-            dynamicBodies.forEach(
-                    d->d.
-            );
+            for(iter = dynamicBodies.iterator(); iter.hasNext(); iter.next().performPostCollisionBitmaskCallback());
+            for(iter = kinematicBodies.iterator(); iter.hasNext(); iter.next().performPostCollisionBitmaskCallback());
+            for(iter = staticGeometry.get().iterator(); iter.hasNext(); iter.next().performPostCollisionBitmaskCallback());
+
+
+            resolveChangesToBodies(dynamicBodies);
+            resolveChangesToBodies(kinematicBodies);
+
+            // remove any connectors that need to be removed..
+            for(conIter = connectors.iterator(); conIter.hasNext();){
+                if (!conIter.next().shouldIStillExist()){
+                    conIter.remove();
+                }
+            }
 
             // TODO:
             //   * Put the dynamic bodies into qTree, obtain bounding box intersects per dynamic body
@@ -113,12 +153,25 @@ public class CrappyWorld {
 
         }
 
-        // TODO:
-        //   update the synchronized collections representing the physics world
+
 
 
     }
 
+    private void resolveChangesToBodies(final Iterable<CrappyBody> bodies) {
+        for (Iterator<? extends I_CrappyBody_CrappyWorld_Interface> iter = bodies.iterator(); iter.hasNext();) {
+            I_CrappyBody_CrappyWorld_Interface b = iter.next();
+
+            if (b.resolveRemovalChange()){
+                iter.remove();
+            } else {
+                b.resolveActiveChange();
+                b.resolvePositionLockChange();
+                b.resolveTangibilityChange();
+                b.resolveRotationLockChange();
+            }
+        }
+    }
 
 
     /**

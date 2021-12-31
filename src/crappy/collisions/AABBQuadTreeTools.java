@@ -1,8 +1,6 @@
 package crappy.collisions;
 
-import crappy.CrappyBody;
-import crappy.CrappyBody_Shape_Interface;
-import crappy.I_CrappyBody;
+import crappy.*;
 import crappy.math.I_Vect2D;
 import crappy.math.M_Vect2D;
 import crappy.math.Vect2D;
@@ -305,7 +303,7 @@ public final class AABBQuadTreeTools {
 
 
         @Override
-        public Iterator<A_CrappyShape> iterator() {
+        public Iterator<I_CrappyBody_CrappyWorld_Interface> iterator() {
             return new EmptyIter();
         }
 
@@ -325,15 +323,19 @@ public final class AABBQuadTreeTools {
         /**
          * iterator over nothing (in case this is empty)
          */
-        private static class EmptyIter implements Iterator<A_CrappyShape>{
+        private static class EmptyIter implements Iterator<I_CrappyBody_CrappyWorld_Interface>{
 
-            private final Iterator<CrappyShape_QuadTree_Interface> iter = empty.iterator();
+
+            private static final List<I_CrappyBody_CrappyWorld_Interface> nothing =
+                    Collections.unmodifiableList(new ArrayList<>(0));
+
+            private final Iterator<I_CrappyBody_CrappyWorld_Interface> iter = nothing.iterator();
 
             EmptyIter(){}
 
             @Override
-            public A_CrappyShape next() {
-                return iter.next().getShape();
+            public I_CrappyBody_CrappyWorld_Interface next() {
+                return iter.next();
             }
 
             @Override
@@ -400,7 +402,7 @@ public final class AABBQuadTreeTools {
      * @return an AABB quadtree for static geometry
      */
     public static I_StaticGeometryQuadTreeRootNode STATIC_GEOMETRY_AABB_QUADTREE_FACTORY(
-            final Collection<CrappyShape_QuadTree_Interface> geometryShapes
+            final Collection<I_CrappyBody_CrappyWorld_Interface> geometryShapes
     ){
         if (geometryShapes.isEmpty()){
             // if there's no geometry, we return an empty leaf node.
@@ -424,7 +426,8 @@ public final class AABBQuadTreeTools {
 
 
 
-    public interface I_StaticGeometryQuadTreeRootNode extends AABBQuadTreeRootNode, Iterable<A_CrappyShape>{
+    public interface I_StaticGeometryQuadTreeRootNode extends AABBQuadTreeRootNode,
+            Iterable<I_CrappyBody_CrappyWorld_Interface>{
     }
 
     public static I_StaticGeometryQuadTreeRootNode DEFAULT_STATIC_GEOMETRY_TREE(){
@@ -444,31 +447,46 @@ public final class AABBQuadTreeTools {
          */
         private static class StaticGeometryRootNode
                 extends StaticGeometryAABBTreeNode
-                implements I_StaticGeometryQuadTreeRootNode, Iterable<A_CrappyShape>
+                implements I_StaticGeometryQuadTreeRootNode, Iterable<I_CrappyBody_CrappyWorld_Interface>
         {
 
             /**
              * All the shapes contained within
              */
-            private final List<A_CrappyShape> allShapes;
+            private final List<I_CrappyBody_CrappyWorld_Interface> allBodies;
 
             /**
              * Creates the root node
-             * @param geometryShapes the collection of all the static geometry shapes as CrappyShape_QuadTree_Interface
+             * @param geometryBodies the collection of all the static geometry shapes as I_CrappyBody_CrappyWorld_Interface
              */
-            private StaticGeometryRootNode(final Collection<CrappyShape_QuadTree_Interface> geometryShapes) {
-                super(geometryShapes);
-
-                allShapes = geometryShapes.stream()
+            private StaticGeometryRootNode(final Collection<I_CrappyBody_CrappyWorld_Interface> geometryBodies) {
+                super(geometryBodies.stream()
                         .unordered()
-                        .map(CrappyShape_QuadTree_Interface::getShape)
-                        .collect(Collectors.collectingAndThen(
+                        .map(
+                            I_View_CrappyBody::getShape
+                        ).collect(
+                            Collectors.collectingAndThen(
                                 Collectors.toCollection(ArrayList::new),
                                 l -> {
                                     l.trimToSize();
                                     return Collections.unmodifiableList(l);
                                 }
-                        ));
+                            )
+                        )
+                    );
+
+                allBodies = geometryBodies.stream()
+                        .unordered()
+                        .collect(
+                            Collectors.collectingAndThen(
+                                Collectors.toCollection(ArrayList::new),
+                                l -> {
+                                    l.trimToSize();
+                                    return Collections.unmodifiableList(l);
+                                }
+                            )
+                        );
+                ;
             }
 
             /**
@@ -477,8 +495,8 @@ public final class AABBQuadTreeTools {
              * @return an Iterator.
              */
             @Override
-            public Iterator<A_CrappyShape> iterator() {
-                return allShapes.iterator();
+            public Iterator<I_CrappyBody_CrappyWorld_Interface> iterator() {
+                return allBodies.iterator();
             }
 
         }

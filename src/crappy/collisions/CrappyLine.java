@@ -73,7 +73,9 @@ public class CrappyLine extends A_CrappyShape implements Iterable<I_CrappyEdge>,
 
     @Override
     public void updateFinalWorldVertices() {
-        Vect2DMath.LOCAL_TO_WORLD_FOR_BODY_TO_OUT(body, localVertices, finalWorldVertices);
+        synchronized (syncer) {
+            Vect2DMath.LOCAL_TO_WORLD_FOR_BODY_TO_OUT(body, localVertices, finalWorldVertices);
+        }
         edgeA.updateFinalWorldVertices();
         edgeB.updateFinalWorldVertices();
     }

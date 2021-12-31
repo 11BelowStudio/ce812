@@ -43,6 +43,7 @@
           <option value="unchecked" />
           <option value="OptionalUsedAsFieldOrParameterType" />
           <option value="ReturnOfNull" />
+          <option value="StatementWithEmptyBody" />
         </list>
       </option>
     </inspection_tool>

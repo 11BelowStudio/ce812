@@ -38,7 +38,9 @@ public class CrappyCircle extends A_CrappyShape implements I_CrappyCircle {
 
     @Override
     public void updateFinalWorldVertices() {
-        finalWorldVertices[0] = body.getPos();
+        synchronized (syncer) {
+            finalWorldVertices[0] = body.getPos();
+        }
     }
 
     @Override

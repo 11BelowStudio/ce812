@@ -18,6 +18,13 @@ public interface CrappyBody_Shape_Interface extends I_View_CrappyBody, I_Transfo
     void notifyAboutCollision(final I_View_CrappyBody collidedWith);
 
     /**
+     * Call this to tell this I_CrappyBody to call the {@link CrappyCallbackHandler#acceptCollidedWithBitmaskAfterAllCollisions(int)} method
+     * in its {@link CrappyCallbackHandler}.
+     * @see CrappyBody#callbackHandler
+     */
+    void performPostCollisionBitmaskCallback();
+
+    /**
      * Returns manipulatable interface of this body.
      * @return I_ManipulateCrappyBody view of this object CrappyBody
      */

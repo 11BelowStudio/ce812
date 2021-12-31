@@ -81,7 +81,12 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge{
 
     @Override
     public void updateFinalWorldVertices() {
+
         updateShape(body);
+        synchronized (syncer){
+            finalWorldVertices[0] = worldStart;
+            finalWorldVertices[1] = worldStart.add(worldProj);
+        }
     }
 
     public void timestepStartUpdate(){
@@ -203,6 +208,16 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge{
         @Override
         public I_Crappy_AABB getBoundingBox() {
             return point_aabb;
+        }
+
+        /**
+         * What type of shape is this shape?
+         *
+         * @return this shape's shape type.
+         */
+        @Override
+        public CRAPPY_SHAPE_TYPE getShapeType() {
+            return CRAPPY_SHAPE_TYPE.CIRCLE;
         }
     }
 }

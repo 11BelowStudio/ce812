@@ -5,7 +5,7 @@ package crappy;
  * Both methods have a default implementation that does nothing, please override whichever you'd prefer
  * to use.
  */
-public interface CrappyCollisionCallbackHandler {
+public interface CrappyCallbackHandler {
 
     /**
      * The crappybody will call this with info about the other body when it notices that the
@@ -22,5 +22,10 @@ public interface CrappyCollisionCallbackHandler {
      * @implNote default implementation does nothing
      */
     default void acceptCollidedWithBitmaskAfterAllCollisions(final int collidedWithBits){}
+
+    /**
+     * CrappyBody calls this if it gets removed from the physics world.
+     */
+    default void bodyNoLongerExists(){}
 
 }

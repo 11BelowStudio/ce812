@@ -1,5 +1,6 @@
 package crappy.utils;
 
+
 /**
  * Enum for whether or not the state of something that needs to be changed has to be changed
  */
@@ -42,7 +43,7 @@ public enum PendingStateChange {
      * @param psc pending state change describing the pending state change
      * @return new boolean state
      */
-    public static boolean PROCESS_STATE_CHANGE(final boolean currentState, final PendingStateChange psc){
+    public static boolean PERFORM_STATE_CHANGE(final boolean currentState, final PendingStateChange psc){
         switch (psc){
             case PENDING_TRUE:
                 return true;
@@ -50,7 +51,26 @@ public enum PendingStateChange {
                 return false;
             case SAME_AS_IT_EVER_WAS:
                 return currentState;
+            default:
+                throw new AssertionError("Did not anticipate a value of " + psc + " in enum!");
         }
-        return currentState;
+    }
+
+    /**
+     * Processes a PendingStateChange from a currentState, based on whatever this is
+     * @param currentState current state
+     * @return new boolean state
+     */
+    public boolean performStateChange(final boolean currentState){
+        switch (this){
+            case PENDING_TRUE:
+                return true;
+            case PENDING_FALSE:
+                return false;
+            case SAME_AS_IT_EVER_WAS:
+                return currentState;
+            default:
+                throw new AssertionError("Did not anticipate a value of " + this + " in enum!");
+        }
     }
 }

@@ -31,6 +31,8 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I
 
     double radius;
 
+    final Object syncer = new Object();
+
     // TODO: collision method
 
     /**
@@ -116,7 +118,9 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I
 
 
     public double getRadius() {
-        return radius;
+        synchronized (syncer) {
+            return radius;
+        }
     }
 
     /**
@@ -200,6 +204,21 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I
         return localCentroid;
     }
 
+    public Vect2D[] getFinalWorldVertices() {
+        synchronized (syncer){
+            return finalWorldVertices.clone();
+        }
+    }
+
+    /**
+     * Obtains the centroid of this body in world coords.
+     * @return centroid.
+     */
+    public Vect2D getCentroid(){
+        synchronized (syncer) {
+            return getLocalCentroid().localToWorldCoordinates(getBodyTransform());
+        }
+    }
 
     /**
      * Computes the normals for a polygon shape

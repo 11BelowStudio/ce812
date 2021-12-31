@@ -1,12 +1,13 @@
 package crappy;
 
+import crappy.math.I_Vect2D;
 import crappy.utils.PendingStateChange;
 
 public interface I_CrappyBody_CrappyWorld_Interface extends I_CrappyBody, I_View_CrappyBody, I_ManipulateCrappyBody{
 
     /**
-     * Call this to tell this I_CrappyBody to call the {@link CrappyCollisionCallbackHandler#acceptCollidedWithBitmaskAfterAllCollisions(int)} method
-     * in its {@link CrappyCollisionCallbackHandler}.
+     * Call this to tell this I_CrappyBody to call the {@link CrappyCallbackHandler#acceptCollidedWithBitmaskAfterAllCollisions(int)} method
+     * in its {@link CrappyCallbackHandler}.
      * @see CrappyBody#callbackHandler
      */
     void performPostCollisionBitmaskCallback();
@@ -40,4 +41,19 @@ public interface I_CrappyBody_CrappyWorld_Interface extends I_CrappyBody, I_View
      * @return change made to tangibility.
      */
     PendingStateChange resolveTangibilityChange();
+
+    /**
+     * Call this before the first euler substep.
+     * Will immediately call {@link #euler_substep(double)} with subDeltaT
+     * @param deltaT raw deltaT.
+     * @param gravity constant gravitational vector (a constant linear acceleration)
+     * @param subDelta substep deltaT.
+     */
+    void first_euler_sub_update(final double deltaT, final I_Vect2D gravity, final double subDelta);
+
+    void euler_substep(final double subDelta);
+
+    void clearAllPendingForces();
+
+    void applyAllTempChanges();
 }

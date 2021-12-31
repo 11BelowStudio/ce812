@@ -208,7 +208,7 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
 
     // TODO: basically call this after done with euler updates, give collidedWithBitmask,
     //  intended for external objects to see what this collided with this timestep, and to handle it appropriately.
-    final CrappyCollisionCallbackHandler callbackHandler;
+    final CrappyCallbackHandler callbackHandler;
 
     /**
      * any user-defined data
@@ -220,6 +220,23 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
      */
     final String name;
 
+    /**
+     * Constructs a new CrappyBody
+     * @param pos initial world position
+     * @param vel initial world velocity
+     * @param rot initial world rotation
+     * @param angVel initial world angular velocity
+     * @param mass initial world mass
+     * @param bodyType initial world body type
+     * @param bodyTagBits initial world 'tag' bits {@link #myBodyTagBits}
+     * @param tagsICanCollideWithBits a bitmask indicating which 'tagged' objects
+     *                                this object can collide with
+     *                                (-1 to collide with everything)
+     *                                {@link #tagsICanCollideWithBitmask}
+     * @param callback A callback handler to call when this body gets collided with
+     * @param userData an object of arbitrary user data, use at your own risk!
+     * @param id a name for this body.
+     */
     public CrappyBody(
             final Vect2D pos,
             final Vect2D vel,
@@ -229,7 +246,7 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
             final CRAPPY_BODY_TYPE bodyType,
             final int bodyTagBits,
             final int tagsICanCollideWithBits,
-            final CrappyCollisionCallbackHandler callback,
+            final CrappyCallbackHandler callback,
             final Object userData,
             final String id
     ) {
@@ -246,7 +263,10 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
         } else {
             throw new IllegalArgumentException("Cannot use a mass of infinity/NaN!");
         }
-
+        this.position = pos;
+        this.velocity = vel;
+        this.rotation = rot;
+        this.angVelocity = angVel;
         inertia = 0;
         myBodyTagBits = bodyTagBits;
         tagsICanCollideWithBitmask = tagsICanCollideWithBits;
@@ -310,10 +330,15 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
      *
      * @param markForRemoval whether or not you're marking it for removal. If true, this object will be removed at the
      *                       next frame.
+     * @implNote WILL COMPLAIN INSTEAD OF REMOVE IF YOU'RE TRYING TO REMOVE STATIC STUFF!
      */
     @Override
     public void setMarkForRemoval(final boolean markForRemoval) {
-        pendingRemoval = true;
+        if (markForRemoval && bodyType == CRAPPY_BODY_TYPE.STATIC) {
+            System.out.println("pls no");
+        } else {
+            this.pendingRemoval = markForRemoval;
+        }
     }
 
     /**
@@ -348,8 +373,8 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
     }
 
     /**
-     * Call this to tell this I_CrappyBody to call the {@link CrappyCollisionCallbackHandler#acceptCollidedWithBitmaskAfterAllCollisions(int)}
-     * method in its {@link CrappyCollisionCallbackHandler}.
+     * Call this to tell this I_CrappyBody to call the {@link CrappyCallbackHandler#acceptCollidedWithBitmaskAfterAllCollisions(int)}
+     * method in its {@link CrappyCallbackHandler}.
      *
      * @see CrappyBody#callbackHandler
      */
@@ -366,7 +391,8 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
     @Override
     public PendingStateChange resolveActiveChange() {
         final PendingStateChange psc = pendingActive;
-        //this.active =
+        this.active = psc.performStateChange(this.active);
+        pendingActive = PendingStateChange.SAME_AS_IT_EVER_WAS;
         // TODO: finish the resolve methods,
         //  and add the loops in the CrappyWorld to perform post collision callbacks + perform resolutions.
         return psc;
@@ -379,7 +405,10 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
      */
     @Override
     public boolean resolveRemovalChange() {
-        return false;
+        if (pendingRemoval){
+            callbackHandler.bodyNoLongerExists();
+        }
+        return pendingRemoval;
     }
 
     /**
@@ -389,7 +418,10 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
      */
     @Override
     public PendingStateChange resolvePositionLockChange() {
-        return null;
+        final PendingStateChange psc = pendingCanMoveLinearly;
+        canMoveLinearly = psc.performStateChange(canMoveLinearly);
+        pendingCanMoveLinearly = PendingStateChange.SAME_AS_IT_EVER_WAS;
+        return psc;
     }
 
     /**
@@ -399,7 +431,10 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
      */
     @Override
     public PendingStateChange resolveRotationLockChange() {
-        return null;
+        final PendingStateChange psc = pendingCanRotate;
+        canRotate = psc.performStateChange(canRotate);
+        pendingCanRotate = PendingStateChange.SAME_AS_IT_EVER_WAS;
+        return psc;
     }
 
     /**
@@ -409,18 +444,19 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
      */
     @Override
     public PendingStateChange resolveTangibilityChange() {
-        return null;
+        final PendingStateChange psc = pendingIntangbility;
+        tangible = psc.performStateChange(tangible);
+        pendingIntangbility = PendingStateChange.SAME_AS_IT_EVER_WAS;
+        return psc;
     }
 
     /**
      * What type of body is this?
      */
-    public static enum CRAPPY_BODY_TYPE{
+    public static enum CRAPPY_BODY_TYPE {
         STATIC,
         DYNAMIC,
         KINEMATIC;
-
-
     }
 
     /**
@@ -432,6 +468,22 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
         ENGINE,
         MANUAL;
     }
+
+
+    /**
+     * internal enum for keeping track of internal state with euler updates and sub-updates (which one happened last)
+     */
+    private enum EULER_UPDATE_STATE{
+        NOTHING,
+        PRIOR_SUB_UPDATE,
+        SUB_UPDATING,
+        FINALIZED;
+    }
+
+    /**
+     * what euler update state is this in?
+     */
+    private EULER_UPDATE_STATE eus = EULER_UPDATE_STATE.NOTHING;
 
 
 
@@ -767,7 +819,7 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
      */
     @Override
     public String getName() {
-        return null;
+        return name;
     }
 
     /**
@@ -778,7 +830,7 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
      */
     @Override
     public boolean isTangible() {
-        return false;
+        return tangible;
     }
 
     /**
@@ -788,17 +840,30 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
      */
     @Override
     public boolean isActive() {
-        return false;
+        return active;
     }
 
 
+
     /**
-     * Call this to perform the first euler sub-update on this body.
-     * Will automatically call euler_substep(deltaT_divided_by_substeps) afterwards.
-     * @param deltaT_divided_by_substeps deltaT but pre-divided by the number of euler substeps.
-     * @param gravity constant force of gravity for these substeps.
+     * Call this before the first euler substep.
+     * Will immediately call {@link #euler_substep(double)} with subDeltaT
+     * @param deltaT raw deltaT.
+     * @param gravity constant gravitational vector (a constant linear acceleration)
+     * @param subDeltaT substep deltaT.
      */
-    void first_euler_sub_update(final double deltaT_divided_by_substeps, final I_Vect2D gravity){
+    public void first_euler_sub_update(final double deltaT, final I_Vect2D gravity, final double subDeltaT){
+
+        switch (eus){
+            case NOTHING:
+            case FINALIZED:
+                eus = EULER_UPDATE_STATE.PRIOR_SUB_UPDATE;
+                break;
+            default:
+                throw new AssertionError(
+                        "Expected euler update state of 'NOTHING' or 'FINALIZED', was in " + eus + "!"
+                );
+        }
 
         switch (bodyType){
             case STATIC:
@@ -827,31 +892,43 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
                 tempRot.set(rotation);
                 tempAngVelocity = angVelocity;
 
-                euler_substep(deltaT_divided_by_substeps);
                 break;
         }
 
+        euler_substep(subDeltaT);
     }
 
-    void euler_substep(final double delta_T_divided_by_substeps){
+    public void euler_substep(final double substepDeltaT){
+
+        switch (eus){
+            case PRIOR_SUB_UPDATE:
+                eus = EULER_UPDATE_STATE.SUB_UPDATING;
+            case SUB_UPDATING:
+                break;
+            default:
+                throw new AssertionError(
+                        "Expected euler update state of 'PRIOR_SUB_UPDATE' or 'SUB_UPDATING', was in " + eus + "!"
+                );
+        }
+
         if (bodyType == CRAPPY_BODY_TYPE.STATIC){
             return;
         }
 
         tempPosition.addScaled(
-                tempVel, delta_T_divided_by_substeps
+                tempVel, substepDeltaT
         );
 
-        tempRot.rotateBy(tempAngVelocity * delta_T_divided_by_substeps);
+        tempRot.rotateBy(tempAngVelocity * substepDeltaT);
 
-        tempVel.addScaled(pending_forces_this_timestep, delta_T_divided_by_substeps);
-        tempVel.addScaled(pending_forces_mid_timestep.mult(1/mass), delta_T_divided_by_substeps);
+        tempVel.addScaled(pending_forces_this_timestep, substepDeltaT);
+        tempVel.addScaled(pending_forces_mid_timestep.mult(1/mass), substepDeltaT);
 
         pending_forces_mid_timestep.reset();
 
         if (inertia != 0) {
-            tempAngVelocity += (pending_torque_this_timestep * delta_T_divided_by_substeps);
-            tempAngVelocity += ((pending_torque_mid_timestep / inertia) * delta_T_divided_by_substeps);
+            tempAngVelocity += (pending_torque_this_timestep * substepDeltaT);
+            tempAngVelocity += ((pending_torque_mid_timestep / inertia) * substepDeltaT);
         }
 
         pending_torque_mid_timestep = 0;
@@ -861,7 +938,7 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
     }
 
 
-    void clearAllPendingForces(){
+    public void clearAllPendingForces(){
 
         pending_forces_mid_timestep.reset();
         pending_torque_mid_timestep = 0;
@@ -870,8 +947,17 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
     }
 
 
+    /**
+     * Makes all the temporary changes to velocity and position (done during sub-updates) not temporary.
+     *
+     */
+    public void applyAllTempChanges(){
 
-    void applyAllTempChanges(){
+        if (eus == EULER_UPDATE_STATE.SUB_UPDATING) {
+            eus = EULER_UPDATE_STATE.FINALIZED;
+        } else {
+            throw new AssertionError("Expected state of 'SUB_UPDATING', was in " + eus + "!");
+        }
 
         velocity = new Vect2D(tempVel);
         position = new Vect2D(tempPosition);
@@ -884,6 +970,10 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
         tempPosition.set(position);
         tempRot.set(rotation);
         tempAngVelocity = angVelocity;
+
+        // and clearing any non-applied forces
+
+        clearAllPendingForces();
 
         intermediateTransform.update();
     }
@@ -929,9 +1019,9 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
 
         public int tagsOfBodiesThatCanBeCollidedWith = -1;
 
-        private static final CrappyCollisionCallbackHandler defaultCallbackHandler = new DEFAULT_CALLBACK_HANDLER();
+        private static final CrappyCallbackHandler defaultCallbackHandler = new DEFAULT_CALLBACK_HANDLER();
 
-        public CrappyCollisionCallbackHandler handler = defaultCallbackHandler;
+        public CrappyCallbackHandler handler = defaultCallbackHandler;
 
         public Object userData = new Object();
 
@@ -939,7 +1029,26 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
 
         public CrappyBodyCreator(){}
 
-        private static class DEFAULT_CALLBACK_HANDLER implements CrappyCollisionCallbackHandler { }
+        private static class DEFAULT_CALLBACK_HANDLER implements CrappyCallbackHandler { }
+
+
+        public CrappyBody makeBody(){
+
+            return new CrappyBody(
+                    pos,
+                    vel,
+                    angle,
+                    angVel,
+                    mass,
+                    bodyType,
+                    thisBodyTagsAsBitmask,
+                    tagsOfBodiesThatCanBeCollidedWith,
+                    handler,
+                    userData,
+                    name
+            );
+
+        }
 
     }
 }
