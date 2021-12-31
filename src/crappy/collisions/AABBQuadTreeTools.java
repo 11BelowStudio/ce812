@@ -33,7 +33,8 @@ public final class AABBQuadTreeTools {
         Vect2D getComparisonPoint();
 
         /**
-         * Sees which CrappyShape_Quadtree_Interface objects collide with this object
+         * Sees which CrappyShape_Quadtree_Interface objects have a bounding box which intersects
+         * this object
          * @param attemptBoundingBox bounding box of the object we're trying to get collisions of
          * @param out a set to hold the CrappyShape_QuadTree_Interface objects that
          *            have bounding boxes that intersect with the given attemptBoundingBox.
@@ -43,6 +44,18 @@ public final class AABBQuadTreeTools {
          */
         Set<CrappyShape_QuadTree_Interface> getShapesThatProbablyCollideWithToOut(
                 final I_Crappy_AABB attemptBoundingBox,
+                final Set<CrappyShape_QuadTree_Interface> out
+        );
+
+        /**
+         * In which we see which shapes have a bounding box that overlaps with this point,
+         * sending all such shapes to 'out'.
+         * @param point the point we're testing
+         * @param out where we're sending output to
+         * @return out, but holding the shapes with bounding boxes that overlapped with this shape
+         */
+        Set<CrappyShape_QuadTree_Interface> getPotentialPointCollisions(
+                final I_Vect2D point,
                 final Set<CrappyShape_QuadTree_Interface> out
         );
 
@@ -66,6 +79,22 @@ public final class AABBQuadTreeTools {
         ){
             return getShapesThatProbablyCollideWithToOut(
                     attemptBoundingBox,
+                    new HashSet<>(getCandidatesLeft(), 1)
+            );
+        }
+
+        /**
+         * A public wrapper for {@link AABBQuadTreeNode#getPotentialPointCollisions(I_Vect2D, Set)},
+         * which calls that using a new hashset with just enough space to fit every single possible collision, and a
+         * load factor of 1 to prevent it from getting any bigger
+         * @param point the point we're attempting to find overlaps of
+         * @return set of CrappyShape_QuadTree_Interface objects with bounding boxes that overlap the point
+         */
+        default Set<CrappyShape_QuadTree_Interface> getPotentialPointCollisions(
+                final I_Vect2D point
+        ){
+            return getPotentialPointCollisions(
+                    point,
                     new HashSet<>(getCandidatesLeft(), 1)
             );
         }
@@ -294,6 +323,22 @@ public final class AABBQuadTreeTools {
         }
 
         /**
+         * In which we see which shapes have a bounding box that overlaps with this point, sending all such shapes to
+         * 'out'.
+         *
+         * @param point the point we're testing
+         * @param out   where we're sending output to
+         *
+         * @return out, but holding the shapes with bounding boxes that overlapped with this shape
+         */
+        @Override
+        public Set<CrappyShape_QuadTree_Interface> getPotentialPointCollisions(
+                final I_Vect2D point, final Set<CrappyShape_QuadTree_Interface> out
+        ) {
+            return emptySet;
+        }
+
+        /**
          * returns 0, holds nothing
          * @return 0.
          */
@@ -317,6 +362,20 @@ public final class AABBQuadTreeTools {
          */
         @Override
         public Set<CrappyShape_QuadTree_Interface> getShapesThatProbablyCollideWith(I_Crappy_AABB attemptBoundingBox) {
+            return emptySet;
+        }
+
+        /**
+         * A public wrapper for {@link AABBQuadTreeNode#getPotentialPointCollisions(I_Vect2D, Set)}, which calls that
+         * using a new hashset with just enough space to fit every single possible collision, and a load factor of 1 to
+         * prevent it from getting any bigger
+         *
+         * @param point the point we're attempting to find overlaps of
+         *
+         * @return set of CrappyShape_QuadTree_Interface objects with bounding boxes that overlap the point
+         */
+        @Override
+        public Set<CrappyShape_QuadTree_Interface> getPotentialPointCollisions(final I_Vect2D point) {
             return emptySet;
         }
 
@@ -370,6 +429,25 @@ public final class AABBQuadTreeTools {
             return results;
         }
 
+        /**
+         * In which we see which shapes have a bounding box that overlaps with this point, sending all such shapes to
+         * 'out'.
+         *
+         * @param point the point we're testing
+         * @param out   where we're sending output to
+         *
+         * @return out, but holding the shapes with bounding boxes that overlapped with this shape
+         */
+        @Override
+        public Set<CrappyShape_QuadTree_Interface> getPotentialPointCollisions(
+                final I_Vect2D point, final Set<CrappyShape_QuadTree_Interface> out
+        ) {
+            if (theShape.getBoundingBox().check_if_in_bounds(point)){
+                out.add(theShape);
+            }
+            return out;
+        }
+
     }
 
     /**
@@ -386,12 +464,33 @@ public final class AABBQuadTreeTools {
                 final Set<CrappyShape_QuadTree_Interface> results
         ) {
 
-            for (CrappyShape_QuadTree_Interface csqti : all_children) {
+            for (final CrappyShape_QuadTree_Interface csqti : all_children) {
                 if (csqti.getBoundingBox().check_bb_intersect(attemptBoundingBox)) {
                     results.add(csqti);
                 }
             }
             return results;
+        }
+
+        /**
+         * In which we see which shapes have a bounding box that overlaps with this point, sending all such shapes to
+         * 'out'.
+         *
+         * @param point the point we're testing
+         * @param out   where we're sending output to
+         *
+         * @return out, but holding the shapes with bounding boxes that overlapped with this shape
+         */
+        @Override
+        public Set<CrappyShape_QuadTree_Interface> getPotentialPointCollisions(
+                final I_Vect2D point, final Set<CrappyShape_QuadTree_Interface> out
+        ) {
+            for (final CrappyShape_QuadTree_Interface s: all_children) {
+                if (s.getBoundingBox().check_if_in_bounds(point)){
+                    out.add(s);
+                }
+            }
+            return out;
         }
 
     }
@@ -740,10 +839,14 @@ public final class AABBQuadTreeTools {
                 final Set<CrappyShape_QuadTree_Interface> results
         ) {
 
-            for (final Iterator<A_StaticAABBQuadTreeNode> it = childNodeIterator(AABB_Quad_Enum.AABB_Choose_Quadtree_Enum.get(
-                    midpoint,
-                    attemptBoundingBox
-            )); it.hasNext(); ) {
+            for (
+                final Iterator<A_StaticAABBQuadTreeNode> it =
+                    childNodeIterator(AABB_Quad_Enum.AABB_Choose_Quadtree_Enum.get(
+                        midpoint,
+                        attemptBoundingBox
+                    )
+                ); it.hasNext();
+            ){
                 it.next().getShapesThatProbablyCollideWithToOut(
                         attemptBoundingBox, results
                 );
@@ -752,6 +855,33 @@ public final class AABBQuadTreeTools {
 
 
 
+        }
+
+        /**
+         * In which we see which shapes have a bounding box that overlaps with this point, sending all such shapes to
+         * 'out'.
+         *
+         * @param point the point we're testing
+         * @param out   where we're sending output to
+         *
+         * @return out, but holding the shapes with bounding boxes that overlapped with this shape
+         */
+        @Override
+        public Set<CrappyShape_QuadTree_Interface> getPotentialPointCollisions(
+                final I_Vect2D point, final Set<CrappyShape_QuadTree_Interface> out
+        ) {
+            for (final Iterator<A_StaticAABBQuadTreeNode> it =
+                    childNodeIterator(AABB_Quad_Enum.AABB_Choose_Quadtree_Enum.get(
+                                    midpoint,
+                                    point
+                            )
+                ); it.hasNext();
+            ){
+                it.next().getPotentialPointCollisions(
+                        point, out
+                );
+            }
+            return out;
         }
 
         /**
@@ -1004,11 +1134,23 @@ public final class AABBQuadTreeTools {
 
 
         @Override
-        public Set<CrappyShape_QuadTree_Interface> apply(CrappyShape_QuadTree_Interface dBody) {
+        public Set<CrappyShape_QuadTree_Interface> apply(final CrappyShape_QuadTree_Interface dBody) {
             final Set<CrappyShape_QuadTree_Interface> results = new LinkedHashSet<>();
             for (final Iterator<I_DynamicKinematicAABBQuadTreeNode> it =
-                 childNodeIterator(AABB_Quad_Enum.AABB_Choose_Quadtree_Enum.get(midpoint, dBody)); it.hasNext(); ) {
+                 childNodeIterator(AABB_Quad_Enum.AABB_Choose_Quadtree_Enum.get(midpoint, dBody)); it.hasNext();
+             ) {
                 results.addAll(it.next().apply(dBody));
+            }
+            return results;
+        }
+
+        @Override
+        public Set<CrappyShape_QuadTree_Interface> getPointCollisions(final Vect2D p) {
+            final Set<CrappyShape_QuadTree_Interface> results = new LinkedHashSet<>();
+            for (final Iterator<I_DynamicKinematicAABBQuadTreeNode> it =
+                 childNodeIterator(AABB_Quad_Enum.AABB_Choose_Quadtree_Enum.get(midpoint, p)); it.hasNext();
+            ){
+                results.addAll(it.next().getPointCollisions(p));
             }
             return results;
         }
@@ -1079,14 +1221,30 @@ public final class AABBQuadTreeTools {
                     allShapes.add(dBody);
                     return emptySet;
                 }
-                final Set<CrappyShape_QuadTree_Interface> collidedWith = new LinkedHashSet<>();
+                final Set<CrappyShape_QuadTree_Interface> collidedWith = new LinkedHashSet<>(allShapes.size(), 1.0f);
                 for (final CrappyShape_QuadTree_Interface s: allShapes) {
-                    if (s.getBoundingBox().check_bb_intersect(s.getBoundingBox())){
+                    if (s.getBoundingBox().check_bb_intersect(dBody.getBoundingBox())){
                         collidedWith.add(s);
                     }
                 }
                 allShapes.add(dBody);
                 return collidedWith;
+            }
+
+            @Override
+            public Set<CrappyShape_QuadTree_Interface> getPointCollisions(final Vect2D p) {
+                if (allShapes.isEmpty()){
+                    return emptySet;
+                }
+                final Set<CrappyShape_QuadTree_Interface> potentials = new LinkedHashSet<>(
+                        allShapes.size()/4, 0.75f
+                );
+                for (final CrappyShape_QuadTree_Interface s: allShapes) {
+                    if (s.getBoundingBox().check_if_in_bounds(p)){
+                        potentials.add(s);
+                    }
+                }
+                return potentials;
             }
         }
 
@@ -1141,7 +1299,32 @@ public final class AABBQuadTreeTools {
         quadTree.addAllKinematicBodies(kBodies);
 
         return quadTree;
+    }
 
+    /**
+     * Creates the I_DynamicKinematicAABBQuadTreeRootNode, with bounds based on the initial bounds of these
+     * dynamic/static bodies, and depth of {@code ceil(log4(bodyCount))}.
+     * @param dynamics the dynamic bodies it may need to hold
+     * @param kinematics the static bodies it may need to hold
+     * @return new empty I_DynamicKinematicAABBQuadTreeRootNode with appropriate structure.
+     */
+    public static I_DynamicKinematicAABBQuadTreeRootNode DYN_KYN_AABB_FACTORY_BOUNDS_FINDER(
+            final Collection<? extends CrappyBody> dynamics,
+            final Collection<? extends CrappyBody> kinematics
+    ){
+
+        final Crappy_AABB allBounds = new Crappy_AABB();
+        for(final CrappyBody d: dynamics){
+            allBounds.add_aabb(d.getAABB());
+        }
+        for (final CrappyBody k: kinematics){
+            allBounds.add_aabb(k.getAABB());
+        }
+        return new DynamicKinematicAABBQuadTreeNode.DynamicKinematicQuadTreeRootNode(
+                allBounds.getMin(), allBounds.getMidpoint(), (int) Math.ceil(
+                        Math.log(dynamics.size() + kinematics.size()) / Math.log(4)
+            )
+        );
     }
 
 
@@ -1272,6 +1455,48 @@ public final class AABBQuadTreeTools {
                 return AABB_Choose_Quadtree_Enum.get(
                         comparisonPoint, aabbBeingCompared.getMin(), aabbBeingCompared.getMax()
                 );
+            }
+
+            /**
+             * Compares a single vector to the comparison point
+             * @param comparisonPoint the comparison point
+             * @param p the point we want to compare to comparison point
+             * @return the appropriate AABB_Choose_Quadtree_Enum value
+             */
+            public static AABB_Choose_Quadtree_Enum get(
+                    final I_Vect2D comparisonPoint,
+                    final I_Vect2D p
+            ){
+                switch (Vect2DMath.COMPARE_DOUBLES_EPSILON(p.getX(), comparisonPoint.getX())){
+                    case 1:
+                        switch (Vect2DMath.COMPARE_DOUBLES_EPSILON(p.getY(), comparisonPoint.getY())){
+                            case 1:
+                                return X_GREATER_Y_GREATER;
+                            case 0:
+                                return X_GREATER_Y_EITHER;
+                            case -1:
+                                return X_GREATER_Y_SMALLER;
+                        }
+                    case 0:
+                        switch (Vect2DMath.COMPARE_DOUBLES_EPSILON(p.getY(), comparisonPoint.getY())){
+                            case 1:
+                                return X_EITHER_Y_GREATER;
+                            case 0:
+                                return X_EITHER_Y_EITHER;
+                            case -1:
+                                return X_EITHER_Y_SMALLER;
+                        }
+                    case -1:
+                        switch (Vect2DMath.COMPARE_DOUBLES_EPSILON(p.getY(), comparisonPoint.getY())){
+                            case 1:
+                                return X_SMALLER_Y_GREATER;
+                            case 0:
+                                return X_SMALLER_Y_EITHER;
+                            case -1:
+                                return X_SMALLER_Y_SMALLER;
+                        }
+                }
+                throw new AssertionError("Unexpected enum branch reached!");
             }
 
             /**

@@ -119,9 +119,6 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I
         this.radiusSquared = 0;
     }
 
-
-
-
     public double getRadius() {
         synchronized (syncer) {
             return radius;
@@ -193,12 +190,12 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         A_CrappyShape that = (A_CrappyShape) o;
-        return shapeType == that.shapeType && body.equals(that.body);
+        return shapeType == that.shapeType && body.equals(that.body) && this.localCentroid.equals(that.localCentroid);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(shapeType, body);
+        return Objects.hash(shapeType, body, localCentroid);
     }
 
     @Override

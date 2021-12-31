@@ -20,6 +20,25 @@ public final class Vect2DMath {
      */
     private Vect2DMath(){}
 
+
+    /**
+     * A helper method to compare doubles.
+     * Like {@link Double#compare(double, double)} but omits the double to long bits stuff
+     * and just returns 0 if neither are found to be bigger than each other, to save time.
+     * @param a first double
+     * @param b second double
+     * @return +1 if a > b, -1 if a < b, otherwise 0.
+     * @see Double#compare(double, double)
+     */
+    public static int COMPARE_DOUBLES_CRAPPILY(final double a, final double b){
+        if (a > b){
+            return 1;
+        } else if (a < b){
+            return -1;
+        }
+        return 0;
+    }
+
     /**
      * The epsilon value used for {@link #COMPARE_DOUBLES_EPSILON(double, double)}
      * @see #COMPARE_DOUBLES_EPSILON(double, double)

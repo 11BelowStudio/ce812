@@ -3,7 +3,7 @@ package crappy;
 import crappy.math.I_Vect2D;
 import crappy.utils.PendingStateChange;
 
-public interface I_CrappyBody_CrappyWorld_Interface extends I_CrappyBody, I_View_CrappyBody, I_ManipulateCrappyBody{
+public interface I_CrappyBody_CrappyWorld_Interface extends I_CrappyBody, I_View_CrappyBody, I_ManipulateCrappyBody, CrappyBody_Shape_Interface{
 
     /**
      * Call this to tell this I_CrappyBody to call the {@link CrappyCallbackHandler#acceptCollidedWithBitmaskAfterAllCollisions(int)} method

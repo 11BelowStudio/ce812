@@ -52,8 +52,8 @@ public enum I_Vect2D_Comp_Enum {
      */
     public static I_Vect2D_Comp_Enum compareTwoVectors(I_Vect2D a, I_Vect2D b){
         return fromCompResults(
-                I_Vect2D.COMPARE_DOUBLES_CRAPPILY(a.getX(), b.getX()),
-                I_Vect2D.COMPARE_DOUBLES_CRAPPILY(a.getY(), b.getY())
+                Vect2DMath.COMPARE_DOUBLES_CRAPPILY(a.getX(), b.getX()),
+                Vect2DMath.COMPARE_DOUBLES_CRAPPILY(a.getY(), b.getY())
         );
     }
 

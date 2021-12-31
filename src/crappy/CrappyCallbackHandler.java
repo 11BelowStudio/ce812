@@ -28,4 +28,9 @@ public interface CrappyCallbackHandler {
      */
     default void bodyNoLongerExists(){}
 
+    /**
+     * Called if this CrappyBody was clicked.
+     */
+    default void wasClicked(){};
+
 }
