@@ -31,6 +31,8 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I
 
     double radius;
 
+    double radiusSquared;
+
     final Object syncer = new Object();
 
     // TODO: collision method
@@ -57,6 +59,7 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I
         this.finalWorldVertices = new Vect2D[1];
         this.body = body;
         this.radius = rad;
+        this.radiusSquared = Math.pow(radius, 2);
     }
 
     /**
@@ -112,6 +115,8 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I
         this.shapeType = shapeType;
         this.localCentroid = centroid;
         this.body = body;
+        this.radius = 0;
+        this.radiusSquared = 0;
     }
 
 

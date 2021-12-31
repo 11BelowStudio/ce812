@@ -46,6 +46,17 @@ public interface I_CrappyShape extends I_HaveRestitution, I_HaveMass {
     double getRadius();
 
     /**
+     * Obtains the square of the radius
+     * (easier to do distances when I don't need to perform any inverse square roots)
+     * @return radius squared
+     * @implNote default method squares result of radius on-the-fly,
+     * could be made a bit faster by storing squared radius in advance and just returning that.
+     */
+    default double getRadiusSquared(){
+        return Math.pow(getRadius(), 2);
+    }
+
+    /**
      * Obtains the centroid of this body in world coords.
      * @return centroid.
      */
@@ -80,6 +91,14 @@ public interface I_CrappyShape extends I_HaveRestitution, I_HaveMass {
     default Vect2D getVelOfWorldPoint(final I_Vect2D worldPos){
         return getVelOfLocalPoint(Vect2DMath.WORLD_TO_LOCAL_M(worldPos, getBodyTransform()).finished());
     }
+
+
+    /**
+     * Works out whether a given point is in this shape or not
+     * @param worldPoint the point we're checking
+     * @return true if it's within this shape, false otherwise.
+     */
+    boolean isPointInShape(final I_Vect2D worldPoint);
 
     /**
      * What type of shape is this shape?

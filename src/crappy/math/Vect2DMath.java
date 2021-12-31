@@ -58,6 +58,34 @@ public final class Vect2DMath {
     }
 
     /**
+     * Checks if v1 and v2 are approximately equal to each other,
+     * using predefined 'close enough' value of {@link #EPSILON}
+     * @param v1 first vector
+     * @param v2 other vector
+     * @return true if v1's components are 'close enough' to v2's
+     * @see #EQUALS_EPSILON(I_Vect2D, I_Vect2D, double)
+     * @see #EPSILON
+     */
+    public static boolean EQUALS_EPSILON(final I_Vect2D v1, final I_Vect2D v2){
+        return EQUALS_EPSILON(v1, v2, EPSILON);
+    }
+
+    /**
+     * Checks if vectors v1 and v2 are approximately equal (if x and y of each are within epsilon of other x and y)
+     * @param v1 first vector
+     * @param v2 second vector
+     * @param epsilon 'close enough' value
+     * @return true if components of v1 and v2 are 'close enough' to each other
+     * @see #COMPARE_DOUBLES_EPSILON(double, double, double)
+     */
+    public static boolean EQUALS_EPSILON(final I_Vect2D v1, final I_Vect2D v2, final double epsilon){
+
+        return COMPARE_DOUBLES_EPSILON(v1.getX(), v2.getX(), epsilon) == 0
+                && COMPARE_DOUBLES_EPSILON(v1.getY(), v2.getY(), epsilon) == 0;
+
+    }
+
+    /**
      * Multiplies vector V by S, returns mutable
      * @param v vector
      * @param s scalar
@@ -350,7 +378,18 @@ public final class Vect2DMath {
      * @return scalar distance between A and B
      */
     public static double DIST(final I_Vect2D a, final I_Vect2D b){
-        return Math.hypot(a.getX() - b.getX(), a.getY() - b.getY());
+        return Math.hypot(b.getX() - a.getX(), b.getY() - a.getY());
+    }
+
+    /**
+     * Returns the square of the distance between A and B
+     * (allowing for proximity checks without needing any square roots)
+     * @param a first vector
+     * @param b second vector
+     * @return square of the magnitude of a->b
+     */
+    public static double DIST_SQUARED(final I_Vect2D a, final I_Vect2D b){
+        return Math.pow(b.getX()-a.getX(), 2) + Math.pow(b.getX() - a.getX(), 2);
     }
 
 
@@ -1577,6 +1616,119 @@ public final class Vect2DMath {
     public static double ANGLE_BETWEEN_LINE_PROJ_AND_POINT(final I_Vect2D lineStart, final I_Vect2D lineProj, final I_Vect2D point){
         return lineProj.cross(Vect2DMath.MINUS(point, lineStart));
     }
+
+
+    /**
+     * Attempts to see if a given point is within a given polygon.
+     * From <a href="https://jeffreythompson.org/collision-detection/poly-point.php">https://jeffreythompson.org/collision-detection/poly-point.php</a>
+     * @param point the point we are checking
+     * @param verts vertices describing the polygon
+     * @return true if the point is within the shape described by verts.
+     * @see <a href="https://jeffreythompson.org/collision-detection/poly-point.php">https://jeffreythompson.org/collision-detection/poly-point.php</a>
+     */
+    public static boolean IS_POINT_IN_POLYGON(final I_Vect2D point, final I_Vect2D... verts){
+
+        boolean collided = false;
+
+        final M_Vect2D p = M_Vect2D.GET(point);
+        final M_Vect2D prev = M_Vect2D.GET(verts[verts.length-1]);
+        final M_Vect2D curr = M_Vect2D._GET_RAW();
+
+        for (int i = 0; i < verts.length-1; i++) {
+            curr.set(verts[i]);
+
+            if (
+                    ((prev.y >= p.y && curr.y < p.y) || (prev.y < p.y && curr.y >= p.y)) &&
+                    p.x < (curr.x - prev.x) * (p.y - prev.y) / (curr.y - prev.y) + prev.x
+            ){
+                collided =! collided;
+            }
+        }
+        p.discard();
+        prev.discard();
+        curr.discard();
+        return collided;
+
+    }
+
+    /**
+     * Checks if lower <= p <= upper (component-wise)
+     * @param p the vector we're checking
+     * @param upperBound upper bound (p must not have a component greater than this)
+     * @param lowerBound lower bound (p must not have a component smaller than this)
+     * @return true if {@code lower <= p <= upper}.
+     */
+    public static boolean IS_IN_BOUNDS(final I_Vect2D p, final I_Vect2D upperBound, final I_Vect2D lowerBound){
+        return p.isGreaterThanOrEqualTo(lowerBound) && upperBound.isGreaterThanOrEqualTo(p);
+    }
+
+    /**
+     * Wrapper for {@link #IS_IN_BOUNDS(I_Vect2D, I_Vect2D, I_Vect2D)} for when
+     * we don't know which is upper which is lower
+     * @param p the point
+     * @param a one of the bounds
+     * @param b the other bound
+     * @return whether or not p is within the bounds described by a and b, whichever way round they are.
+     */
+    public static boolean IS_IN_BOUNDS_UNKNOWN_ORDERING(final I_Vect2D p, final I_Vect2D a, final I_Vect2D b){
+        if (a.isGreaterThanOrEqualTo(b)){
+            return IS_IN_BOUNDS(p, a, b);
+        } else {
+            return IS_IN_BOUNDS(p, b, a);
+        }
+    }
+
+
+    /**
+     * Works out if a point is on a line (given line projection)
+     * @param point the point
+     * @param lineStart start of the line
+     * @param lineProj projection of the line
+     * @return true if point is on that line (or at very least within epsilon distance of it)
+     */
+    public static boolean IS_POINT_ON_LINE_PROJ(final I_Vect2D point, final I_Vect2D lineStart, final I_Vect2D lineProj){
+
+        // I did attempt making an implementation that wouldn't rely on .mag because, y'know,
+        // square roots can be slow-ish, but the workaround was almost definitely slower, so sod it,
+        // here's the .mag one.
+
+        return COMPARE_DOUBLES_EPSILON(
+                DIST(lineStart, point) +
+                        // point-start = relPoint (point relative to start)
+                        // relPoint-proj = proj->relPoint == dist from end to point
+                        M_Vect2D.GET(point).sub(lineStart).sub(lineProj).mag_discard(),
+                lineProj.mag()
+        ) == 0;
+
+
+    }
+    /**
+     * Works out if a point is on a line (given line end)
+     * @param point the point
+     * @param lineStart start of the line
+     * @param lineEnd end point of the line
+     * @return true if point is on that line (or at very least within epsilon distance of it)
+     */
+    public static boolean IS_POINT_ON_LINE_END(final I_Vect2D point, final I_Vect2D lineStart, final I_Vect2D lineEnd){
+        return COMPARE_DOUBLES_EPSILON(
+                DIST(lineStart, point) + DIST(lineEnd, point),
+                DIST(lineStart, lineEnd)
+        ) == 0;
+    }
+
+    /**
+     * EXPECTS STUFF TO HAVE BEEN POSITIONED RELATIVE TO THE START OF THE LINE!
+     * Checks if a point (POSITIONED RELATIVE TO THE START OF THE LINE!) has the same angle as the line's projection,
+     * then makes sure that the point is between 0 and the projection (thus being on the projection)
+     * @param projPoint point relative to the line projection
+     * @param proj line projection
+     * @return true if projPoint is on line proj.
+     */
+    public static boolean IS_POINT_ON_LINE_LOCAL(final I_Vect2D projPoint, final I_Vect2D proj){
+        return COMPARE_DOUBLES_EPSILON(proj.cross(projPoint), 0) == 0 &&
+                IS_IN_BOUNDS_UNKNOWN_ORDERING(projPoint, proj, Vect2D.ZERO);
+    }
+
 
 
 }

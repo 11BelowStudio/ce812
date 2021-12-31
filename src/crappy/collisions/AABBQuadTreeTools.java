@@ -872,6 +872,10 @@ public final class AABBQuadTreeTools {
         @Override
         Set<CrappyShape_QuadTree_Interface> apply(final CrappyShape_QuadTree_Interface dBody);
 
+
+        Set<CrappyShape_QuadTree_Interface> getPointCollisions(final Vect2D p);
+        // TODO: this
+
     }
 
     public interface I_DynamicKinematicAABBQuadTreeRootNode extends I_DynamicKinematicAABBQuadTreeNode{
@@ -908,6 +912,9 @@ public final class AABBQuadTreeTools {
             }
             return emptySet;
         }
+
+
+
 
     }
 

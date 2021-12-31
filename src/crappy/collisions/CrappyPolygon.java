@@ -2,10 +2,7 @@ package crappy.collisions;
 
 import crappy.CrappyBody_Shape_Interface;
 import crappy.I_Transform;
-import crappy.math.M_Vect2D;
-import crappy.math.Rot2D;
-import crappy.math.Vect2D;
-import crappy.math.Vect2DMath;
+import crappy.math.*;
 import crappy.utils.ArrayIterator;
 import crappy.utils.containers.IPair;
 
@@ -127,10 +124,11 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
 
         innerCircleRadius = min_max_radius.getFirst();
         radius = min_max_radius.getSecond();
+        radiusSquared = Math.pow(radius, 2);
 
         updateShape(body);
 
-        circle = new CrappyPolygonIncircle(this, getCentroid(), innerCircleRadius);
+        circle = new CrappyPolygonIncircle(this, getCentroid(), innerCircleRadius, radiusSquared);
 
         System.arraycopy(worldVertices, 0, finalWorldVertices, 0, vertexCount);
 
@@ -268,6 +266,18 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
         return Vect2DMath.LOCAL_TO_WORLD_M(localCentroid, getBodyTransform()).finished();
     }
 
+    /**
+     * Works out whether a given point is in this shape or not
+     *
+     * @param worldPoint the point we're checking
+     *
+     * @return true if it's within this shape, false otherwise.
+     */
+    @Override
+    public boolean isPointInShape(final I_Vect2D worldPoint) {
+        return circle.isPointInShape(worldPoint) || Vect2DMath.IS_POINT_IN_POLYGON(worldPoint, worldVertices);
+    }
+
 
     private static class CrappyPolygonIncircle implements I_CrappyCircle, I_Transform {
 
@@ -277,13 +287,16 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
 
         private final double radius;
 
+        private final double radiusSquared;
+
         private final Crappy_AABB aabb;
 
 
-        CrappyPolygonIncircle(final CrappyPolygon p, final Vect2D centroid, final double radius){
+        CrappyPolygonIncircle(final CrappyPolygon p, final Vect2D centroid, final double radius, final double radiusSquared){
             this.p = p;
             this.localCentroid = centroid;
             this.radius = radius;
+            this.radiusSquared = radiusSquared;
             aabb = new Crappy_AABB();
             aabb.update_aabb_circle(getPos(), radius);
 
@@ -299,9 +312,24 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
             return this;
         }
 
+
         @Override
         public double getRadius() {
             return radius;
+        }
+
+        /**
+         * Obtains the square of the radius (easier to do distances when I don't need to perform any inverse square
+         * roots)
+         *
+         * @return radius squared
+         *
+         * @implNote default method squares result of radius on-the-fly, could be made a bit faster by storing squared
+         * radius in advance and just returning that.
+         */
+        @Override
+        public double getRadiusSquared() {
+            return radiusSquared;
         }
 
         /**
@@ -358,6 +386,7 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
         public I_Crappy_AABB getBoundingBox() {
             return aabb;
         }
+
 
         /**
          * What type of shape is this shape?
