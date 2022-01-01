@@ -1,5 +1,8 @@
 package crappy;
 
+import crappy.graphics.DrawableBody;
+import crappy.graphics.DrawableCrappyShape;
+import crappy.graphics.I_CrappilyDrawStuff;
 import crappy.math.*;
 import crappy.collisions.A_CrappyShape;
 import crappy.collisions.Crappy_AABB;
@@ -11,7 +14,7 @@ import crappy.utils.bitmasks.IHaveBitmask;
  * A rigidbody class used by Crappy
  */
 public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_Shape_Interface,
-        CrappyBody_Connector_Interface, I_ManipulateCrappyBody, I_CrappyBody_CrappyWorld_Interface {
+        CrappyBody_Connector_Interface, I_ManipulateCrappyBody, I_CrappyBody_CrappyWorld_Interface, DrawableBody {
 
     //TODO https://www.myphysicslab.com/explain/physics-engine-en.html hmmmmm
 
@@ -602,6 +605,7 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
         return bodyType;
     }
 
+
     /**
      * Coefficient of restitution for crappybody
      *
@@ -843,6 +847,10 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
         return active;
     }
 
+    @Override
+    public DrawableCrappyShape getDrawableShape() {
+        return getShape();
+    }
 
 
     /**
@@ -979,9 +987,31 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
     }
 
     @Override
+    public void crappilyRenderBody(I_CrappilyDrawStuff renderer) {
+        shape.getAssert().drawCrappily(renderer);
+    }
+
+    @Override
+    public void updateDrawables() {
+        shape.getAssert().updateDrawables();
+    }
+
+    @Override
+    public void drawCrappily(I_CrappilyDrawStuff renderer) {
+        shape.getAssert().drawCrappily(renderer);
+    }
+
+    @Override
+    public CrappyBody getBody() {
+        return this;
+    }
+
+    @Override
     public I_Transform getTempTransform() {
         return intermediateTransform;
     }
+
+    public boolean wasClicked(){ return callbackHandler.wasClicked(); }
 
 
     public static CrappyBodyCreator GET_CREATOR(){

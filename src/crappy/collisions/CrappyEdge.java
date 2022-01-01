@@ -2,10 +2,12 @@ package crappy.collisions;
 
 import crappy.CrappyBody_Shape_Interface;
 import crappy.I_Transform;
+import crappy.graphics.DrawableCrappyShape;
+import crappy.graphics.I_CrappilyDrawStuff;
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
 
-public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge{
+public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge, DrawableCrappyShape.DrawableEdge {
 
     final Vect2D localStart;
 
@@ -26,6 +28,10 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge{
     Vect2D worldTang;
 
     Vect2D worldNorm;
+
+    private Vect2D drawableStart;
+    private Vect2D drawableEnd;
+    private Vect2D drawableNorm;
 
     CrappyEdge(
             final CrappyBody_Shape_Interface body,
@@ -79,14 +85,11 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge{
         return thisFrameAABB;
     }
 
-    @Override
-    public void updateFinalWorldVertices() {
 
-        updateShape(body);
-        synchronized (syncer){
-            finalWorldVertices[0] = worldStart;
-            finalWorldVertices[1] = worldStart.add(worldProj);
-        }
+
+    @Override
+    public void drawCrappily(I_CrappilyDrawStuff renderer) {
+        renderer.acceptEdge(this);
     }
 
     public void timestepStartUpdate(){
@@ -130,17 +133,60 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge{
 
     public Vect2D getLocalStart(){ return localStart; }
 
+    public void updateDrawables(){
+        super.updateDrawables();
+        synchronized (drawableSyncer){
+            drawableStart = getWorldStart();
+            drawableEnd = getWorldStart().add(getWorldProj());
+            drawableNorm = getCentroid().add(getWorldNorm());
+            circle.updateDrawables();
+        }
+    }
+
+    @Override
+    public Vect2D getDrawableStart() {
+        synchronized (drawableSyncer) {
+            return drawableStart;
+        }
+    }
+
+    @Override
+    public Vect2D getDrawableEnd() {
+        synchronized (drawableSyncer) {
+            return drawableEnd;
+        }
+    }
+
+    @Override
+    public Vect2D getDrawableNorm() {
+        synchronized (drawableSyncer) {
+            return drawableNorm;
+        }
+    }
+
+    @Override
+    public DrawableCircle getDrawableEndCircle() {
+        synchronized (drawableSyncer) {
+            return circle;
+        }
+    }
 
 
     /**
      * A wrapper class which allows the start point of the edge to be expressed as a CrappyCircle,
      * for ease of collision handling.
      */
-    static class EdgePointCircle implements I_CrappyCircle{
+    private static class EdgePointCircle implements I_CrappyCircle, DrawableCircle{
 
         private final I_CrappyEdge edge;
 
         private final Crappy_AABB point_aabb;
+
+        private Vect2D drawablePos;
+
+        private Vect2D drawableVel;
+
+        private final Object drawableSyncer = new Object();
 
 
         EdgePointCircle(final CrappyEdge e){
@@ -158,6 +204,27 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge{
 
         void endUpdateAABB(){
             point_aabb.add_point(edge.getWorldStart());
+        }
+
+        @Override
+        public Vect2D getDrawablePos() {
+            synchronized (drawableSyncer){
+                return drawablePos;
+            }
+        }
+
+        @Override
+        public Vect2D getDrawableCentroid() {
+            synchronized (drawableSyncer){
+                return drawablePos;
+            }
+        }
+
+        @Override
+        public Vect2D getDrawableVel() {
+            synchronized (drawableSyncer){
+                return drawableVel;
+            }
         }
 
         @Override
@@ -218,6 +285,17 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge{
         @Override
         public CRAPPY_SHAPE_TYPE getShapeType() {
             return CRAPPY_SHAPE_TYPE.CIRCLE;
+        }
+
+        /**
+         * Use this to update the 'drawable' values in the shape
+         */
+        @Override
+        public void updateDrawables() {
+            synchronized (drawableSyncer){
+                this.drawablePos = getPos();
+                this.drawableVel = getVel();
+            }
         }
     }
 }

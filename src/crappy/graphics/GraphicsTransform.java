@@ -11,7 +11,7 @@ public class GraphicsTransform {
 
     final IPair<Double, Double> sizeOfViewableWorld;
 
-    final IPair<Double, Double> screenScaling;
+    final IPair<Double, Double> screenScale;
 
     final IPair<Double, Double> screenFixingTranslation;
 
@@ -29,7 +29,7 @@ public class GraphicsTransform {
 
         viewportSize = screenSize;
         this.sizeOfViewableWorld = sizeOfViewableWorld;
-        screenScaling = IPair.of(
+        screenScale = IPair.of(
                 sizeOfViewableWorld.getFirst()/viewportSize.getWidth(),
                 sizeOfViewableWorld.getSecond()/viewportSize.getHeight()
         );
@@ -55,11 +55,12 @@ public class GraphicsTransform {
         return screenFixingTranslation;
     }
 
-    public IPair<Double, Double> getScreenScaling() {
-        return screenScaling;
+    public IPair<Double, Double> getScreenScale() {
+        return screenScale;
     }
 
     public IPair<Double, Double> getSizeOfViewableWorld() {
         return sizeOfViewableWorld;
     }
+
 }

@@ -25,4 +25,6 @@ public interface I_CrappyBody extends I_View_CrappyBody, IHaveAndConsumeBitmask 
     void applyMidTimestepTorque(final double torque, final CrappyBody.FORCE_SOURCE source);
 
     void applyMidTimestepTorque(final double torque);
+
+    boolean wasClicked();
 }

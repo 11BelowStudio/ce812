@@ -2,6 +2,7 @@ package crappy.collisions;
 
 import crappy.CrappyBody_Shape_Interface;
 import crappy.I_Transform;
+import crappy.graphics.DrawableCrappyShape;
 import crappy.math.I_Vect2D;
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;

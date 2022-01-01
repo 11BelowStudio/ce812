@@ -6,6 +6,8 @@ import crappy.math.*;
 
 import java.util.Iterator;
 
+import static crappy.math.Vect2DMath.RETURN_1_IF_0;
+
 public final class CrappyCollisionMath {
 
     /**
@@ -52,18 +54,7 @@ public final class CrappyCollisionMath {
         return massBit + angleBit;
     }
 
-    /**
-     * Returns 1 if given 0, else returns v as-is.
-     * @param v the value which may or may not be 0
-     * @return v, or 1 if v is 0.
-     */
-    private static double RETURN_1_IF_0(final double v){
-        if (Double.compare(v, 0) == 0){
-            return 1;
-        } else {
-            return v;
-        }
-    }
+
 
     /**
      * We calculate the impulses to apply apply to each body, and actually apply them.

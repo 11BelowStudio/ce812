@@ -1,5 +1,7 @@
 package crappy;
 
+import crappy.graphics.DrawableConnector;
+import crappy.graphics.DrawableCrappyShape;
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
 import crappy.utils.PendingStateChange;
@@ -9,7 +11,7 @@ import crappy.utils.containers.IPair;
 import java.util.function.DoubleUnaryOperator;
 
 @SuppressWarnings("BooleanParameter")
-public class CrappyConnector implements IPair<Vect2D, Vect2D> {
+public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector {
 
 
     private static final TruncationRule _NO_TRUNCATION = new NoTruncation();
@@ -28,6 +30,12 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D> {
     private final DoubleUnaryOperator truncationRule;
 
     private boolean isActive = true;
+
+    private final Object drawSyncer = new Object();
+
+    private Vect2D drawablePosA;
+
+    private Vect2D drawablePosB;
 
 
     public CrappyConnector(
@@ -129,12 +137,16 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D> {
 
     }
 
-    private Vect2D bodyAWorldPos(){
+    public Vect2D bodyAWorldPos(){
         return bodyALocalPos.localToWorldCoordinates(bodyA.getTempPos(), bodyA.getTempRot());
     }
 
-    private Vect2D bodyBWorldPos(){
+    public Vect2D bodyBWorldPos(){
         return bodyBLocalPos.localToWorldCoordinates(bodyB.getTempPos(), bodyB.getTempRot());
+    }
+
+    public double getExtensionRatio(){
+        return Vect2DMath.DIST_SQUARED(bodyAWorldPos(), bodyBWorldPos()) / Vect2DMath.RETURN_1_IF_0(naturalLength);
     }
 
     private Vect2D normalizedVectorFromAToB(){
@@ -153,6 +165,34 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D> {
     @Override
     public Vect2D getSecond() {
         return bodyBWorldPos();
+    }
+
+
+    public void updateDrawables(){
+        synchronized (drawSyncer){
+            drawablePosA = bodyAWorldPos();
+            drawablePosB = bodyBWorldPos();
+        }
+    }
+
+
+    @Override
+    public Vect2D getDrawableAPos() {
+        synchronized (drawSyncer){
+            return drawablePosA;
+        }
+    }
+
+    @Override
+    public Vect2D getDrawableBPos() {
+        synchronized (drawSyncer){
+            return drawablePosB;
+        }
+    }
+
+    @Override
+    public double getNaturalLength() {
+        return naturalLength;
     }
 
 

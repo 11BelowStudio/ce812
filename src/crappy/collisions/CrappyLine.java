@@ -2,7 +2,8 @@ package crappy.collisions;
 
 import crappy.CrappyBody_Shape_Interface;
 import crappy.I_Transform;
-import crappy.math.M_Vect2D;
+import crappy.graphics.DrawableCrappyShape;
+import crappy.graphics.I_CrappilyDrawStuff;
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
 
@@ -10,7 +11,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 
-public class CrappyLine extends A_CrappyShape implements Iterable<I_CrappyEdge>, I_CrappyLine{
+public class CrappyLine extends A_CrappyShape implements Iterable<I_CrappyEdge>, I_CrappyLine, DrawableCrappyShape.DrawableLine {
 
     // TODO: refactor so it's functionally just two CrappyEdges that are the reverse of each other
 
@@ -22,6 +23,14 @@ public class CrappyLine extends A_CrappyShape implements Iterable<I_CrappyEdge>,
     final Vect2D[] localVertices;
 
     final Vect2D[] worldVertices;
+
+    private Vect2D drawableStart;
+
+    private Vect2D drawableEnd;
+
+    private Vect2D drawableNormStart;
+
+    private Vect2D drawableNormEnd;
 
 
     /**
@@ -71,13 +80,10 @@ public class CrappyLine extends A_CrappyShape implements Iterable<I_CrappyEdge>,
         return aabb;
     }
 
+
     @Override
-    public void updateFinalWorldVertices() {
-        synchronized (syncer) {
-            Vect2DMath.LOCAL_TO_WORLD_FOR_BODY_TO_OUT(body, localVertices, finalWorldVertices);
-        }
-        edgeA.updateFinalWorldVertices();
-        edgeB.updateFinalWorldVertices();
+    public void drawCrappily(I_CrappilyDrawStuff renderer) {
+        renderer.acceptLine(this);
     }
 
     public Vect2D getWorldStart(){
@@ -124,6 +130,60 @@ public class CrappyLine extends A_CrappyShape implements Iterable<I_CrappyEdge>,
     @Override
     public Iterator<I_CrappyEdge> iterator() {
         return new LineEdgeIterator(this);
+    }
+
+    public void updateDrawables(){
+        super.updateDrawables();
+        synchronized (drawableSyncer){
+            drawableStart = getWorldStart();
+            drawableEnd = getWorldEnd();
+            drawableNormStart = getCentroid().add(edgeA.getWorldNorm());
+            drawableNormEnd = getCentroid().add(edgeB.getWorldNorm());
+            edgeA.getEndPointCircle().updateDrawables();
+            edgeB.getEndPointCircle().updateDrawables();
+        }
+    }
+
+    @Override
+    public Vect2D getDrawableStart() {
+        synchronized (drawableSyncer){
+            return drawableStart;
+        }
+    }
+
+    @Override
+    public Vect2D getDrawableEnd() {
+        synchronized (drawableSyncer){
+            return drawableEnd;
+        }
+    }
+
+    @Override
+    public Vect2D getDrawableNorm() {
+        synchronized (drawableSyncer){
+            return drawableNormStart;
+        }
+    }
+
+    @Override
+    public Vect2D getDrawableNormEnd() {
+        synchronized (drawableSyncer){
+            return drawableNormEnd;
+        }
+    }
+
+    @Override
+    public DrawableCircle getDrawableEndCircle() {
+        synchronized (drawableSyncer){
+            return edgeA.getDrawableEndCircle();
+        }
+    }
+
+    @Override
+    public DrawableCircle getDrawableOtherEndCircle() {
+        synchronized (drawableSyncer){
+            return edgeB.getDrawableEndCircle();
+        }
     }
 
     private static class LineEdgeIterator implements Iterator<I_CrappyEdge>{

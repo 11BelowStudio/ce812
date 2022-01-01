@@ -49,4 +49,17 @@ public interface I_CrappyPolygon extends I_CrappyShape, Iterable<I_CrappyEdge> {
      * @return the incircle.
      */
     I_CrappyCircle getIncircle();
+
+    /**
+     * obtains radius of the incircle
+     * @return incircle radius
+     */
+    double getIncircleRadius();
+
+    /**
+     * Obtains a copy of world vertices
+     * @return array with copy of world vertices in it
+     */
+    Vect2D[] getWorldVertices();
+
 }

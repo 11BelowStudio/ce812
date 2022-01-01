@@ -1,9 +1,11 @@
 package crappy;
 
+import crappy.graphics.DrawableBody;
+
 /**
  * An interface for the CrappyShapes to access the CrappyBody with.
  */
-public interface CrappyBody_Shape_Interface extends I_View_CrappyBody, I_Transform, I_CrappyBody {
+public interface CrappyBody_Shape_Interface extends I_View_CrappyBody, I_Transform, I_CrappyBody, DrawableBody {
 
     /**
      * Called to set the moment of inertia after the shape is made.

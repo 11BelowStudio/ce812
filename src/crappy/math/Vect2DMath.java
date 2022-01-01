@@ -1784,6 +1784,18 @@ public final class Vect2DMath {
     }
 
 
+    /**
+     * Returns 1 if given 0, else returns v as-is.
+     * @param v the value which may or may not be 0
+     * @return v, or 1 if v is 0.
+     */
+    public static double RETURN_1_IF_0(final double v){
+        if (Double.compare(v, 0) == 0){
+            return 1;
+        } else {
+            return v;
+        }
+    }
 
 }
 

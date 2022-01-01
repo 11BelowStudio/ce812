@@ -30,7 +30,8 @@ public interface CrappyCallbackHandler {
 
     /**
      * Called if this CrappyBody was clicked.
+     * @return false if this isn't meant to be clicked.
      */
-    default void wasClicked(){};
+    default boolean wasClicked(){ return false; };
 
 }

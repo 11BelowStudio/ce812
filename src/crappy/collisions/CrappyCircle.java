@@ -2,10 +2,13 @@ package crappy.collisions;
 
 import crappy.CrappyBody_Shape_Interface;
 import crappy.I_Transform;
+import crappy.graphics.DrawableCrappyShape;
+import crappy.graphics.I_CrappilyDrawStuff;
 import crappy.math.Vect2DMath;
 import crappy.math.Vect2D;
 
-public class CrappyCircle extends A_CrappyShape implements I_CrappyCircle {
+public class CrappyCircle extends A_CrappyShape implements I_CrappyCircle, DrawableCrappyShape.DrawableCircle {
+
 
 
     public CrappyCircle(final CrappyBody_Shape_Interface body, final double radius) {
@@ -32,15 +35,15 @@ public class CrappyCircle extends A_CrappyShape implements I_CrappyCircle {
 
     @Override
     public Crappy_AABB updateShape(final I_Transform rootTransform) {
-        thisFrameAABB.update_aabb_circle(rootTransform.getPos().toVect2D(), radius);
+        thisFrameAABB.update_aabb_circle(rootTransform.getPos().toVect2D(), getRadius());
         return thisFrameAABB;
     }
 
+
+
     @Override
-    public void updateFinalWorldVertices() {
-        synchronized (syncer) {
-            finalWorldVertices[0] = body.getPos();
-        }
+    public void drawCrappily(I_CrappilyDrawStuff renderer) {
+        renderer.acceptCircle(this);
     }
 
     @Override

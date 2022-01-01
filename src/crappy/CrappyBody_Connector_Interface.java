@@ -1,5 +1,6 @@
 package crappy;
 
+import crappy.graphics.DrawableCrappyShape;
 import crappy.math.I_Rot2D;
 import crappy.math.I_Vect2D;
 import crappy.math.Rot2D;
@@ -26,6 +27,8 @@ public interface CrappyBody_Connector_Interface extends I_Transform{
     void applyMidTimestepForce(final I_Vect2D force, final I_Vect2D localForcePos, final CrappyBody.FORCE_SOURCE source);
 
     boolean isActive();
+
+    DrawableCrappyShape getDrawableShape();
 
 
 }

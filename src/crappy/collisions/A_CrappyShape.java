@@ -3,6 +3,9 @@ package crappy.collisions;
 
 import crappy.CrappyBody_Shape_Interface;
 import crappy.I_Transform;
+import crappy.graphics.DrawableBody;
+import crappy.graphics.DrawableCrappyShape;
+import crappy.graphics.I_CrappilyDrawStuff;
 import crappy.internals.CrappyInternalException;
 import crappy.math.Vect2D;
 
@@ -13,7 +16,7 @@ import static crappy.math.Vect2DMath.MINUS_M;
 /**
  * A shape class
  */
-public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I_CrappyShape {
+public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I_CrappyShape, DrawableCrappyShape {
 
     public final CRAPPY_SHAPE_TYPE shapeType;
 
@@ -25,8 +28,6 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I
 
     final Crappy_AABB lastFrameAABB = new Crappy_AABB();
 
-    final Vect2D[] finalWorldVertices;
-
     final Vect2D localCentroid;
 
     double radius;
@@ -34,6 +35,14 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I
     double radiusSquared;
 
     final Object syncer = new Object();
+
+    final Object drawableSyncer = new Object();
+
+    Vect2D drawableWorldCentroid;
+
+    Vect2D drawableWorldPos;
+
+    Vect2D drawableVel;
 
     // TODO: collision method
 
@@ -56,7 +65,6 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I
         }
         this.shapeType = shapeType;
         this.localCentroid = centroid;
-        this.finalWorldVertices = new Vect2D[1];
         this.body = body;
         this.radius = rad;
         this.radiusSquared = Math.pow(radius, 2);
@@ -82,7 +90,6 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I
         this.shapeType = shapeType;
         this.body = body;
         this.localCentroid = centroid;
-        finalWorldVertices = new Vect2D[vertices];
     }
 
 
@@ -101,10 +108,7 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I
 
         switch (shapeType){
             case LINE:
-                this.finalWorldVertices = new Vect2D[2];
-                break;
             case EDGE:
-                this.finalWorldVertices = new Vect2D[1];
                 break;
             default:
                 throw new CrappyInternalException(
@@ -154,24 +158,16 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I
         aabb.update_aabb_compound(lastFrameAABB, thisFrameAABB);
 
         lastFrameAABB.update_aabb(thisFrameAABB);
-
-        updateFinalWorldVertices();
     }
-
 
     @Override
     public CrappyBody_Shape_Interface getBody() {
         return body;
     }
 
-
     public abstract Crappy_AABB updateShape(final I_Transform rootTransform);
 
-    public abstract void updateFinalWorldVertices();
-
     public I_Transform getBodyTransform(){
-
-        //return body;
         return body.getTempTransform();
     }
 
@@ -206,11 +202,6 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I
         return localCentroid;
     }
 
-    public Vect2D[] getFinalWorldVertices() {
-        synchronized (syncer){
-            return finalWorldVertices.clone();
-        }
-    }
 
     /**
      * Obtains the centroid of this body in world coords.
@@ -234,6 +225,36 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I
         out[vertices.length-1] = MINUS_M(vertices[vertices.length-1], vertices[0]).norm().rotate90degreesAnticlockwise().finished();
     }
 
+
+    public abstract void drawCrappily(I_CrappilyDrawStuff renderer);
+
+
+    public void updateDrawables(){
+        synchronized (drawableSyncer){
+            drawableWorldPos = getPos();
+            drawableWorldCentroid = getCentroid();
+            drawableVel = getVel();
+        }
+
+    }
+
+    public Vect2D getDrawableCentroid(){
+        synchronized (drawableSyncer) {
+            return drawableWorldCentroid;
+        }
+    }
+
+    public Vect2D getDrawablePos(){
+        synchronized (drawableSyncer) {
+            return drawableWorldPos;
+        }
+    }
+
+    public Vect2D getDrawableVel(){
+        synchronized (drawableSyncer) {
+            return getVel();
+        }
+    }
 
 
 }

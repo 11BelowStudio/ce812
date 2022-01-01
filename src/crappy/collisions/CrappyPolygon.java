@@ -2,6 +2,8 @@ package crappy.collisions;
 
 import crappy.CrappyBody_Shape_Interface;
 import crappy.I_Transform;
+import crappy.graphics.DrawableCrappyShape;
+import crappy.graphics.I_CrappilyDrawStuff;
 import crappy.math.*;
 import crappy.utils.ArrayIterator;
 import crappy.utils.containers.IPair;
@@ -9,9 +11,8 @@ import crappy.utils.containers.IPair;
 import java.util.Iterator;
 
 
-public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdge>, I_CrappyPolygon{
+public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdge>, I_CrappyPolygon, DrawableCrappyShape.DrawablePolygon {
 
-    // TODO refactor so it's just an array of CrappyEdges with outward-facing normals connected to each other
 
     final int vertexCount;
 
@@ -64,6 +65,9 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
     final double innerCircleRadius;
 
 
+    private final Vect2D[] drawableVertices;
+
+
     public CrappyPolygon(final CrappyBody_Shape_Interface body, final Vect2D[] vertices){
         this(body, vertices, Vect2DMath.AREA_AND_CENTROID_OF_VECT2D_POLYGON(vertices));
     }
@@ -86,6 +90,8 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
         worldWhiskers = new Vect2D[vertexCount];
         normalWhiskers = new Vect2D[vertexCount];
         worldNormalWhiskers = new Vect2D[vertexCount];
+
+        drawableVertices = new Vect2D[vertexCount];
 
         body.setMomentOfInertia(Vect2DMath.POLYGON_MOMENT_OF_INERTIA_ABOUT_ZERO(body.getMass(), vertices));
 
@@ -130,7 +136,7 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
 
         circle = new CrappyPolygonIncircle(this, getCentroid(), innerCircleRadius, radiusSquared);
 
-        System.arraycopy(worldVertices, 0, finalWorldVertices, 0, vertexCount);
+        updateDrawables();
 
     }
 
@@ -179,18 +185,31 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
         return thisFrameAABB;
     }
 
-    @Override
-    public void updateFinalWorldVertices() {
-        synchronized (syncer) {
-            Vect2DMath.LOCAL_TO_WORLD_FOR_BODY_TO_OUT(body, localVertices, finalWorldVertices);
-        }
-        for (int i = vertexCount; i >= 0; i--) {
-            edges[i].updateFinalWorldVertices();
-        }
-    }
 
     public I_CrappyCircle getIncircle(){
         return circle;
+    }
+
+    /**
+     * obtains radius of the incircle
+     *
+     * @return incircle radius
+     */
+    @Override
+    public double getIncircleRadius() {
+        return innerCircleRadius;
+    }
+
+    /**
+     * Obtains a copy of world vertices
+     *
+     * @return array with copy of world vertices in it
+     */
+    @Override
+    public Vect2D[] getWorldVertices() {
+        final Vect2D[] out = new Vect2D[vertexCount];
+        System.arraycopy(worldVertices, 0, out, 0, vertexCount);
+        return out;
     }
 
     /**
@@ -266,6 +285,11 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
         return Vect2DMath.LOCAL_TO_WORLD_M(localCentroid, getBodyTransform()).finished();
     }
 
+    @Override
+    public void drawCrappily(I_CrappilyDrawStuff renderer) {
+        renderer.acceptPolygon(this);
+    }
+
     /**
      * Works out whether a given point is in this shape or not
      *
@@ -278,8 +302,31 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
         return circle.isPointInShape(worldPoint) || Vect2DMath.IS_POINT_IN_POLYGON(worldPoint, worldVertices);
     }
 
+    @Override
+    public void updateDrawables() {
+        super.updateDrawables();
+        synchronized (drawableSyncer){
+            System.arraycopy(worldVertices, 0, drawableVertices, 0, vertexCount);
+            circle.updateDrawables();
+        }
+    }
 
-    private static class CrappyPolygonIncircle implements I_CrappyCircle, I_Transform {
+    @Override
+    public DrawableCircle getDrawableIncircle() {
+        synchronized (drawableSyncer) {
+            return circle;
+        }
+    }
+
+    @Override
+    public Vect2D[] getDrawableVertices() {
+        synchronized (drawableSyncer) {
+            return drawableVertices;
+        }
+    }
+
+
+    private static class CrappyPolygonIncircle implements I_CrappyCircle, I_Transform, DrawableCircle {
 
         private final CrappyPolygon p;
 
@@ -291,6 +338,12 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
 
         private final Crappy_AABB aabb;
 
+        private Vect2D drawablePos;
+
+        private Vect2D drawableVel;
+
+        private final Object syncer = new Object();
+
 
         CrappyPolygonIncircle(final CrappyPolygon p, final Vect2D centroid, final double radius, final double radiusSquared){
             this.p = p;
@@ -300,6 +353,27 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
             aabb = new Crappy_AABB();
             aabb.update_aabb_circle(getPos(), radius);
 
+        }
+
+        @Override
+        public Vect2D getDrawablePos() {
+            synchronized (syncer) {
+                return drawablePos;
+            }
+        }
+
+        @Override
+        public Vect2D getDrawableCentroid() {
+            synchronized (syncer) {
+                return drawablePos;
+            }
+        }
+
+        @Override
+        public Vect2D getDrawableVel() {
+            synchronized (syncer) {
+                return drawableVel;
+            }
         }
 
         @Override
@@ -396,6 +470,17 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
         @Override
         public CRAPPY_SHAPE_TYPE getShapeType() {
             return CRAPPY_SHAPE_TYPE.CIRCLE;
+        }
+
+        /**
+         * Use this to update the 'drawable' values in the shape
+         */
+        @Override
+        public void updateDrawables() {
+            synchronized (syncer){
+                drawablePos = getPos();
+                drawableVel = getVel();
+            }
         }
 
         void startUpdateAABB(){

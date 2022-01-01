@@ -102,7 +102,7 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
      * Overwrites this AABB with a new AABB containing all the AABBs in childAABBs.
      * @param childAABBs the list of all the child AABBs to add together into a new AABB.
      */
-    void update_aabb_compound(final I_Crappy_AABB... childAABBs){
+    public void update_aabb_compound(final I_Crappy_AABB... childAABBs){
         min = childAABBs[0].getMin();
         max = childAABBs[0].getMax();
         for (int i = childAABBs.length-1; i > 0; i--) {
@@ -115,7 +115,7 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
      * @param childAABBPairs the list of all the pairs that describe child AABBs to add together into a new AABB.
      */
     @SafeVarargs
-    final void update_aabb_compound(final IPair<Vect2D, Vect2D>... childAABBPairs){
+    public final void update_aabb_compound(final IPair<Vect2D, Vect2D>... childAABBPairs){
         min = childAABBPairs[0].getFirst();
         max = childAABBPairs[0].getSecond();
         for (int i = childAABBPairs.length-1; i > 0; i--) {
@@ -136,7 +136,7 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
      * adds the area described by the pair of vectors to this AABB
      * @param other the pair describing the other AABB area to add to this AABB
      */
-    void add_aabb(final IPair<Vect2D, Vect2D> other){
+    public void add_aabb(final IPair<Vect2D, Vect2D> other){
         min = Vect2DMath.LOWER_BOUND(min, other.getFirst());
         max = Vect2DMath.UPPER_BOUND(max, other.getSecond());
     }
@@ -145,7 +145,7 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
      * Adds the point to the area described by the AABB
      * @param point point to add to this AABB
      */
-    void add_point(final I_Vect2D point){
+    public void add_point(final I_Vect2D point){
         min = Vect2DMath.LOWER_BOUND(min, point);
         max = Vect2DMath.UPPER_BOUND(max, point);
     }
@@ -155,7 +155,7 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
      * @param mid midpoint of circle
      * @param radius circle radius
      */
-    void add_circle(final I_Vect2D mid, final double radius){
+    public void add_circle(final I_Vect2D mid, final double radius){
         min = Vect2DMath.LOWER_BOUND(min, Vect2DMath.ADD(mid, -radius));
         max = Vect2DMath.UPPER_BOUND(max, Vect2DMath.ADD(mid, radius));
     }
@@ -237,6 +237,18 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
     @Override
     public boolean check_if_in_bounds(final I_Vect2D v){
         return v.isGreaterThanOrEqualTo(min) && max.isGreaterThanOrEqualTo(v);
+    }
+
+    /**
+     * Checks if AABB intersects with this, then adds it to this AABB anyway, before returning
+     * whether or not they intersected at that first check
+     * @param aabb the other AABB to check + add to this one
+     * @return true if argument intersected before it was added, false otherwise
+     */
+    public boolean add_aabb_but_also_check_if_in_bounds(final I_Crappy_AABB aabb){
+        final boolean res = check_bb_intersect(aabb);
+        add_aabb(aabb);
+        return res;
     }
 
 

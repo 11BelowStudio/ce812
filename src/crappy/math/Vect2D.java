@@ -86,6 +86,9 @@ public final class Vect2D implements Serializable, I_Vect2D {
      */
     public Vect2D(final Vect3D v){ this(v.x, v.y); }
 
+
+    public Vect2D(final java.awt.geom.Point2D p){ this(p.getX(), p.getY());}
+
     /**
      * Whether this is equal to another object.
      * True if the other object is a Vect2D  with same x and y

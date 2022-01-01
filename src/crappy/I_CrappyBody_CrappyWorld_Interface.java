@@ -1,5 +1,6 @@
 package crappy;
 
+import crappy.graphics.I_CrappilyDrawStuff;
 import crappy.math.I_Vect2D;
 import crappy.utils.PendingStateChange;
 
@@ -56,4 +57,8 @@ public interface I_CrappyBody_CrappyWorld_Interface extends I_CrappyBody, I_View
     void clearAllPendingForces();
 
     void applyAllTempChanges();
+
+    void crappilyRenderBody(I_CrappilyDrawStuff renderer);
+
+    void updateDrawables();
 }

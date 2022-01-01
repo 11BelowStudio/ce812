@@ -107,6 +107,11 @@ public interface I_CrappyShape extends I_HaveRestitution, I_HaveMass {
     CRAPPY_SHAPE_TYPE getShapeType();
 
     /**
+     * Use this to update the 'drawable' values in the shape
+     */
+    void updateDrawables();
+
+    /**
      * Something to define what each of these collision shapes are
      */
     static enum CRAPPY_SHAPE_TYPE{
