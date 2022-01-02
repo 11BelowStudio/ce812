@@ -35,7 +35,7 @@ public class CrappyCircle extends A_CrappyShape implements I_CrappyCircle, Drawa
 
     @Override
     public Crappy_AABB updateShape(final I_Transform rootTransform) {
-        thisFrameAABB.update_aabb_circle(rootTransform.getPos().toVect2D(), getRadius());
+        thisFrameAABB.update_aabb_circle(rootTransform.getPos(), getRadius());
         return thisFrameAABB;
     }
 

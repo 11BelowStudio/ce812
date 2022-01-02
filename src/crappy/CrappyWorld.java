@@ -35,9 +35,9 @@ public class CrappyWorld {
     public final Vect2D grav;
 
 
-    final Set<CrappyBody> dynamicBodies = new LinkedHashSet<>();
+    final List<CrappyBody> dynamicBodies = new ArrayList<>();
 
-    final Set<CrappyBody> kinematicBodies = new LinkedHashSet<>();
+    final List<CrappyBody> kinematicBodies = new ArrayList<>();
 
     /**
      * AABB holding static geometry
@@ -94,6 +94,7 @@ public class CrappyWorld {
 
         final double subDelta = delta / (double) eulerSubsteps;
 
+
         synchronized (UPDATE_SYNC_OBJECT) {
 
             final AABBQuadTreeTools.I_DynamicKinematicAABBQuadTreeRootNode newObjectTree =
@@ -122,6 +123,9 @@ public class CrappyWorld {
                     for (iter = dynamicBodies.iterator(); iter.hasNext(); iter.next().euler_substep(subDelta)) ;
                     for (iter = kinematicBodies.iterator(); iter.hasNext(); iter.next().euler_substep(subDelta)) ;
                 }
+
+                for (iter = dynamicBodies.iterator(); iter.hasNext(); iter.next().applyAllTempChanges()) ;
+                for (iter = kinematicBodies.iterator(); iter.hasNext(); iter.next().applyAllTempChanges()) ;
 
 
                 // adds all the kinematic bodies to the dynamic/kinematic AABB tree
@@ -311,6 +315,7 @@ public class CrappyWorld {
      * @apiNote very inelegant, please don't use this unless you're really desperate.
      */
     public void renderCrappily(final I_CrappilyDrawStuff crapRenderer){
+
 
         synchronized (drawableStatics){
             drawableStatics.forEach(crapRenderer::drawThisBody);

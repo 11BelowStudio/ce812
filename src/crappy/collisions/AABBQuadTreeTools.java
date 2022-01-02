@@ -513,7 +513,7 @@ public final class AABBQuadTreeTools {
      * @return an AABB quadtree for static geometry
      */
     public static I_StaticGeometryQuadTreeRootNode STATIC_GEOMETRY_AABB_QUADTREE_FACTORY(
-            final Collection<I_CrappyBody_CrappyWorld_Interface> geometryShapes
+            final Collection<? extends I_CrappyBody_CrappyWorld_Interface> geometryShapes
     ){
         if (geometryShapes.isEmpty()){
             // if there's no geometry, we return an empty leaf node.
@@ -1005,6 +1005,10 @@ public final class AABBQuadTreeTools {
              */
             static Vect2D MEDIAN_OF_AABBS(final Collection<I_Crappy_AABB> boundingBoxes, final MIDPOINT_SELECTION_MODE opType) {
 
+                if (boundingBoxes.size() < 2){
+                    return Vect2D.ZERO;
+                }
+
                 final List<Double> xList = new ArrayList<>(boundingBoxes.size());
                 final List<Double> yList = new ArrayList<>(boundingBoxes.size());
 
@@ -1150,7 +1154,7 @@ public final class AABBQuadTreeTools {
         ){
             midpoint = mid;
 
-            if (thisDepth==depthLimit){
+            if (thisDepth>=depthLimit){
                 x_min_y_min = new DynamicKinematicAABBQuadTreeLeafNode();
                 x_max_y_max = new DynamicKinematicAABBQuadTreeLeafNode();
                 x_min_y_max = new DynamicKinematicAABBQuadTreeLeafNode();

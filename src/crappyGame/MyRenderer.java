@@ -2,15 +2,51 @@ package crappyGame;
 
 import crappy.graphics.I_CrappilyDrawStuff;
 import crappy.graphics.I_GraphicsTransform;
+import crappy.graphics.Vect2DGraphics;
 import crappy.math.I_Vect2D;
 
+import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
+import java.awt.image.ImageObserver;
+import java.awt.image.VolatileImage;
+import java.util.Arrays;
 
 public class MyRenderer implements I_CrappilyDrawStuff {
 
     private I_GraphicsTransform gTransform;
 
+    private VolatileImage img;
+
     private Graphics2D g;
+
+    private JComponent view;
+
+    MyRenderer(JComponent v){
+
+        view = v;
+        generateImage();
+    }
+
+    MyRenderer(I_GraphicsTransform gt){
+        gTransform = gt;
+    }
+
+
+    void generateImage(){
+
+        img = view.createVolatileImage(view.getWidth(), view.getHeight());
+
+        g = img.createGraphics();
+
+    }
+
+    void prepareToRender(Graphics2D g0){
+        g = g0;
+    }
 
     public void getCurrentGraphics(Graphics2D g){
         // TODO: work out how this is going to actually be able to use the graphics object.
@@ -51,6 +87,13 @@ public class MyRenderer implements I_CrappilyDrawStuff {
     @Override
     public void drawCircle(final I_Vect2D pos, final double radiusX, final double radiusY, final Color col) {
 
+
+
+        g.setColor(col);
+
+        g.draw(
+                new Ellipse2D.Double(pos.getX()-radiusX, pos.getY()-radiusY, 2*radiusX, 2*radiusY)
+        );
     }
 
     /**
@@ -64,6 +107,11 @@ public class MyRenderer implements I_CrappilyDrawStuff {
     @Override
     public void drawFilledCircle(I_Vect2D pos, double radiusX, double radiusY, Color col) {
 
+        g.setColor(col);
+
+        g.fill(
+                new Ellipse2D.Double(pos.getX()-radiusX, pos.getY()-radiusY, 2*radiusX, 2*radiusY)
+        );
     }
 
     /**
@@ -76,6 +124,10 @@ public class MyRenderer implements I_CrappilyDrawStuff {
     @Override
     public void drawPolygon(I_Vect2D pos, I_Vect2D[] vertices, Color col) {
 
+        g.setColor(col);
+        g.draw(
+                Vect2DGraphics.VECTS_TO_DOUBLE_PATH(vertices)
+        );
     }
 
     /**
@@ -88,6 +140,10 @@ public class MyRenderer implements I_CrappilyDrawStuff {
     @Override
     public void drawFilledPolygon(I_Vect2D pos, I_Vect2D[] vertices, Color col) {
 
+        g.setColor(col);
+        g.fill(
+                Vect2DGraphics.VECTS_TO_DOUBLE_PATH(vertices)
+        );
     }
 
     /**
@@ -100,5 +156,19 @@ public class MyRenderer implements I_CrappilyDrawStuff {
     @Override
     public void drawLine(I_Vect2D a, I_Vect2D b, Color col) {
 
+
+        g.setColor(col);
+        g.draw(
+                new Line2D.Double(a.getX(), a.getY(),b.getX(), b.getY())
+        );
+    }
+
+    @Override
+    public void drawRectangle(I_Vect2D lb, I_Vect2D ub, Color col) {
+
+        g.setColor(col);
+        g.draw(
+                new Rectangle2D.Double(lb.getX(), lb.getY(), ub.getX(), ub.getY())
+        );
     }
 }

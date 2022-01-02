@@ -50,7 +50,7 @@ public class CrappyLine extends A_CrappyShape implements Iterable<I_CrappyEdge>,
      * @param end where this line ends
      */
     public CrappyLine(final CrappyBody_Shape_Interface body, final Vect2D start, final Vect2D end) {
-        super(CRAPPY_SHAPE_TYPE.LINE, body, Vect2DMath.MIDPOINT(start, end),  2);
+        super(body, CRAPPY_SHAPE_TYPE.LINE, Vect2DMath.MIDPOINT(start, end));
 
 
         edgeA = new CrappyEdge(start, end, body);

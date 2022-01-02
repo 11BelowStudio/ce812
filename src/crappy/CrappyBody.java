@@ -276,13 +276,21 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
         callbackHandler = callback;
         this.userData = userData;
         name = id;
+        intermediateTransform.update();
+        eus = EULER_UPDATE_STATE.NOTHING;
+
     }
 
     /**
      * Call this once to set the shape of this object
      * @param shape the shape of this object
      */
-    public void setShape(final A_CrappyShape shape){ this.shape.set(shape);}
+    public void setShape(final A_CrappyShape shape){
+        this.shape.set(shape);
+        shape.timestepStartUpdate();
+        shape.midTimestepUpdate();
+        shape.timestepEndUpdate();
+    }
 
     /**
      * Returns {@link #myBodyTagBits} (the bitmask representing the 'tags' of this object)
@@ -480,7 +488,7 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
         NOTHING,
         PRIOR_SUB_UPDATE,
         SUB_UPDATING,
-        FINALIZED;
+        DONE;
     }
 
     /**
@@ -864,10 +872,11 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
 
         switch (eus){
             case NOTHING:
-            case FINALIZED:
+            case DONE:
                 eus = EULER_UPDATE_STATE.PRIOR_SUB_UPDATE;
                 break;
             default:
+                System.out.println(this);
                 throw new AssertionError(
                         "Expected euler update state of 'NOTHING' or 'FINALIZED', was in " + eus + "!"
                 );
@@ -902,6 +911,8 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
 
                 break;
         }
+
+        shape.getAssert().timestepStartUpdate();
 
         euler_substep(subDeltaT);
     }
@@ -943,6 +954,12 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
 
         intermediateTransform.update();
 
+        shape.getAssert().midTimestepUpdate();
+
+    }
+
+    public void doneEulers(){
+        eus = EULER_UPDATE_STATE.DONE;
     }
 
 
@@ -962,7 +979,7 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
     public void applyAllTempChanges(){
 
         if (eus == EULER_UPDATE_STATE.SUB_UPDATING) {
-            eus = EULER_UPDATE_STATE.FINALIZED;
+            eus = EULER_UPDATE_STATE.DONE;
         } else {
             throw new AssertionError("Expected state of 'SUB_UPDATING', was in " + eus + "!");
         }
@@ -984,6 +1001,8 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
         clearAllPendingForces();
 
         intermediateTransform.update();
+
+        shape.getAssert().timestepEndUpdate();
     }
 
     @Override
@@ -1059,7 +1078,7 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
 
         public CrappyBodyCreator(){}
 
-        private static class DEFAULT_CALLBACK_HANDLER implements CrappyCallbackHandler { }
+        public static class DEFAULT_CALLBACK_HANDLER implements CrappyCallbackHandler { }
 
 
         public CrappyBody makeBody(){

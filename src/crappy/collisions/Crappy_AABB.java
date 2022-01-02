@@ -204,8 +204,10 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
      * @param radius the radius of the circle which this bounding box describes
      */
     public void update_aabb_circle(final Vect2D mid, final double radius){
+        System.out.println(this);
         this.min = mid.add(-radius);
         this.max = mid.add(radius);
+        System.out.println(this);
 
     }
 
@@ -268,6 +270,11 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
     }
 
 
-
-
+    @Override
+    public String toString() {
+        return "Crappy_AABB{" +
+                "min=" + min +
+                ", max=" + max +
+                '}';
+    }
 }

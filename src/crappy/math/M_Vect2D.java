@@ -177,7 +177,7 @@ public final class M_Vect2D implements I_Vect2D {
      * @return a new, immutable, Vect2D with the value that this M_Vect2D had when this was called.
      */
     public Vect2D finished(){
-        final Vect2D v = new Vect2D(this);
+        final Vect2D v = new Vect2D(this.x, this.y);
         discard();
         return v;
     }

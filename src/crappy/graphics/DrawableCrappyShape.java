@@ -24,7 +24,7 @@ public interface DrawableCrappyShape {
      * Obtains the body attached to the shape, juuuust in case someone needs that for some reason
      * @return the body
      */
-    DrawableBody getBody();
+    CrappyBody_Shape_Interface getBody();
 
     I_CrappyShape.CRAPPY_SHAPE_TYPE getShapeType();
 

@@ -6,6 +6,7 @@ import crappy.collisions.*;
 import crappy.math.I_Vect2D;
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
+import crappy.utils.containers.IPair;
 
 import java.awt.*;
 
@@ -87,14 +88,33 @@ public interface I_CrappilyDrawStuff {
             final Color col
     );
 
+
+    void drawRectangle(
+            final I_Vect2D lb, final I_Vect2D ub,
+            final Color col
+    );
+
     // TODO: methods that accept shapes, calculate appropriate vertices for them, and call these draw methods
 
 
+    default void acceptAABB(DrawableCrappyShape d){
+        final I_Crappy_AABB b = d.getBody().getAABB();
+        drawRectangle(getGraphicsTransform().TO_SCREEN_COORDS_V(b.getMin()), getGraphicsTransform().TO_SCREEN_COORDS_V(b.getMax()), Color.WHITE);
+    }
+
     default void acceptCircle(final DrawableCrappyShape.DrawableCircle c){
+
+        
         double yRad = getGraphicsTransform().convertWorldHeightToScreenHeight(c.getRadius());
         double xRad = getGraphicsTransform().convertWorldLengthToScreenLength(c.getRadius());
 
         final Vect2D screenPos = getGraphicsTransform().TO_SCREEN_COORDS_V(c.getDrawablePos());
+
+        final I_Crappy_AABB b = c.getBody().getAABB();
+
+        System.out.println(b);
+
+        drawRectangle(getGraphicsTransform().TO_SCREEN_COORDS_V(b.getMin()), getGraphicsTransform().TO_SCREEN_COORDS_V(b.getMax()), Color.WHITE);
 
         drawFilledCircle(screenPos, xRad, yRad, SELECT_COLOR_BODY(c.getShapeType(), c.getBody().getBodyType(), true));
         drawCircle(screenPos, xRad, yRad, SELECT_COLOR_BODY(c.getShapeType(), c.getBody().getBodyType(), false));
@@ -113,6 +133,8 @@ public interface I_CrappilyDrawStuff {
             screenVertices[i] = getGraphicsTransform().TO_SCREEN_COORDS_V(screenVertices[i]);
         }
 
+        acceptAABB(p);
+
         drawFilledPolygon(screenPos, screenVertices, SELECT_COLOR_BODY(p.getShapeType(), p.getBody().getBodyType(), true));
 
         acceptCircle(p.getDrawableIncircle());
@@ -122,6 +144,8 @@ public interface I_CrappilyDrawStuff {
 
 
     default void acceptEdge(DrawableCrappyShape.DrawableEdge e){
+
+        acceptAABB(e);
 
         final Vect2D screenStart = getGraphicsTransform().TO_SCREEN_COORDS_V(e.getDrawableStart());
         final Vect2D screenEnd = getGraphicsTransform().TO_SCREEN_COORDS_V(e.getDrawableEnd());
@@ -135,6 +159,8 @@ public interface I_CrappilyDrawStuff {
 
 
     default void acceptLine(DrawableCrappyShape.DrawableLine l){
+
+        acceptAABB(l);
 
         final Vect2D screenStart = getGraphicsTransform().TO_SCREEN_COORDS_V(l.getDrawableStart());
         final Vect2D screenEnd = getGraphicsTransform().TO_SCREEN_COORDS_V(l.getDrawableEnd());

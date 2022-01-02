@@ -165,6 +165,7 @@ public interface I_Vect2D extends IPair<Double, Double>, Comparable<I_Vect2D> {
     }
 
 
+
 }
 
 

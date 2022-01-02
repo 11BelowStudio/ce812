@@ -61,4 +61,6 @@ public interface I_CrappyBody_CrappyWorld_Interface extends I_CrappyBody, I_View
     void crappilyRenderBody(I_CrappilyDrawStuff renderer);
 
     void updateDrawables();
+
+    void doneEulers();
 }
