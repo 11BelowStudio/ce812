@@ -30,5 +30,13 @@ public interface I_CrappyBody extends I_View_CrappyBody, IHaveAndConsumeBitmask 
     //  a 'I have collided with a static thing so I need to flip my velocity and torque ASAP' method!
     void applyHitSomethingStatic(final I_Vect2D localCollidePos, final I_Vect2D norm, final double jImpulse);
 
+    /**
+     * Overwrites velocity after a collision happens
+     * @param newVel the new linear velocity
+     * @param newAngVel the new angular velocity
+     * @param overwriteSource the source of this overwrite operation
+     */
+    void overwriteVelocityAfterCollision(final I_Vect2D newVel, final double newAngVel, final CrappyBody.FORCE_SOURCE overwriteSource);
+
     boolean wasClicked();
 }

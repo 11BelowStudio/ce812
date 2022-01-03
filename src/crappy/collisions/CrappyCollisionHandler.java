@@ -25,6 +25,11 @@ public final class CrappyCollisionHandler {
             final Collection<? extends CrappyShape_QuadTree_Interface> bbIntersects,
             final double deltaT
     ){
+
+        if (bbIntersects.isEmpty()){
+            return;
+        }
+
         final I_CrappyShape s = body.getShape();
 
         //System.out.println("CrappyCollisionHandler.HANDLE_COLLISIONS");

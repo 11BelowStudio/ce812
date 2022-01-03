@@ -68,14 +68,14 @@ public final class CrappyCollisionMath {
 
              */
 
-            /*
+
             angleBit = M_Vect2D.GET(rotatedLocalPos)
                     .cross(
                             M_Vect2D.GET(rotatedLocalPos).cross_discard(cNorm), false
                     ).divide(s.getMInertia())
                     .dot_discard(cNorm);
 
-             */
+
         }
 
         /*
@@ -103,7 +103,6 @@ public final class CrappyCollisionMath {
             final I_Vect2D norm
     ){
 
-
         /*
         if (a.getBody().getBodyType() == CrappyBody.CRAPPY_BODY_TYPE.DYNAMIC) {
             switch (b.getBody().getBodyType()) {
@@ -121,17 +120,23 @@ public final class CrappyCollisionMath {
 
          */
 
+
+
         System.out.println("CrappyCollisionMath.CALCULATE_AND_APPLY_IMPULSE");
         System.out.println("a = " + a + ", aLocalPos = " + aLocalPos + ", b = " + b + ", bLocalPos = " + bLocalPos + ", norm = " + norm);
+        System.out.println("a = " + a.getBody().getName());
+        System.out.println("b = " + b.getBody().getName());
 
         // Both of these are equal to  Ԧ𝑣𝐶𝑂𝑀 + 𝜔 × Ԧ𝑟
         final M_Vect2D aLocalWorldVel = Vect2DMath.WORLD_VEL_OF_LOCAL_COORD_M(aLocalPos, a.getBodyTransform());
 
-        System.out.println("aLocalWorldVel = " + aLocalWorldVel);
+        System.out.println("\taLocalWorldVel = " + aLocalWorldVel);
+        System.out.println("\ta.getBody().getVel() = " + a.getBody().getVel());
         
         final M_Vect2D bLocalWorldVel = Vect2DMath.WORLD_VEL_OF_LOCAL_COORD_M(bLocalPos, b.getBodyTransform());
 
-        System.out.println("bLocalWorldVel = " + bLocalWorldVel);
+        System.out.println("\tbLocalWorldVel = " + bLocalWorldVel);
+        System.out.println("\tb.getBody().getVel() = " + b.getBody().getVel());
 
         // jb = (e+1) * (Ua.norm - Ub.norm) / (1/Ma + 1/Mb)
 
@@ -145,13 +150,13 @@ public final class CrappyCollisionMath {
         // we substitute the denominator with 1 if we get a value of 0 because overall masses/velocities are 0
 
 
-        System.out.println("restitutions = " + AVG_RESTITUTION(a,b)+1);
+        System.out.println("\trestitutions = " + AVG_RESTITUTION(a,b)+1);
 
-        System.out.println("vels dotted = " + (aLocalWorldVel.dot(norm) - bLocalWorldVel.dot(norm)));
+        System.out.println("\tvels dotted = " + (aLocalWorldVel.dot(norm) - bLocalWorldVel.dot(norm)));
 
-        System.out.println("a denominator = " + CALCULATE_IMPULSE_DENOMINATOR_FOR_SHAPE(a, aLocalPos, norm));
+        System.out.println("\ta denominator = " + CALCULATE_IMPULSE_DENOMINATOR_FOR_SHAPE(a, aLocalPos, norm));
 
-        System.out.println("b denominator = " + CALCULATE_IMPULSE_DENOMINATOR_FOR_SHAPE(b, bLocalPos, norm));
+        System.out.println("\tb denominator = " + CALCULATE_IMPULSE_DENOMINATOR_FOR_SHAPE(b, bLocalPos, norm));
 
         final double jb =(
             (
@@ -172,8 +177,8 @@ public final class CrappyCollisionMath {
             return;
         }
 
-        System.out.println("norm = " + norm);
-        System.out.println("jb = " + jb);
+        System.out.println("\tnorm = " + norm);
+        System.out.println("\tjb = " + jb);
 
 
 
@@ -184,16 +189,33 @@ public final class CrappyCollisionMath {
         // (also the applyForce method applies the appropriate force amount to hopefully cause the appropriate change
         // to the centre of mass' velocity)
 
+        /*
         b.getBody().applyForce(
                 //Vect2DMath.MULTIPLY(norm, jb),
                 Vect2DMath.ADD_SCALED(b.getVel(), norm, jb),
                 CrappyBody.FORCE_SOURCE.ENGINE
         );
+        */
 
+        b.getBody().overwriteVelocityAfterCollision(
+                Vect2DMath.ADD_SCALED(b.getVel(), norm, jb/b.getMass()),
+                bLocalPos.cross(norm) * jb / b.getMInertia(),
+                CrappyBody.FORCE_SOURCE.ENGINE
+        );
+
+        a.getBody().overwriteVelocityAfterCollision(
+                Vect2DMath.ADD_SCALED(a.getVel(), norm, -jb/a.getMass()),
+                aLocalPos.cross(norm) * -jb/a.getMInertia(),
+                CrappyBody.FORCE_SOURCE.ENGINE
+        );
+
+        /*
         b.getBody().applyTorque(
                 bLocalPos.cross(norm) * jb,
                 CrappyBody.FORCE_SOURCE.ENGINE
         );
+
+         */
 
 
 
@@ -208,7 +230,7 @@ public final class CrappyCollisionMath {
                 CrappyBody.FORCE_SOURCE.ENGINE
         );
 
-        /*/
+        /*
         a.getBody().applyForce(
                 Vect2DMath.MULTIPLY(norm, -jb),
                 //Vect2DMath.ADD_SCALED(a.getVel(), norm, -jb * a.getMass()),
@@ -221,6 +243,9 @@ public final class CrappyCollisionMath {
                 aLocalPos.cross(norm) * -jb,
                 CrappyBody.FORCE_SOURCE.ENGINE
         );
+
+         */
+
 
 
         bLocalWorldVel.discard();
@@ -260,7 +285,13 @@ public final class CrappyCollisionMath {
 
          */
 
-        dyn.getBody().applyHitSomethingStatic(dLocalPos, norm, j);
+        //dyn.getBody().applyHitSomethingStatic(dLocalPos, norm, j);
+
+        dyn.getBody().overwriteVelocityAfterCollision(
+                Vect2DMath.ADD_SCALED(dyn.getBody().getVel(), norm, j/dyn.getMass()),
+                dLocalPos.cross(norm) * j/dyn.getMInertia(),
+                CrappyBody.FORCE_SOURCE.ENGINE
+        );
 
         dLocalWorldVel.finished();
     }
@@ -458,62 +489,87 @@ public final class CrappyCollisionMath {
 
     public static boolean COLLIDE_CIRCLE_LINE(final I_CrappyShape c, final I_CrappyLine l, final double deltaT) {
 
-        return (COLLIDE_CIRCLE_EDGE(c, l.getEdgeB(), deltaT));
+        //return (COLLIDE_CIRCLE_EDGE(c, l.getEdgeB(), deltaT));
 
-        /*
+        // TODO: dedicated 'dynamic circle static line' check?
+
+        System.out.println("CrappyCollisionMath.COLLIDE_CIRCLE_LINE");
+        System.out.println("c = " + c + ", l = " + l + ", deltaT = " + deltaT);
+
+        System.out.println("\tc.getBody().getName() = " + c.getBody().getName());
+
+
 
         // first attempt to collide the circle with the endpoints of this line
         if (COLLIDE_CIRCLE_CIRCLE(c, l.getEdgeA().getEndPointCircle(), deltaT) || COLLIDE_CIRCLE_CIRCLE(c, l.getEdgeB().getEndPointCircle(), deltaT)){
+            System.out.println("done!");
             return true;
         }
+        System.out.println("\tStill colliding circle-line!");
 
 
         Vect2D endToNowPos = Vect2DMath.VECTOR_BETWEEN(l.getWorldStart(), c.getPos());
+        System.out.println("\tendToNowPos = " + endToNowPos);
         Vect2D tang = l.getEdgeA().getWorldTang();
         double thisFrameDistAlongBarrier = l.getEdgeA().getWorldTang().dot(endToNowPos);
+        System.out.println("\tthisFrameDistAlongBarrier = " + thisFrameDistAlongBarrier);
 
         if (thisFrameDistAlongBarrier < -c.getRadius() || thisFrameDistAlongBarrier > l.getEdgeA().getLength() + c.getRadius()){
+            System.out.println("Too far!");
             return false;
         }
 
 
         Vect2D endToLastPos = Vect2DMath.VECTOR_BETWEEN(l.getWorldStart(), c.getLastFrameWorldPos());
-
+        System.out.println("\tendToLastPos = " + endToLastPos);
         Vect2D aNorm = l.getEdgeA().getWorldNorm();
+        System.out.println("\taNorm = " + aNorm);
         double lastFrameDist = aNorm.dot(endToLastPos);
+        System.out.println("\tlastFrameDist = " + lastFrameDist);
         double thisFrameDist = aNorm.dot(endToNowPos);
+        System.out.println("\tthisFrameDist = " + thisFrameDist);
 
         double lastFrameDistAlongBarrier = l.getEdgeA().getWorldTang().dot(endToLastPos);
 
+        System.out.println("\tc.getVel() = " + c.getVel());
         double velDotNorm = c.getVel().dot(aNorm);
+        System.out.println("\tvelDotNorm = " + velDotNorm);
 
         Vect2D collisionAt = l.getPos().addScaled(tang, thisFrameDistAlongBarrier);
+        System.out.println("\tcollisionAt = " + collisionAt);
 
-        if (lastFrameDist > c.getRadius() && velDotNorm < 0){
+        System.out.println("\t (lastFrameDist > c.getRadius()) = " + (lastFrameDist > c.getRadius()));
+        System.out.println("\t (lastFrameDist < - c.getRadius()) = " + (lastFrameDist < -c.getRadius()));
+        if (lastFrameDist < -c.getRadius() && velDotNorm < 0){
 
-            if (thisFrameDist < c.getRadius()){
 
-
-
-                CALCULATE_AND_APPLY_IMPULSE(
-                        c, Vect2DMath.WORLD_TO_LOCAL_M(collisionAt, c.getBodyTransform()),
-                        l, Vect2DMath.WORLD_TO_LOCAL_M(collisionAt, l.getBodyTransform()),
-                        aNorm.invert()
-                );
-
-                return true;
-
-            }
-
-        } else if (lastFrameDist < -c.getRadius() && velDotNorm > 0){
+            System.out.println("\t(thisFrameDist > -c.getRadius()) = " + (thisFrameDist > -c.getRadius()));
 
             if (thisFrameDist > -c.getRadius()){
+
 
 
                 CALCULATE_AND_APPLY_IMPULSE(
                         c, Vect2DMath.WORLD_TO_LOCAL_M(collisionAt, c.getBodyTransform()),
                         l, Vect2DMath.WORLD_TO_LOCAL_M(collisionAt, l.getBodyTransform()),
                         aNorm
+                );
+
+                return true;
+
+            }
+
+        } else if (lastFrameDist > c.getRadius() && velDotNorm > 0){
+
+            System.out.println("\t(thisFrameDist < c.getRadius()) = " + (thisFrameDist < c.getRadius()));
+
+            if (thisFrameDist < c.getRadius()){
+
+
+                CALCULATE_AND_APPLY_IMPULSE(
+                        c, Vect2DMath.WORLD_TO_LOCAL_M(collisionAt, c.getBodyTransform()),
+                        l, Vect2DMath.WORLD_TO_LOCAL_M(collisionAt, l.getBodyTransform()),
+                        aNorm.invert()
                 );
                 return true;
             }
@@ -522,7 +578,7 @@ public final class CrappyCollisionMath {
         return false;
 
 
-         */
+
 
         // TODO:
         //  work out which side the circle is on.

@@ -17,10 +17,21 @@ public class CrappyCircle extends A_CrappyShape implements I_CrappyCircle, Drawa
     public CrappyCircle(final CrappyBody_ShapeSetter_Interface body, final double radius) {
         super(CRAPPY_SHAPE_TYPE.CIRCLE, Vect2D.ZERO, body, radius);
 
+
         body.__setShape__internalDoNotCallYourselfPlease(
                 this, Vect2DMath.CIRCLE_MOMENT_OF_INERTIA(radius, body.getMass())
         );
         updateShape(body);
+
+        System.out.println("CrappyCircle.CrappyCircle: " + body.getName());
+        System.out.println("getPos() = " + getPos());
+
+        timestepStartUpdate();
+        midTimestepUpdate();
+        timestepEndUpdate();
+        timestepStartUpdate();
+        midTimestepUpdate();
+        timestepEndUpdate();
 
 
     }

@@ -6,6 +6,8 @@ import crappy.math.Vect2DMath;
 import crappy.utils.containers.IPair;
 import crappy.utils.containers.Quadruplet;
 
+import java.util.Arrays;
+
 
 /**
  * An axis-aligned bounding box
@@ -105,7 +107,7 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
     public void update_aabb_compound(final I_Crappy_AABB... childAABBs){
         min = childAABBs[0].getMin();
         max = childAABBs[0].getMax();
-        for (int i = childAABBs.length-1; i > 0; i--) {
+        for (int i = childAABBs.length-1; i > 1; i--) {
             add_aabb(childAABBs[i]);
         }
     }
@@ -204,6 +206,7 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
      * @param radius the radius of the circle which this bounding box describes
      */
     public void update_aabb_circle(final Vect2D mid, final double radius){
+
         this.min = mid.add(-radius);
         this.max = mid.add(radius);
 

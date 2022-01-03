@@ -287,10 +287,14 @@ public class CrappyBody implements
         }
         this.position = pos;
         lastPosition = pos;
+        tempPosition.set(pos);
         this.velocity = vel;
+        tempVel.set(vel);
         this.rotation = rot;
         lastRotation = rot;
+        tempRot.set(rot);
         this.angVelocity = angVel;
+        this.tempAngVelocity = angVel;
         this.restitution = restitution;
         this.angularDrag = angularDrag;
         this.linearDrag = linearDrag;
@@ -884,15 +888,15 @@ public class CrappyBody implements
     @Override
     public void applyHitSomethingStatic(I_Vect2D localCollidePos, I_Vect2D norm, double jImpulse) {
         if (canApplyThisForce(FORCE_SOURCE.ENGINE)) {
-            System.out.println("CrappyBody.applyHitSomethingStatic");
-            System.out.println("localCollidePos = " + localCollidePos + ", norm = " + norm + ", jImpulse = " + jImpulse);
+            //System.out.println("CrappyBody.applyHitSomethingStatic");
+            //System.out.println("localCollidePos = " + localCollidePos + ", norm = " + norm + ", jImpulse = " + jImpulse);
 
-            System.out.println("tempVel = " + velocity);
+            //System.out.println("tempVel = " + velocity);
             velocity.addScaled(norm, jImpulse / getMass());
-            System.out.println("tempVel = " + velocity);
-            System.out.println("tempAngVelocity = " + angVelocity);
+            //System.out.println("tempVel = " + velocity);
+            //System.out.println("tempAngVelocity = " + angVelocity);
             angVelocity += (jImpulse * localCollidePos.cross(norm)) / getMomentOfInertia();
-            System.out.println("tempAngVelocity = " + angVelocity);
+            //System.out.println("tempAngVelocity = " + angVelocity);
         }
     }
 
@@ -1062,17 +1066,6 @@ public class CrappyBody implements
         }
 
 
-        /*
-        System.out.println("CrappyBody.applyAllTempChanges");
-        System.out.println("rotation = " + rotation);
-        System.out.println("tempRot = " + tempRot);
-        System.out.println("tempRotChange = " + tempRotChange);
-        System.out.println("angVelocity = " + angVelocity);
-        System.out.println("tempAngVelocity = " + tempAngVelocity);
-        System.out.println("tempAngVelocityChange = " + tempAngVelocityChange);
-        System.out.println("velocity = " + velocity);
-        System.out.println("tempVel = " + tempVel);
-         */
         velocity = new Vect2D(tempVel);
         lastPosition = position;
         position = new Vect2D(tempPosition);
@@ -1095,17 +1088,7 @@ public class CrappyBody implements
 
         shape.getAssert().timestepEndUpdate();
 
-        /*
-        System.out.println("rotation = " + rotation);
-        System.out.println("tempRot = " + tempRot);
-        System.out.println("tempRotChange = " + tempRotChange);
-        System.out.println("angVelocity = " + angVelocity);
-        System.out.println("tempAngVelocity = " + tempAngVelocity);
-        System.out.println("tempAngVelocityChange = " + tempAngVelocityChange);
-        System.out.println("velocity = " + velocity);
-        System.out.println("tempVel = " + tempVel);
 
-         */
 
         assert true;
 
@@ -1193,6 +1176,23 @@ public class CrappyBody implements
     // TODO:
     //   Might have to just cut my losses and make a function that just directly modifies the velocity, as-is,
     //   for the collision handling code, as I'm getting pretty fucking demoralized from how nothing's working.
+
+
+    public void overwriteVelocityAfterCollision(final I_Vect2D newVel, final double newAngVel, final FORCE_SOURCE overwriteSource){
+
+        System.out.println("CrappyBody.overwriteVelocityAfterCollision: " + name);
+        System.out.println("newVel = " + newVel + ", newAngVel = " + newAngVel + ", overwriteSource = " + overwriteSource);
+
+        if (canApplyThisForce(overwriteSource)) {
+            velocity = newVel.toVect2D();
+            tempVel.set(newVel);
+            if (Double.isFinite(angVelocity) && inertia > 0) {
+                angVelocity = newAngVel;
+                tempAngVelocity = newAngVel;
+            }
+        }
+    }
+
 
     /**
      * Inspired somewhat by JBox2D's BodyDef class,

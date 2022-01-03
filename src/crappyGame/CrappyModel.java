@@ -45,7 +45,7 @@ public class CrappyModel implements Viewable {
                 -1,
                 new CrappyCallbackHandler() {},
                 new Object(),
-                "crap"
+                "line"
         );
         new CrappyLine(c, new Vect2D(0, 1), new Vect2D(10, 1.25));
 
@@ -86,8 +86,8 @@ public class CrappyModel implements Viewable {
 
         CrappyBody c3 = new CrappyBody(
                 new Vect2D(7.5, 5),
-                //Vect2D.ZERO,
-                Vect2D.POLAR(Rot2D.FROM_DEGREES(45), 5),
+                Vect2D.ZERO,
+                //Vect2D.POLAR(Rot2D.FROM_DEGREES(45), 5),
                 Rot2D.IDENTITY,
                 0,
                 1.2,
@@ -105,7 +105,7 @@ public class CrappyModel implements Viewable {
                     }
                 },
                 new Object(),
-                "cungaradeo"
+                "cungaradeo2"
         );
 
         new CrappyCircle(c3, 0.25);

@@ -1,6 +1,7 @@
 package crappy;
 
 import crappy.graphics.DrawableBody;
+import crappy.math.I_Vect2D;
 
 /**
  * An interface for the CrappyShapes to access the CrappyBody with.
@@ -31,5 +32,7 @@ public interface CrappyBody_Shape_Interface extends I_View_CrappyBody, I_Transfo
      * @return I_ManipulateCrappyBody view of this object CrappyBody
      */
     I_ManipulateCrappyBody getManipulatable();
+
+
 
 }

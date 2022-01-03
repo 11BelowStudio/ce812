@@ -155,11 +155,8 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I
     }
 
     public void timestepEndUpdate(){
-
         updateShape(getBodyTransform());
-
         aabb.update_aabb_compound(lastFrameAABB, thisFrameAABB);
-
         lastFrameAABB.update_aabb(thisFrameAABB);
     }
 
