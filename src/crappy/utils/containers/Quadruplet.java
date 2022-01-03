@@ -77,4 +77,14 @@ public class Quadruplet<T1, T2, T3, T4> implements IQuadruplet<T1, T2, T3, T4>{
     public T4 getFourth() {
         return fourth;
     }
+
+    @Override
+    public String toString() {
+        return "Quadruplet{" +
+                "first=" + first +
+                ", second=" + second +
+                ", third=" + third +
+                ", fourth=" + fourth +
+                '}';
+    }
 }

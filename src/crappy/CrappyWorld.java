@@ -30,7 +30,7 @@ public class CrappyWorld {
 
     public static final double DELTA_T = DELAY / 1000.0 / (double) EULER_UPDATES_PER_RENDER_ATTEMPT;
 
-    public static final Vect2D GRAVITY = new Vect2D(0, -0.95);
+    public static final Vect2D GRAVITY = new Vect2D(0, -9.81);
 
     public final Vect2D grav;
 

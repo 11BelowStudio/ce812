@@ -3,6 +3,7 @@ package crappy.utils.containers;
 import crappy.internals.CrappyWarning;
 
 import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -112,5 +113,13 @@ public class Tuple<T> implements Iterable<T> {
             counter++;
             return tup.get(counter);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Tuple{" +
+                "data=" + Arrays.toString(data) +
+                ", length=" + length +
+                '}';
     }
 }

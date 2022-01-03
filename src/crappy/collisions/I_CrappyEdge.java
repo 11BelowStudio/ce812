@@ -35,4 +35,14 @@ public interface I_CrappyEdge extends I_CrappyShape {
     default boolean isPointInShape(final I_Vect2D worldPoint){
         return Vect2DMath.IS_POINT_ON_LINE_PROJ(worldPoint, getWorldStart(), getWorldProj());
     }
+
+    /**
+     * Obtains the size of the 'buffer zone' behind it.
+     * If null, NaN, or Infinity are returned, that means depth is infinite.
+     */
+    default double getDepth(){
+        // TODO: implement this!!!!!!!
+
+        return 0.0;
+    }
 }

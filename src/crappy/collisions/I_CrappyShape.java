@@ -3,6 +3,7 @@ package crappy.collisions;
 import crappy.CrappyBody_Shape_Interface;
 import crappy.I_Transform;
 import crappy.math.I_Vect2D;
+import crappy.math.Rot2D;
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
 
@@ -73,6 +74,8 @@ public interface I_CrappyShape extends I_HaveRestitution, I_HaveMass {
     default Vect2D getPos(){
         return getBodyTransform().getPos();
     }
+
+    default Rot2D getRot(){ return getBodyTransform().getRot(); }
 
     default Vect2D getVel(){
         return getBodyTransform().getVel();

@@ -41,4 +41,13 @@ public class Triplet<T1, T2, T3> implements ITriplet<T1, T2, T3> {
     public T3 getThird() {
         return third;
     }
+
+    @Override
+    public String toString() {
+        return "Triplet{" +
+                "first=" + first +
+                ", second=" + second +
+                ", third=" + third +
+                '}';
+    }
 }

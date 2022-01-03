@@ -199,6 +199,16 @@ public final class Vect2D implements Serializable, I_Vect2D {
     }
 
     /**
+     * Scaled addition of two vectors but the other vector is being scaled component-wise
+     * @param v vector being added, in a scaled manner
+     * @param f component-wise scaling factors
+     * @return x + (v.x * f.x), y + (v.y * f.y)
+     */
+    public Vect2D addScaled(final IPair<Double, Double> v, final IPair<Double, Double> f){
+        return new Vect2D(x + (v.getFirst() * f.getFirst()), y + (v.getSecond() * f.getSecond()));
+    }
+
+    /**
      * Returns a new vector equal to this*fac
      * @param fac how much to multiply this vector by
      * @return result of this * fac

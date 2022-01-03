@@ -739,11 +739,6 @@ public final class Vect2DMath {
      * @return the worldPos but as a local coordinate of the body described by bodyWorldPos and bodyWorldRot
      */
     public static M_Vect2D WORLD_TO_LOCAL_M(I_Vect2D worldPos, I_Vect2D bodyWorldPos, I_Rot2D bodyWorldRot){
-        System.out.println("Vect2DMath.WORLD_TO_LOCAL_M");
-        System.out.println("worldPos = " + worldPos + ", bodyWorldPos = " + bodyWorldPos + ", bodyWorldRot = " + bodyWorldRot);
-
-        System.out.println("Vect2DMath.MINUS(worldPos,bodyWorldPos) = " + Vect2DMath.MINUS(worldPos,bodyWorldPos));
-
         return M_Vect2D.GET(worldPos).sub(bodyWorldPos).rotate_opposite(bodyWorldRot);
     }
 
@@ -769,12 +764,6 @@ public final class Vect2DMath {
      * @return the velocity, in world scale, of the local position on that body
      */
     public static M_Vect2D WORLD_VEL_OF_LOCAL_COORD_M(final I_Vect2D localPos, final double angVel, final I_Vect2D vel){
-
-        System.out.println("Vect2DMath.WORLD_VEL_OF_LOCAL_COORD_M");
-        System.out.println("localPos = " + localPos + ", angVel = " + angVel + ", vel = " + vel);
-
-        System.out.println("localPos x angVel = " + localPos.toVect2D().cross(angVel, false));
-
         return M_Vect2D.GET(localPos)
                 .cross(angVel, false) // angVel X r
                 .add(vel); // adding main body vel
@@ -1118,7 +1107,7 @@ public final class Vect2DMath {
      * @param centroid position of the centroid within local coordinates
      * @param vects corners of the polygon in local coordinates
      * @param out array which will hold centroid->localCorner vectors.
-     * @return pair of {@code <incircle radius, max magnitude>}
+     * @return pair of {@literal  <incircle radius, max magnitude>}
      */
     public static IPair<Double, Double> INCIRCLE_AND_MAX_MAGNITUDE_OFFSET_ALSO_CENTROID_TO_CORNERS_TO_OUT(
             final I_Vect2D centroid,
@@ -1129,6 +1118,8 @@ public final class Vect2DMath {
         final M_Vect2D current = M_Vect2D._GET_RAW();
         double minIncircle = last.magSquared();
         double maxMag = 0;
+
+        double lastMag = last.mag();
 
         for (int i = 0; i < vects.length; i++) {
 
@@ -1142,20 +1133,18 @@ public final class Vect2DMath {
                 maxMag = thisMag;
             }
 
-            last.set(
-                    VECTOR_BETWEEN_M(current, last).finished()
+            
+            // area of triangle = base * height * 0.5
+            //
+            // height of triangle = 2(area / base)
+            //
+            // https://tutors.com/math-tutors/geometry-help/how-to-find-the-height-of-a-triangle
+            //
+            final double currentHeight = Math.abs(
+                    last.cross(current)/DIST(current, last)/2.0
             );
-            // given triangle with sides ab, ac, bc:
-            //
-            //     C __
-            // bc  |   \__ ac
-            //     B ------\A
-            //        ab
-            // height = ab * sin(A)
-            // https://www.mathsisfun.com/algebra/trig-area-triangle-without-right-angle.html
-            //
-            final double currentHeight = thisMag * Math.sin(ANGLE(last, current));
 
+            System.out.println("currentHeight = " + currentHeight);
             if (currentHeight < minIncircle){
                 minIncircle = currentHeight;
             }
@@ -1741,7 +1730,7 @@ public final class Vect2DMath {
 
         if (Vect2DMath.COMPARE_DOUBLES_EPSILON(denominator, 0) == 0){
             // if cross product is 0, we just get a point that isn't at the very end of the lines.
-            return Vect2DMath.GET_MIDDLE_VECTOR(line1start, line2start, ADD(line1start, line1proj)).toVect2D();
+            return Vect2DMath.GET_MIDDLE_VECTOR(line2start, ADD(line2start, line2proj), ADD(line1start, line1proj)).toVect2D();
         }
 
         final Vect2D start1MinusStart2 = Vect2DMath.MINUS(line1start, line2start);
@@ -1798,6 +1787,31 @@ public final class Vect2DMath {
         curr.discard();
         return collided;
 
+    }
+
+    /**
+     * Given a line from (0,0), and a polygon with origin (0,0) described by a list of 2D vectors,
+     * attempts to find the point on the polygon's edge
+     * where the fromOriginLine intersects the edges of the polygon.
+     * @param fromOriginLine line from origin towards somewhere that isn't the origin
+     * @param corners corners of the polygon
+     * @return point on the polygon's perimeter where the fromOriginLine intersects with it. Returns 0,0 if not found.
+     */
+    public static Vect2D GET_POINT_ON_POLYGON_EDGE_WHERE_LINE_FROM_ORIGIN_INTERSECTS_WITH_EDGE(final I_Vect2D fromOriginLine, final Vect2D... corners){
+
+        Vect2D prev = corners[corners.length-1];
+
+        for (final Vect2D current: corners){
+
+            final Vect2D cProj = VECTOR_BETWEEN(current, prev);
+
+            if (DO_LINES_INTERSECT(Vect2D.ZERO, fromOriginLine, current, cProj)){
+                return GET_INTERSECTION_POINT(Vect2D.ZERO, cProj, current, cProj);
+            }
+            prev = current;
+        }
+
+        return Vect2D.ZERO;
     }
 
     /**
