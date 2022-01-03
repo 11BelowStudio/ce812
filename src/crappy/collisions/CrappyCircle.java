@@ -1,25 +1,38 @@
 package crappy.collisions;
 
+import crappy.CrappyBody_ShapeSetter_Interface;
 import crappy.CrappyBody_Shape_Interface;
 import crappy.I_Transform;
 import crappy.graphics.DrawableCrappyShape;
 import crappy.graphics.I_CrappilyDrawStuff;
+import crappy.math.M_Vect2D;
 import crappy.math.Vect2DMath;
 import crappy.math.Vect2D;
 
 public class CrappyCircle extends A_CrappyShape implements I_CrappyCircle, DrawableCrappyShape.DrawableCircle {
 
 
+    private Vect2D drawableRot;
 
-    public CrappyCircle(final CrappyBody_Shape_Interface body, final double radius) {
+    public CrappyCircle(final CrappyBody_ShapeSetter_Interface body, final double radius) {
         super(CRAPPY_SHAPE_TYPE.CIRCLE, Vect2D.ZERO, body, radius);
-        this.radius = radius;
 
-        body.setMomentOfInertia(Vect2DMath.CIRCLE_MOMENT_OF_INERTIA(radius, body.getMass()));
-
+        body.__setShape__internalDoNotCallYourselfPlease(
+                this, Vect2DMath.CIRCLE_MOMENT_OF_INERTIA(radius, body.getMass())
+        );
         updateShape(body);
 
 
+    }
+
+    /**
+     * Constructor for circles within other bodies (Does not attempt to set itself inside the body)
+     * @param radius radius
+     * @param s body
+     */
+    CrappyCircle(final double radius, final CrappyBody_Shape_Interface s){
+        super(CRAPPY_SHAPE_TYPE.CIRCLE, Vect2D.ZERO, s, radius);
+        updateShape(body);
     }
 
     @Override
@@ -61,5 +74,21 @@ public class CrappyCircle extends A_CrappyShape implements I_CrappyCircle, Drawa
         return getBodyTransform().getVel();
     }
 
+    public void updateDrawables() {
+        super.updateDrawables();
+        synchronized (drawableSyncer) {
+            drawableRot = M_Vect2D.GET(getBodyTransform().getRot()).mult(3).finished();
+        }
+    }
 
+    public Vect2D getDrawableRot(){
+        synchronized (drawableSyncer){
+            return drawableRot;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return super.toString();
+    }
 }

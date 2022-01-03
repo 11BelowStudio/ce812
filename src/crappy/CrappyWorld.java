@@ -94,6 +94,8 @@ public class CrappyWorld {
 
         final double subDelta = delta / (double) eulerSubsteps;
 
+        System.out.println("subDelta = " + subDelta);
+
 
         synchronized (UPDATE_SYNC_OBJECT) {
 
@@ -111,11 +113,13 @@ public class CrappyWorld {
                 newObjectTree.clearAll(); // wipe it clean so we can do this update.
 
                 // time for some for abuse.
-                for (conIter = connectors.iterator(); conIter.hasNext(); conIter.next().applyForcesToBodies());
+                for (conIter = connectors.iterator(); conIter.hasNext(); conIter.next().applyForcesToBodies()) ;
                 for (iter = dynamicBodies.iterator(); iter.hasNext();
-                     iter.next().first_euler_sub_update(delta, grav, subDelta));
+                     iter.next().first_euler_sub_update(delta, grav, subDelta))
+                    ;
                 for (iter = kinematicBodies.iterator(); iter.hasNext();
-                     iter.next().first_euler_sub_update(delta, grav, subDelta));
+                     iter.next().first_euler_sub_update(delta, grav, subDelta))
+                    ;
 
 
                 for (int steps = 1; steps < EULER_SUBSTEPS; steps++) {
@@ -126,72 +130,72 @@ public class CrappyWorld {
 
                 for (iter = dynamicBodies.iterator(); iter.hasNext(); iter.next().applyAllTempChanges()) ;
                 for (iter = kinematicBodies.iterator(); iter.hasNext(); iter.next().applyAllTempChanges()) ;
-
-
-                // adds all the kinematic bodies to the dynamic/kinematic AABB tree
-                newObjectTree.addAllKinematicBodies(kinematicBodies);
-
-                // and then attempts to perform all of the collisions for dynamic bodies
-                for (iter = dynamicBodies.iterator(); iter.hasNext(); ) {
-                    I_CrappyBody_CrappyWorld_Interface b = iter.next();
-                    if (b.isActive()) {
-                        CrappyCollisionHandler.HANDLE_COLLISIONS(
-                                b.getShape(),
-                                staticGeometry.get().getShapesThatProbablyCollideWithToOut(
-                                        b.getAABB(),
-                                        newObjectTree.checkDynamicBodyAABB(b.getShape())
-                                ),
-                                delta
-                        );
-                    }
-                }
-
-                // and then seeing if the kinematics collided with anything
-                for (iter = kinematicBodies.iterator(); iter.hasNext(); ) {
-                    I_CrappyBody_CrappyWorld_Interface k = iter.next();
-                    if (k.isActive()) {
-                        CrappyCollisionHandler.HANDLE_COLLISIONS(
-                                k.getShape(),
-                                staticGeometry.get().getShapesThatProbablyCollideWith(
-                                        k.getAABB()
-                                ),
-                                delta
-                        );
-                    }
-                }
-
-                for (
-                        iter = dynamicBodies.iterator(); iter.hasNext();
-                        iter.next().performPostCollisionBitmaskCallback()
-                );
-                for (
-                        iter = kinematicBodies.iterator(); iter.hasNext();
-                        iter.next().performPostCollisionBitmaskCallback()
-                );
-                for (
-                        iter = staticGeometry.get().iterator(); iter.hasNext();
-                        iter.next().performPostCollisionBitmaskCallback()
-                );
-
-
-                resolveChangesToBodies(dynamicBodies);
-                resolveChangesToBodies(kinematicBodies);
-
-                // remove any connectors that need to be removed
-                for (conIter = connectors.iterator(); conIter.hasNext(); ) {
-                    if (!conIter.next().shouldIStillExist()) {
-                        conIter.remove();
-                    }
-                }
-
-                // TODO:
-                //   * Put the dynamic bodies into qTree, obtain bounding box intersects per dynamic body
-                //      * also check dynamics against static geometry
-                //   * Narrow-phase collision detection for all of these intersects
-                //   * Also collision handling (applying forces, callbacks, etc)
-                //  and remove any bodies marked for removal as a result of collision handling
-
             }
+
+            // adds all the kinematic bodies to the dynamic/kinematic AABB tree
+            newObjectTree.addAllKinematicBodies(kinematicBodies);
+
+            // and then attempts to perform all of the collisions for dynamic bodies
+            for (iter = dynamicBodies.iterator(); iter.hasNext(); ) {
+                I_CrappyBody_CrappyWorld_Interface b = iter.next();
+                if (b.isActive()) {
+                    CrappyCollisionHandler.HANDLE_COLLISIONS(
+                            b.getShape(),
+                            staticGeometry.get().getShapesThatProbablyCollideWithToOut(
+                                    b.getAABB(),
+                                    newObjectTree.checkDynamicBodyAABB(b.getShape())
+                            ),
+                            delta * 1000
+                    );
+                }
+            }
+
+            // and then seeing if the kinematics collided with anything
+            for (iter = kinematicBodies.iterator(); iter.hasNext(); ) {
+                I_CrappyBody_CrappyWorld_Interface k = iter.next();
+                if (k.isActive()) {
+                    CrappyCollisionHandler.HANDLE_COLLISIONS(
+                            k.getShape(),
+                            staticGeometry.get().getShapesThatProbablyCollideWith(
+                                    k.getAABB()
+                            ),
+                            delta * 1000
+                    );
+                }
+            }
+
+            for (
+                    iter = dynamicBodies.iterator(); iter.hasNext();
+                    iter.next().performPostCollisionBitmaskCallback()
+            );
+            for (
+                    iter = kinematicBodies.iterator(); iter.hasNext();
+                    iter.next().performPostCollisionBitmaskCallback()
+            );
+            for (
+                    iter = staticGeometry.get().iterator(); iter.hasNext();
+                    iter.next().performPostCollisionBitmaskCallback()
+            );
+
+
+            resolveChangesToBodies(dynamicBodies);
+            resolveChangesToBodies(kinematicBodies);
+
+            // remove any connectors that need to be removed
+            for (conIter = connectors.iterator(); conIter.hasNext(); ) {
+                if (!conIter.next().shouldIStillExist()) {
+                    conIter.remove();
+                }
+            }
+
+            // TODO:
+            //   * Put the dynamic bodies into qTree, obtain bounding box intersects per dynamic body
+            //      * also check dynamics against static geometry
+            //   * Narrow-phase collision detection for all of these intersects
+            //   * Also collision handling (applying forces, callbacks, etc)
+            //  and remove any bodies marked for removal as a result of collision handling
+
+
 
 
             synchronized (drawableDynamics){
@@ -250,7 +254,7 @@ public class CrappyWorld {
      * @param geom the Quadtree describing the world's static geometry.
      * @throws IllegalStateException if static geometry has already been set
      */
-    public void setStaticGeometry(AABBQuadTreeTools.I_StaticGeometryQuadTreeRootNode geom) throws IllegalStateException{
+    public void setStaticGeometry(final AABBQuadTreeTools.I_StaticGeometryQuadTreeRootNode geom) throws IllegalStateException{
         synchronized (UPDATE_SYNC_OBJECT) {
             staticGeometry.set(geom);
             synchronized (drawableStatics){
@@ -260,6 +264,7 @@ public class CrappyWorld {
                     drawableStatics.add(s);
                 }
             }
+            System.out.println(staticGeometry.getAssert().toString());
         }
     }
 
@@ -272,6 +277,7 @@ public class CrappyWorld {
                 case STATIC:
                     break;
                 case KINEMATIC:
+                    b.applyAllTempChanges();
                     kinematicBodies.add(b);
                     break;
                 case DYNAMIC:

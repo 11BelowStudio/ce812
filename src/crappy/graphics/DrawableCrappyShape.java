@@ -34,6 +34,8 @@ public interface DrawableCrappyShape {
 
         double getRadius();
 
+        Vect2D getDrawableRot();
+
     }
 
     interface DrawableEdge extends DrawableCrappyShape{
@@ -73,6 +75,8 @@ public interface DrawableCrappyShape {
          * @return number of vertices
          */
         int getVertexCount();
+
+        Vect2D getDrawableRot();
     }
 
 

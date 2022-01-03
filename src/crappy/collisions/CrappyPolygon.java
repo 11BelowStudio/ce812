@@ -1,5 +1,7 @@
 package crappy.collisions;
 
+import crappy.CrappyBody;
+import crappy.CrappyBody_ShapeSetter_Interface;
 import crappy.CrappyBody_Shape_Interface;
 import crappy.I_Transform;
 import crappy.graphics.DrawableCrappyShape;
@@ -8,6 +10,7 @@ import crappy.math.*;
 import crappy.utils.ArrayIterator;
 import crappy.utils.containers.IPair;
 
+import java.util.Arrays;
 import java.util.Iterator;
 
 
@@ -67,14 +70,16 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
 
     private final Vect2D[] drawableVertices;
 
+    private Vect2D drawableRot;
 
-    public CrappyPolygon(final CrappyBody_Shape_Interface body, final Vect2D[] vertices){
+
+    public CrappyPolygon(final CrappyBody_ShapeSetter_Interface body, final Vect2D[] vertices){
         this(body, vertices, Vect2DMath.AREA_AND_CENTROID_OF_VECT2D_POLYGON(vertices));
     }
 
 
     public CrappyPolygon(
-            final CrappyBody_Shape_Interface body,
+            final CrappyBody_ShapeSetter_Interface body,
             final Vect2D[] vertices,
             final IPair<Double, Vect2D> areaCentroid
     ){
@@ -93,6 +98,7 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
 
         drawableVertices = new Vect2D[vertexCount];
 
+
         body.setMomentOfInertia(Vect2DMath.POLYGON_MOMENT_OF_INERTIA_ABOUT_ZERO(body.getMass(), vertices));
 
         if (area < 0) {
@@ -110,7 +116,7 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
             }
         }
         Vect2D current = localVertices[0];
-        for (int i = 1; i < vertexCount; i++) {
+        for (int i = 1; i <= vertexCount; i++) {
             final Vect2D next = localVertices[(i < vertexCount-1)? i : 0];
             edges[i-1] = new CrappyEdge(current, next, body, localCentroid);
             worldVertices[i-1] = edges[i-1].getWorldStart();
@@ -124,6 +130,8 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
                         getCentroid(), localVertices, localWhiskers
                 );
 
+        System.out.println("localWhiskers = " + Arrays.toString(localWhiskers));
+
         for (int i = 0; i < vertexCount; i++) {
             normalWhiskers[i] = localWhiskers[i].norm();
         }
@@ -132,17 +140,25 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
         radius = min_max_radius.getSecond();
         radiusSquared = Math.pow(radius, 2);
 
-        updateShape(body);
+
 
         circle = new CrappyPolygonIncircle(this, getCentroid(), innerCircleRadius, radiusSquared);
 
+        body.__setShape__internalDoNotCallYourselfPlease(
+                this,
+                Vect2DMath.POLYGON_MOMENT_OF_INERTIA_ABOUT_ZERO_GIVEN_CENTROID_MASS_AND_AREA(
+                        body.getMass(), area, getCentroid(), vertices
+                )
+        );
+
+        updateShape(body);
         updateDrawables();
 
     }
 
     public void timestepStartUpdate(){
         super.timestepStartUpdate();
-        for (int i = vertexCount; i >= 0; i--) {
+        for (int i = vertexCount-1; i >= 0; i--) {
             edges[i].timestepStartUpdate();
         }
         circle.startUpdateAABB();
@@ -151,7 +167,7 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
     @Override
     public void midTimestepUpdate() {
         super.midTimestepUpdate();
-        for (int i = vertexCount; i >= 0; i--) {
+        for (int i = vertexCount-1; i >= 0; i--) {
             edges[i].midTimestepUpdate();
         }
         circle.midUpdateAABB();
@@ -160,7 +176,7 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
     @Override
     public void timestepEndUpdate(){
         super.timestepEndUpdate();
-        for (int i = vertexCount; i >= 0; i--) {
+        for (int i = vertexCount-1; i >= 0; i--) {
             edges[i].timestepEndUpdate();
         }
         circle.endUpdateAABB();
@@ -179,7 +195,7 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
                         worldNormalWhiskers
                 )
         );
-        for (int i = vertexCount; i >= 0; i--) {
+        for (int i = vertexCount-1; i >= 0; i--) {
             edges[i].updateShape(rootTransform);
         }
         return thisFrameAABB;
@@ -307,6 +323,7 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
         super.updateDrawables();
         synchronized (drawableSyncer){
             System.arraycopy(worldVertices, 0, drawableVertices, 0, vertexCount);
+            drawableRot = M_Vect2D.GET(body.getRot()).mult(3).finished();
             circle.updateDrawables();
         }
     }
@@ -325,6 +342,39 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
         }
     }
 
+    public Vect2D getDrawableRot(){
+        synchronized (drawableSyncer){
+            return drawableRot;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "CrappyPolygon{" +
+                "shapeType=" + shapeType +
+                ", aabb=" + aabb +
+                ", thisFrameAABB=" + thisFrameAABB +
+                ", lastFrameAABB=" + lastFrameAABB +
+                ", localCentroid=" + localCentroid +
+                ", radius=" + radius +
+                ", radiusSquared=" + radiusSquared +
+                ", drawableWorldCentroid=" + drawableWorldCentroid +
+                ", drawableWorldPos=" + drawableWorldPos +
+                ", drawableVel=" + drawableVel +
+                ", vertexCount=" + vertexCount +
+                ", localVertices=" + Arrays.toString(localVertices) +
+                ", localWhiskers=" + Arrays.toString(localWhiskers) +
+                ", normalWhiskers=" + Arrays.toString(normalWhiskers) +
+                ", worldVertices=" + Arrays.toString(worldVertices) +
+                ", worldWhiskers=" + Arrays.toString(worldWhiskers) +
+                ", worldNormalWhiskers=" + Arrays.toString(worldNormalWhiskers) +
+                ", edges=" + Arrays.toString(edges) +
+                ", area=" + area +
+                ", circle=" + circle +
+                ", innerCircleRadius=" + innerCircleRadius +
+                ", drawableVertices=" + Arrays.toString(drawableVertices) +
+                '}';
+    }
 
     private static class CrappyPolygonIncircle implements I_CrappyCircle, I_Transform, DrawableCircle {
 
@@ -390,6 +440,11 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
         @Override
         public double getRadius() {
             return radius;
+        }
+
+        @Override
+        public Vect2D getDrawableRot() {
+            return p.getDrawableRot();
         }
 
         /**
@@ -461,6 +516,16 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
             return aabb;
         }
 
+        /**
+         * Where was the centroid of this object (in world coords) last frame?
+         *
+         * @return world coords of this object's centroid last frame.
+         */
+        @Override
+        public Vect2D getLastFrameWorldPos() {
+            return Vect2DMath.LOCAL_TO_WORLD_M(localCentroid, getBody().getLastPos(), getBody().getLastRot()).finished();
+        }
+
 
         /**
          * What type of shape is this shape?
@@ -500,6 +565,35 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
     }
 
 
+    /**
+     * Factory method to make it a bit easier to make a polygon
+     * @param body body to attach the polygon to
+     * @param vertices how many vertices?
+     * @param radius how far should the vertices be from 0,0?
+     * @return your polygon.
+     * @throws IllegalArgumentException if fewer than 3 vertices or a radius of 0 or smaller is requested.
+     */
+    public static CrappyPolygon POLYGON_FACTORY_REGULAR(
+            final CrappyBody body, final int vertices, final double radius
+    ) throws IllegalArgumentException {
 
+        if (vertices < 3){
+            throw new IllegalArgumentException("polygons need to have at least 3 sides, not " + vertices +  "! >:(");
+        }
+        if (radius <= 0){
+            throw new IllegalArgumentException(
+                    "Why are you trying to make a polygon with a size of " + radius +
+                            "?? Please use a size greater than 0."
+            );
+        }
+
+        return new CrappyPolygon(
+                body, Vect2DMath.MAKE_REGULAR_POLYGON(vertices, radius)
+        );
+
+
+
+
+    }
 
 }

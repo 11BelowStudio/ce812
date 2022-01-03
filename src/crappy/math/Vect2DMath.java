@@ -4,6 +4,8 @@ import crappy.I_Transform;
 import crappy.utils.containers.IPair;
 import crappy.utils.containers.IQuadruplet;
 
+import java.util.Arrays;
+
 /**
  * A utility class holding static Vect2D math-related methods.
  *
@@ -737,6 +739,11 @@ public final class Vect2DMath {
      * @return the worldPos but as a local coordinate of the body described by bodyWorldPos and bodyWorldRot
      */
     public static M_Vect2D WORLD_TO_LOCAL_M(I_Vect2D worldPos, I_Vect2D bodyWorldPos, I_Rot2D bodyWorldRot){
+        System.out.println("Vect2DMath.WORLD_TO_LOCAL_M");
+        System.out.println("worldPos = " + worldPos + ", bodyWorldPos = " + bodyWorldPos + ", bodyWorldRot = " + bodyWorldRot);
+
+        System.out.println("Vect2DMath.MINUS(worldPos,bodyWorldPos) = " + Vect2DMath.MINUS(worldPos,bodyWorldPos));
+
         return M_Vect2D.GET(worldPos).sub(bodyWorldPos).rotate_opposite(bodyWorldRot);
     }
 
@@ -762,6 +769,12 @@ public final class Vect2DMath {
      * @return the velocity, in world scale, of the local position on that body
      */
     public static M_Vect2D WORLD_VEL_OF_LOCAL_COORD_M(final I_Vect2D localPos, final double angVel, final I_Vect2D vel){
+
+        System.out.println("Vect2DMath.WORLD_VEL_OF_LOCAL_COORD_M");
+        System.out.println("localPos = " + localPos + ", angVel = " + angVel + ", vel = " + vel);
+
+        System.out.println("localPos x angVel = " + localPos.toVect2D().cross(angVel, false));
+
         return M_Vect2D.GET(localPos)
                 .cross(angVel, false) // angVel X r
                 .add(vel); // adding main body vel
@@ -1063,7 +1076,7 @@ public final class Vect2DMath {
         final M_Vect2D current = M_Vect2D._GET_RAW();
         double minIncircle = last.magSquared();
         double maxMag = 0;
-        for (int i = 0; i < vects.length-1; i++) {
+        for (int i = 0; i < vects.length; i++) {
 
             current.set(vects[i]).sub(centroid);
 
@@ -1117,11 +1130,12 @@ public final class Vect2DMath {
         double minIncircle = last.magSquared();
         double maxMag = 0;
 
-        for (int i = 0; i < vects.length-1; i++) {
+        for (int i = 0; i < vects.length; i++) {
 
             current.set(vects[i]).sub(centroid);
 
             out[i] = new Vect2D(current);
+
 
             final double thisMag = current.mag();
             if (thisMag > maxMag){
@@ -1315,6 +1329,69 @@ public final class Vect2DMath {
     }
 
     /**
+     * A more conclusive 'polygon moment of inertia' solver,
+     * given a polygon with known mass and area, centre of mass at centroid,
+     * corners described by the list of vertices, but rotating about (0,0)
+     * @param mass total mass of polygon
+     * @param area area of polygon
+     * @param centroid centroid (centre of mass) of polygon
+     * @param verts corners of the polygon
+     * @return moment of inertia of this polygon about (0,0)
+     */
+    public static double POLYGON_MOMENT_OF_INERTIA_ABOUT_ZERO_GIVEN_CENTROID_MASS_AND_AREA(
+            final double mass, final double area, final I_Vect2D centroid, final Vect2D... verts
+    ){
+
+        if (verts.length < 3){
+            throw new IllegalArgumentException(
+                    "That's not a polygon, polygons need at least 3 corners, you only gave " + verts.length + "!"
+            );
+        }
+        double centroidMoment = 0;
+
+        Vect2D prev = verts[verts.length-1];
+
+        for (final Vect2D current: verts) {
+
+            Vect2D currCentroid = GET_TRIANGLE_CENTROID(centroid, prev, current);
+
+            double currAreaMass = mass * AREA_OF_ARBITRARY_TRIANGLE(centroid, prev, current) / area;
+
+            centroidMoment += DIST_SQUARED(centroid, currCentroid) * currAreaMass;
+
+            prev = current;
+
+        }
+
+        return centroidMoment + (mass * centroid.magSquared());
+
+
+    }
+
+    /**
+     * Obtains the centroid of a triangle.
+     * @param a corner A
+     * @param b corner B
+     * @param c corner C
+     * @return centroid of those corners.
+     */
+    public static Vect2D GET_TRIANGLE_CENTROID(final I_Vect2D a, final I_Vect2D b, final I_Vect2D c){
+        return SUM(a, b, c).divide(3.0);
+    }
+
+    /**
+     * Cross product of 2 2D vectors is the same as the area of the parallelogram between them.
+     * So, by abusing that and the 'triangle = base+height/2' formula, we can get triangle area pretty easily
+     * @param a first vector
+     * @param b second vector
+     * @param c third vector
+     * @return area of triangle ABC.
+     */
+    public static double AREA_OF_ARBITRARY_TRIANGLE(final I_Vect2D a, final I_Vect2D b, final I_Vect2D c){
+        return MINUS_M(b, a).cross_discardBoth(MINUS_M(c, a))/2.0;
+    }
+
+    /**
      * Obtains the centroid of a 2D polygon described by a list of corners when the area is already known.
      * See {@link #AREA_AND_CENTROID_OF_VECT2D_POLYGON(Vect2D...)} for the maths. Probably more efficient to use
      * that method instead tbh.
@@ -1409,6 +1486,8 @@ public final class Vect2DMath {
      */
     public static double LINE_MOMENT_OF_INERTIA(final I_Vect2D start, final I_Vect2D end, final double mass){
 
+
+
         return mass * (start.magSquared() + end.magSquared())/2.0;
 
         // m: total mass
@@ -1425,6 +1504,22 @@ public final class Vect2DMath {
         // 2I/m = x + y
         // I/m = (x + y)/2
         // I = m * (x+y)/2
+    }
+
+    /**
+     * Returns moment of inertia for a line from 'start' with midpoint 'mid', with given mass, assuming uniform mass,
+     * with centre of mass at the midpoint of that line, but turning about axis (0,0), using the parallel axis theorem.
+     * @param start first end of the line
+     * @param mid midpoint of that line
+     * @param mass mass of the line
+     * @return moment of inertia for that line turning about (0,0)
+     */
+    public static double LINE_START_CENTROID_MOMENT_OF_INERTIA(final I_Vect2D start, final I_Vect2D mid, final double mass){
+
+
+        // moment of inertia for axis through midpoint + (mass * dist to rotation place)
+        return (mass * mid.magSquared()) + (mass * Vect2DMath.ADD(start, mid).magSquared());
+
     }
 
     /**
@@ -1688,7 +1783,7 @@ public final class Vect2DMath {
         final M_Vect2D prev = M_Vect2D.GET(verts[verts.length-1]);
         final M_Vect2D curr = M_Vect2D._GET_RAW();
 
-        for (int i = 0; i < verts.length-1; i++) {
+        for (int i = 0; i < verts.length; i++) {
             curr.set(verts[i]);
 
             if (
@@ -1796,6 +1891,43 @@ public final class Vect2DMath {
             return v;
         }
     }
+
+    public static Vect2D INVERT(final I_Vect2D v){
+        return new Vect2D(-v.getX(), -v.getY());
+    }
+
+
+    /**
+     * Creates a regular polygon with specified number of vertices + radius, in the form of an array of Vect2Ds.
+     * @param vertices number of vertices
+     * @param radius 'radius' of the polygon (dist between each vertex and the middle)
+     */
+    public static Vect2D[] MAKE_REGULAR_POLYGON(final int vertices, final double radius){
+
+        final Vect2D[] vects = new Vect2D[vertices];
+        MAKE_REGULAR_POLYGON_TO_OUT(vertices, radius, vects);
+        return vects;
+
+    }
+
+    /**
+     * Creates a regular polygon with specified number of vertices + radius, puts it in out
+     * @param vertices number of vertices
+     * @param radius 'radius' of the polygon (dist between each vertex and the middle)
+     * @param out premade array to put the result in. please make sure it's big enough.
+     */
+    public static void MAKE_REGULAR_POLYGON_TO_OUT(final int vertices, final double radius, final Vect2D[] out){
+        final M_Rot2D rot = M_Rot2D._GET_RAW();
+        final double deg = Math.toRadians(360.0/(double)vertices);
+        for (int i = 0; i < vertices; i++) {
+            out[i] = Vect2D.POLAR(rot.set(i*deg), radius);
+        }
+        rot.dispose();
+    }
+
+
+
+
 
 }
 

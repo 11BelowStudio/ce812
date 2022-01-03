@@ -145,8 +145,10 @@ public final class Vect2D implements Serializable, I_Vect2D {
     double angle(final I_Vect2D other){ return Math.atan2(other.getY() - y, other.getX() - x); }
 
     public String toString() {
-        return "(" + String.format("%.01f", x) + "," + String.format("%.01f", y)
-                + ")";
+        return "Vect2D{" +
+                "x=" + x +
+                ", y=" + y +
+                '}';
     }
 
     /**

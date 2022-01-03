@@ -500,6 +500,18 @@ public final class M_Vect2D implements I_Vect2D {
     }
 
     /**
+     * Returns the scalar cross product of this vector and the other vector, and also discards this vector
+     * and the other one (after working out the cross product ofc)
+     * @param v the other vector
+     * @return this x v
+     */
+    public double cross_discardBoth(final M_Vect2D v){
+        final double d = cross_discard(v);
+        v.discard();
+        return d;
+    }
+
+    /**
      * Returns the angle of this vector
      * @return angle of this vector
      */
@@ -569,4 +581,11 @@ public final class M_Vect2D implements I_Vect2D {
         return p;
     }
 
+    @Override
+    public String toString() {
+        return "M_Vect2D{" +
+                "x=" + x +
+                ", y=" + y +
+                '}';
+    }
 }

@@ -90,4 +90,12 @@ public final class Rot2D implements Serializable, I_Rot2D {
     public Rot2D toRot2D() {
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "Rot2D{" +
+                "sin=" + sin +
+                ", cos=" + cos +
+                '}';
+    }
 }

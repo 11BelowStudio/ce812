@@ -229,6 +229,13 @@ public final class AABBQuadTreeTools {
         public int getCandidatesLeft() {
             return candidatesLeft;
         }
+
+        @Override
+        public String toString() {
+            return "A_StaticAABBQuadTreeNode{" +
+                    "candidatesLeft=" + candidatesLeft +
+                    '}';
+        }
     }
 
     /**
@@ -295,7 +302,13 @@ public final class AABBQuadTreeTools {
         }
 
 
-
+        @Override
+        public String toString() {
+            return "StaticGeomQuadTreeLeafNode{" +
+                    "candidatesLeft=" + candidatesLeft +
+                    ", all_children=" + all_children +
+                    '}';
+        }
     }
 
     /**
@@ -414,6 +427,11 @@ public final class AABBQuadTreeTools {
                 return false;
             }
         }
+
+        @Override
+        public String toString() {
+            return "EmptyQuadtreeLeafNodeStaticGeom{}";
+        }
     }
 
     /**
@@ -435,7 +453,8 @@ public final class AABBQuadTreeTools {
                 final I_Crappy_AABB attemptBoundingBox,
                 final Set<CrappyShape_QuadTree_Interface> results
         ) {
-            if (attemptBoundingBox.check_bb_intersect(theShape.getBoundingBox())) {
+            //if (attemptBoundingBox.check_bb_intersect(theShape.getBoundingBox())) {
+            if (I_Crappy_AABB.DO_THESE_BOUNDING_BOXES_OVERLAP(attemptBoundingBox, theShape.getBoundingBox())){
                 results.add(theShape);
             }
             return results;
@@ -460,6 +479,12 @@ public final class AABBQuadTreeTools {
             return out;
         }
 
+        @Override
+        public String toString() {
+            return "SingleItemQuadtreeLeafNodeStaticGeom{" +
+                    "\n\ttheShape=" + theShape +
+                    "\n}";
+        }
     }
 
     /**
@@ -477,12 +502,15 @@ public final class AABBQuadTreeTools {
         ) {
 
             for (final CrappyShape_QuadTree_Interface csqti : all_children) {
-                if (csqti.getBoundingBox().check_bb_intersect(attemptBoundingBox)) {
+                //if (csqti.getBoundingBox().check_bb_intersect(attemptBoundingBox)) {
+                if (I_Crappy_AABB.DO_THESE_BOUNDING_BOXES_OVERLAP(csqti.getBoundingBox(), attemptBoundingBox)){
                     results.add(csqti);
                 }
             }
             return results;
         }
+
+
 
         /**
          * In which we see which shapes have a bounding box that overlaps with this point, sending all such shapes to
@@ -505,6 +533,10 @@ public final class AABBQuadTreeTools {
             return out;
         }
 
+        @Override
+        public String toString() {
+            return super.toString();
+        }
     }
 
     /**
@@ -609,7 +641,8 @@ public final class AABBQuadTreeTools {
                         );
 
                 allBodiesBounds = new Crappy_AABB();
-                for (final I_View_CrappyBody b: allBodies) {
+                for (final I_CrappyBody_CrappyWorld_Interface b: allBodies) {
+
                     allBodiesBounds.add_aabb(b.getAABB());
                 }
             }
@@ -645,10 +678,10 @@ public final class AABBQuadTreeTools {
              */
             @Override
             public Set<CrappyShape_QuadTree_Interface> getShapesThatProbablyCollideWith(I_Crappy_AABB attemptBoundingBox) {
-                if (attemptBoundingBox.check_bb_intersect(allBodiesBounds)) {
+                if (I_Crappy_AABB.DO_THESE_BOUNDING_BOXES_OVERLAP(attemptBoundingBox, allBodiesBounds)){
                     return I_StaticGeometryQuadTreeRootNode.super.getShapesThatProbablyCollideWith(attemptBoundingBox);
                 }
-                return emptySet;
+                return new LinkedHashSet<>(0);
             }
 
             /**
@@ -665,7 +698,20 @@ public final class AABBQuadTreeTools {
                 if (allBodiesBounds.check_if_in_bounds(point)) {
                     return I_StaticGeometryQuadTreeRootNode.super.getPotentialPointCollisions(point);
                 }
-                return emptySet;
+                return new LinkedHashSet<>(0);
+            }
+
+            @Override
+            public String toString() {
+                return "StaticGeometryRootNode{" +
+                        "candidatesLeft=" + candidatesLeft +
+                        ", allBodiesBounds=" + allBodiesBounds +
+                        ", midpoint=" + midpoint +
+                        "\nGG= " + GG.toString().replaceAll("\n","\n\t") +
+                        "\nGL=" + GL.toString().replaceAll("\n","\n\t") +
+                        "\nLL=" + LL.toString().replaceAll("\n","\n\t") +
+                        "\nLG=" + LG.toString().replaceAll("\n","\n\t") +
+                        "\n}";
             }
         }
 
@@ -951,6 +997,17 @@ public final class AABBQuadTreeTools {
                 );
             }
             return out;
+        }
+
+        @Override
+        public String toString() {
+            return "StaticGeometryAABBTreeNode{" +
+                    "candidatesLeft=" + candidatesLeft + "midpoint=" + midpoint +
+                    "\nGG= " + GG.toString().replaceAll("\n","\n\t") +
+                    "\nGL=" + GL.toString().replaceAll("\n","\n\t") +
+                    "\nLL=" + LL.toString().replaceAll("\n","\n\t") +
+                    "\nLG=" + LG.toString().replaceAll("\n","\n\t") +
+                    "\n}";
         }
 
         /**
@@ -1299,7 +1356,7 @@ public final class AABBQuadTreeTools {
                 }
                 final Set<CrappyShape_QuadTree_Interface> collidedWith = new LinkedHashSet<>(allShapes.size(), 1.0f);
                 for (final CrappyShape_QuadTree_Interface s: allShapes) {
-                    if (s.getBoundingBox().check_bb_intersect(dBody.getBoundingBox())){
+                    if (I_Crappy_AABB.DO_THESE_BOUNDING_BOXES_OVERLAP(s.getBoundingBox(), dBody.getBoundingBox())){
                         collidedWith.add(s);
                     }
                 }
@@ -1569,9 +1626,15 @@ public final class AABBQuadTreeTools {
                     final I_Vect2D comparisonPoint,
                     final I_Crappy_AABB aabbBeingCompared
             ) {
+                /*
                 return AABB_Choose_Quadtree_Enum.get(
                         comparisonPoint, aabbBeingCompared.getMin(), aabbBeingCompared.getMax()
                 );
+                 */
+                AABB_Choose_Quadtree_Enum g = AABB_Choose_Quadtree_Enum.get(
+                        comparisonPoint, aabbBeingCompared.getMin(), aabbBeingCompared.getMax()
+                );
+                return g;
             }
 
             /**

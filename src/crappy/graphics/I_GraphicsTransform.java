@@ -59,19 +59,19 @@ public interface I_GraphicsTransform {
         return ORIGIN_TOP_LEFT_CORRECTION;
     }
 
-    default Vect2D TO_SCREEN_COORDS_V(final I_Vect2D worldCoord){
+    default Vect2D TO_SCREEN_COORDS_V(final IPair<Double, Double> worldCoord){
         return TO_VIEWPORT_CORRECTED_SCREEN_COORDS_M(worldCoord).finished();
     }
 
-    public default M_Vect2D TO_RAW_SCREEN_SCALE_M(final I_Vect2D worldCoord){
+    public default M_Vect2D TO_RAW_SCREEN_SCALE_M(final IPair<Double, Double> worldCoord){
         return M_Vect2D.GET(worldCoord).divide(getScreenScale());
     }
 
-    default M_Vect2D TO_CORRECTED_SCREEN_SCALE_M(final I_Vect2D worldCoord){
+    default M_Vect2D TO_CORRECTED_SCREEN_SCALE_M(final IPair<Double, Double> worldCoord){
         return TO_RAW_SCREEN_SCALE_M(worldCoord).add(screenCoordsCorrectionOffset()).mult(screenCoordsCorrectionScale());
     }
 
-    default M_Vect2D TO_VIEWPORT_CORRECTED_SCREEN_COORDS_M(final I_Vect2D worldCoord){
+    default M_Vect2D TO_VIEWPORT_CORRECTED_SCREEN_COORDS_M(final IPair<Double, Double> worldCoord){
         return M_Vect2D.GET(worldCoord)
                 .sub(getViewportOrigin())
                 .divide(getScreenScale())
@@ -79,27 +79,27 @@ public interface I_GraphicsTransform {
                 .mult(screenCoordsCorrectionScale());
     }
 
-    default Point2D.Double TO_SCREEN_COORDS_P(final I_Vect2D worldCoord){
+    default Point2D.Double TO_SCREEN_COORDS_P(final IPair<Double, Double> worldCoord){
         return TO_VIEWPORT_CORRECTED_SCREEN_COORDS_M(worldCoord).toPoint2D_discard();
     }
 
-    default M_Vect2D TO_WORLD_COORDS_BUT_VIEWPORT_OFFSET_M(final I_Vect2D v){
+    default M_Vect2D TO_WORLD_COORDS_BUT_VIEWPORT_OFFSET_M(final IPair<Double, Double> v){
         return M_Vect2D.GET(v)
                 .divide(screenCoordsCorrectionScale())
                 .sub(screenCoordsCorrectionOffset())
                 .mult(getScreenScale());
     }
 
-    default M_Vect2D TO_CLEAN_WORLD_COORDS_M(final I_Vect2D v){
+    default M_Vect2D TO_CLEAN_WORLD_COORDS_M(final IPair<Double, Double> v){
         return TO_WORLD_COORDS_BUT_VIEWPORT_OFFSET_M(v)
                 .add(getViewportOrigin());
     }
 
-    default Vect2D TO_WORLD_COORDS_V(final I_Vect2D screenCoord){
+    default Vect2D TO_WORLD_COORDS_V(final IPair<Double, Double> screenCoord){
         return TO_WORLD_COORDS_M(screenCoord).finished();
     }
 
-    default M_Vect2D TO_WORLD_COORDS_M(final I_Vect2D screenCoord){
+    default M_Vect2D TO_WORLD_COORDS_M(final IPair<Double, Double> screenCoord){
         return TO_CLEAN_WORLD_COORDS_M(screenCoord);
     }
 

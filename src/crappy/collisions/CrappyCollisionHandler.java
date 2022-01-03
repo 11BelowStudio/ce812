@@ -27,6 +27,10 @@ public final class CrappyCollisionHandler {
     ){
         final I_CrappyShape s = body.getShape();
 
+        //System.out.println("CrappyCollisionHandler.HANDLE_COLLISIONS");
+        //System.out.println("body = " + body + ",\ndeltaT = " + deltaT);
+        //System.out.println("bbIntersects = \n" + bbIntersects);
+
         switch (s.getShapeType()){
             case CIRCLE:
                 assert (s instanceof I_CrappyCircle);

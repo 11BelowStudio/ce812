@@ -134,13 +134,16 @@ public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
                 display.getTheFrame(),
                 "Do you want to quit?\nAll progress will be lost!\n(select yes to quit)",
                 "you sure about that?",
-                JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE
+                JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE
         )){
             case JOptionPane.YES_OPTION:
+                /*
                 JOptionPane.showMessageDialog(
                         display.getTheFrame(), "ok then", "bye",
                         JOptionPane.INFORMATION_MESSAGE
                 );
+
+                 */
                 display.getTheFrame().dispose();
                 System.exit(0);
                 break;

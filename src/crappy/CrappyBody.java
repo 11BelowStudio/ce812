@@ -13,15 +13,26 @@ import crappy.utils.bitmasks.IHaveBitmask;
 /**
  * A rigidbody class used by Crappy
  */
-public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_Shape_Interface,
-        CrappyBody_Connector_Interface, I_ManipulateCrappyBody, I_CrappyBody_CrappyWorld_Interface, DrawableBody {
+public class CrappyBody implements
+        I_CrappyBody,
+        I_View_CrappyBody,
+        CrappyBody_Shape_Interface,
+        CrappyBody_Connector_Interface,
+        I_ManipulateCrappyBody,
+        I_CrappyBody_CrappyWorld_Interface,
+        DrawableBody,
+        CrappyBody_ShapeSetter_Interface {
 
-    //TODO https://www.myphysicslab.com/explain/physics-engine-en.html hmmmmm
 
     /**
      * Current position of this CrappyBody
      */
     Vect2D position;
+
+    /**
+     * Previous position of this CrappyBody
+     */
+    Vect2D lastPosition;
 
     /**
      * Temporarily stores the displacement between the original position and the position of this body mid-timestep
@@ -36,7 +47,7 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
     /**
      * Current velocity of this CrappyBody
      */
-    Vect2D velocity;
+    Vect2D velocity = Vect2D.ZERO;
 
     /**
      * Temporarily stores the change in velocity experienced by this object between its original velocity and
@@ -52,7 +63,7 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
     /**
      * Current rotation of this CrappyBody
      */
-    Rot2D rotation;
+    Rot2D rotation = Rot2D.IDENTITY;
 
     /**
      * The rotation of this body mid-timestep
@@ -64,6 +75,11 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
      */
     protected final M_Rot2D tempRotChange = M_Rot2D.GET();
 
+    /**
+     * Previous rotation.
+     */
+    Rot2D lastRotation = Rot2D.IDENTITY;
+
     //A_CrappyShape shape;
 
     final LazyFinal<A_CrappyShape> shape = new LazyFinal<>();
@@ -71,17 +87,17 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
     /**
      * Current angular velocity of this CrappyBody
      */
-    double angVelocity;
+    double angVelocity = 0;
 
     /**
      * Temporarily stores how much the angular velocity will be changed by mid-timestep
      */
-    protected double tempAngVelocityChange;
+    protected double tempAngVelocityChange = 0;
 
     /**
      * Temporarily stores the angular velocity of this body mid-timestep
      */
-    protected double tempAngVelocity;
+    protected double tempAngVelocity = 0;
 
     /**
      * Current torque being applied to this body
@@ -246,6 +262,9 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
             final Rot2D rot,
             final double angVel,
             final double mass,
+            final double restitution,
+            final double angularDrag,
+            final double linearDrag,
             final CRAPPY_BODY_TYPE bodyType,
             final int bodyTagBits,
             final int tagsICanCollideWithBits,
@@ -267,9 +286,14 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
             throw new IllegalArgumentException("Cannot use a mass of infinity/NaN!");
         }
         this.position = pos;
+        lastPosition = pos;
         this.velocity = vel;
         this.rotation = rot;
+        lastRotation = rot;
         this.angVelocity = angVel;
+        this.restitution = restitution;
+        this.angularDrag = angularDrag;
+        this.linearDrag = linearDrag;
         inertia = 0;
         myBodyTagBits = bodyTagBits;
         tagsICanCollideWithBitmask = tagsICanCollideWithBits;
@@ -282,14 +306,19 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
     }
 
     /**
-     * Call this once to set the shape of this object
+     * This is called to set the shape of this object
      * @param shape the shape of this object
      */
-    public void setShape(final A_CrappyShape shape){
+    public void __setShape__internalDoNotCallYourselfPlease(final A_CrappyShape shape, final double momentOfInertia){
         this.shape.set(shape);
+        if (bodyType != CRAPPY_BODY_TYPE.STATIC) {
+            this.inertia = momentOfInertia;
+        }
         shape.timestepStartUpdate();
         shape.midTimestepUpdate();
         shape.timestepEndUpdate();
+        shape.updateShape(this);
+        shape.updateShape(this);
     }
 
     /**
@@ -499,6 +528,7 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
 
 
     @Override
+    @Deprecated
     public void setMomentOfInertia(final double moment) {
         this.inertia = moment;
     }
@@ -528,6 +558,24 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
     @Override
     public Vect2D getPos() {
         return position;
+    }
+
+    /**
+     * Obtains previous position of the body, before most recent getPos position.
+     * @return prior position
+     */
+    public Vect2D getLastPos(){
+        return lastPosition;
+    }
+
+    /**
+     * Obtains previous rotation of the body, before most recent getRot rotation
+     *
+     * @return prior rotation
+     */
+    @Override
+    public I_Rot2D getLastRot() {
+        return lastRotation;
     }
 
     @Override
@@ -680,9 +728,17 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
      */
     public void applyForce(final I_Vect2D force, final I_Vect2D localForcePos, final FORCE_SOURCE source){
         if (canApplyThisForce(source)){
-            pending_forces_this_timestep.add_discardOther(Vect2DMath.DIVIDE_M(force, mass));
+            System.out.println("CrappyBody.applyForce");
+            System.out.println("force = " + force + ", localForcePos = " + localForcePos + ", source = " + source);
 
+            System.out.println("pending_forces_this_timestep = " + pending_forces_this_timestep);
+            //pending_forces_this_timestep.add_discardOther(Vect2DMath.DIVIDE_M(force, mass));
+            pending_forces_this_timestep.add(force);
+            System.out.println("pending_forces_this_timestep = " + pending_forces_this_timestep);
+
+            System.out.println("pending_torque_this_timestep = " + pending_torque_this_timestep);
             pending_torque_this_timestep += M_Vect2D.GET(localForcePos).rotate(rotation).cross_discard(force);
+            System.out.println("pending_torque_this_timestep = " + pending_torque_this_timestep);
         }
     }
 
@@ -710,9 +766,13 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
     @Override
     public void applyForce(final I_Vect2D force, final FORCE_SOURCE source){
 
-        if (canApplyThisForce(source) && force.isNotZero()) {
+        System.out.println("CrappyBody.applyForce");
+        System.out.println("force = " + force + ", source = " + source);
 
-            pending_forces_mid_timestep.add(force);
+        if (canApplyThisForce(source)) {
+            System.out.println("pending_forces_this_timestep = " + pending_forces_this_timestep);
+            pending_forces_this_timestep.add(force);
+            System.out.println("pending_forces_this_timestep = " + pending_forces_this_timestep);
         }
     }
 
@@ -821,7 +881,20 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
         applyMidTimestepTorque(torque, FORCE_SOURCE.MANUAL);
     }
 
+    @Override
+    public void applyHitSomethingStatic(I_Vect2D localCollidePos, I_Vect2D norm, double jImpulse) {
+        if (canApplyThisForce(FORCE_SOURCE.ENGINE)) {
+            System.out.println("CrappyBody.applyHitSomethingStatic");
+            System.out.println("localCollidePos = " + localCollidePos + ", norm = " + norm + ", jImpulse = " + jImpulse);
 
+            System.out.println("tempVel = " + velocity);
+            velocity.addScaled(norm, jImpulse / getMass());
+            System.out.println("tempVel = " + velocity);
+            System.out.println("tempAngVelocity = " + angVelocity);
+            angVelocity += (jImpulse * localCollidePos.cross(norm)) / getMomentOfInertia();
+            System.out.println("tempAngVelocity = " + angVelocity);
+        }
+    }
 
 
     /**
@@ -870,6 +943,7 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
      */
     public void first_euler_sub_update(final double deltaT, final I_Vect2D gravity, final double subDeltaT){
 
+
         switch (eus){
             case NOTHING:
             case DONE:
@@ -889,14 +963,9 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
             case DYNAMIC:
                 // we apply gravity to the body
                 pending_forces_this_timestep.add(gravity);
-                if (linearDrag != 0){
-                    // and we apply the drag to the body if appropriate
-                    pending_forces_this_timestep.add_discardOther(M_Vect2D.GET(velocity).mult(-linearDrag));
-                }
-                if (angularDrag != 0){
-                    // also applying angular drag if appropriate
-                    pending_torque_this_timestep += (angVelocity * -angularDrag);
-                }
+
+                //pending_torque_this_timestep += angVelocity;
+
             default:
 
                 pending_forces_this_timestep.mult(1/mass);
@@ -905,9 +974,17 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
 
 
                 tempVel.set(velocity);
+                if (linearDrag != 0){
+                    // and we apply the drag to the body if appropriate
+                    tempVel.mult(1-linearDrag);
+                }
+
+
                 tempPosition.set(position);
                 tempRot.set(rotation);
-                tempAngVelocity = angVelocity;
+                tempAngVelocity = angVelocity * 1-linearDrag;
+
+                tempVel.addScaled(pending_forces_this_timestep, deltaT);
 
                 break;
         }
@@ -984,9 +1061,23 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
             throw new AssertionError("Expected state of 'SUB_UPDATING', was in " + eus + "!");
         }
 
+
+        /*
+        System.out.println("CrappyBody.applyAllTempChanges");
+        System.out.println("rotation = " + rotation);
+        System.out.println("tempRot = " + tempRot);
+        System.out.println("tempRotChange = " + tempRotChange);
+        System.out.println("angVelocity = " + angVelocity);
+        System.out.println("tempAngVelocity = " + tempAngVelocity);
+        System.out.println("tempAngVelocityChange = " + tempAngVelocityChange);
+        System.out.println("velocity = " + velocity);
+        System.out.println("tempVel = " + tempVel);
+         */
         velocity = new Vect2D(tempVel);
+        lastPosition = position;
         position = new Vect2D(tempPosition);
         angVelocity = tempAngVelocity;
+        lastRotation = rotation;
         rotation = new Rot2D(tempRot);
 
         //and now making sure the temps are 100% identical to the actuals
@@ -1003,6 +1094,22 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
         intermediateTransform.update();
 
         shape.getAssert().timestepEndUpdate();
+
+        /*
+        System.out.println("rotation = " + rotation);
+        System.out.println("tempRot = " + tempRot);
+        System.out.println("tempRotChange = " + tempRotChange);
+        System.out.println("angVelocity = " + angVelocity);
+        System.out.println("tempAngVelocity = " + tempAngVelocity);
+        System.out.println("tempAngVelocityChange = " + tempAngVelocityChange);
+        System.out.println("velocity = " + velocity);
+        System.out.println("tempVel = " + tempVel);
+
+         */
+
+        assert true;
+
+        return;
     }
 
     @Override
@@ -1032,10 +1139,60 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
 
     public boolean wasClicked(){ return callbackHandler.wasClicked(); }
 
+    @Override
+    public String toString() {
+        return "CrappyBody{" +
+                "position=" + position +
+                ", tempDisplacement=" + tempDisplacement +
+                ", tempPosition=" + tempPosition +
+                ", velocity=" + velocity +
+                ", tempVelChange=" + tempVelChange +
+                ", tempVel=" + tempVel +
+                ", rotation=" + rotation +
+                ", tempRot=" + tempRot +
+                ", tempRotChange=" + tempRotChange +
+                ", shape=" + shape +
+                ", angVelocity=" + angVelocity +
+                ", tempAngVelocityChange=" + tempAngVelocityChange +
+                ", tempAngVelocity=" + tempAngVelocity +
+                ", torque=" + torque +
+                ", mass=" + mass +
+                ", inertia=" + inertia +
+                ", pending_forces_this_timestep=" + pending_forces_this_timestep +
+                ", pending_torque_this_timestep=" + pending_torque_this_timestep +
+                ", pending_forces_mid_timestep=" + pending_forces_mid_timestep +
+                ", pending_torque_mid_timestep=" + pending_torque_mid_timestep +
+                ", bodyType=" + bodyType +
+                ", intermediateTransform=" + intermediateTransform +
+                ", linearDrag=" + linearDrag +
+                ", angularDrag=" + angularDrag +
+                ", restitution=" + restitution +
+                ", active=" + active +
+                ", pendingActive=" + pendingActive +
+                ", tangible=" + tangible +
+                ", pendingIntangbility=" + pendingIntangbility +
+                ", canMoveLinearly=" + canMoveLinearly +
+                ", canRotate=" + canRotate +
+                ", pendingCanMoveLinearly=" + pendingCanMoveLinearly +
+                ", pendingCanRotate=" + pendingCanRotate +
+                ", pendingRemoval=" + pendingRemoval +
+                ", combinedBitsOfOtherObjectsCollidedWith=" + combinedBitsOfOtherObjectsCollidedWith +
+                ", myBodyTagBits=" + myBodyTagBits +
+                ", tagsICanCollideWithBitmask=" + tagsICanCollideWithBitmask +
+                ", callbackHandler=" + callbackHandler +
+                ", userData=" + userData +
+                ", name='" + name + '\'' +
+                ", eus=" + eus +
+                '}';
+    }
 
     public static CrappyBodyCreator GET_CREATOR(){
         return new CrappyBodyCreator();
     }
+
+    // TODO:
+    //   Might have to just cut my losses and make a function that just directly modifies the velocity, as-is,
+    //   for the collision handling code, as I'm getting pretty fucking demoralized from how nothing's working.
 
     /**
      * Inspired somewhat by JBox2D's BodyDef class,
@@ -1061,6 +1218,8 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
         public double linearDrag = 0.9;
 
         public double angularDrag = 0.9;
+
+        public double restitution = 1.2;
 
         public static int DEFAULT_THIS_BODY_TAGS_BITMASK = 0;
 
@@ -1089,6 +1248,9 @@ public class CrappyBody implements I_CrappyBody, I_View_CrappyBody, CrappyBody_S
                     angle,
                     angVel,
                     mass,
+                    restitution,
+                    angularDrag,
+                    linearDrag,
                     bodyType,
                     thisBodyTagsAsBitmask,
                     tagsOfBodiesThatCanBeCollidedWith,

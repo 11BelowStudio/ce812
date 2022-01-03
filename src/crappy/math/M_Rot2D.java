@@ -1,6 +1,7 @@
 package crappy.math;
 
 import crappy.internals.CrappyWarning;
+import org.jbox2d.common.Rot;
 
 import java.io.Serializable;
 import java.util.Queue;
@@ -94,9 +95,7 @@ public final class M_Rot2D implements Serializable, I_Rot2D{
     }
 
     public M_Rot2D setIdentity(){
-        sin = 0;
-        cos = 1;
-        return this;
+        return set(Rot2D.IDENTITY);
     }
 
     public M_Rot2D mul(final I_Rot2D other){
@@ -118,6 +117,14 @@ public final class M_Rot2D implements Serializable, I_Rot2D{
     }
 
     public double angle(){ return Math.atan2(sin, cos); }
+
+    @Override
+    public String toString() {
+        return "M_Rot2D{" +
+                "sin=" + sin +
+                ", cos=" + cos +
+                '}';
+    }
 
 
 }

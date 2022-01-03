@@ -84,6 +84,12 @@ public interface I_CrappyShape extends I_HaveRestitution, I_HaveMass {
 
     I_Crappy_AABB getBoundingBox();
 
+    /**
+     * Where was the centroid of this object (in world coords) last frame?
+     * @return world coords of this object's centroid last frame.
+     */
+    Vect2D getLastFrameWorldPos();
+
     default Vect2D getVelOfLocalPoint(final I_Vect2D localPos){
         return Vect2DMath.WORLD_VEL_OF_LOCAL_COORD_M(localPos, getBodyTransform()).finished();
     }

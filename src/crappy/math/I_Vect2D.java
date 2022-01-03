@@ -141,6 +141,11 @@ public interface I_Vect2D extends IPair<Double, Double>, Comparable<I_Vect2D> {
         return (getX() >= o.getX()) && (getY() >= o.getY());
     }
 
+    default boolean isLessThanOrEqualTo(final I_Vect2D o){
+
+        return (getX() <= o.getX()) && (getY() <= o.getY());
+    }
+
     /**
      * Comparison operation.
      * Returns result of comparing x values, then attempts to compare y values if x values are identical.

@@ -90,8 +90,13 @@ public interface I_CrappilyDrawStuff {
 
 
     void drawRectangle(
-            final I_Vect2D lb, final I_Vect2D ub,
+            final I_Vect2D xy, final I_Vect2D wh,
+            //final double x, final double y, final double w, final double h,
             final Color col
+    );
+
+    void drawRectangle(
+            final double x, final double y, final double w, final double h, final Color col
     );
 
     // TODO: methods that accept shapes, calculate appropriate vertices for them, and call these draw methods
@@ -99,7 +104,12 @@ public interface I_CrappilyDrawStuff {
 
     default void acceptAABB(DrawableCrappyShape d){
         final I_Crappy_AABB b = d.getBody().getAABB();
-        drawRectangle(getGraphicsTransform().TO_SCREEN_COORDS_V(b.getMin()), getGraphicsTransform().TO_SCREEN_COORDS_V(b.getMax()), Color.WHITE);
+        final Vect2D min = getGraphicsTransform().TO_SCREEN_COORDS_V(b.getMin());
+        final Vect2D max = getGraphicsTransform().TO_SCREEN_COORDS_V(b.getMax());
+        final Vect2D wh = getGraphicsTransform().TO_RAW_SCREEN_SCALE_M(b.getWidthHeight()).finished();
+        //drawRectangle(min, getGraphicsTransform().TO_RAW_SCREEN_SCALE_M(b.getWidthHeight()), Color.WHITE);
+
+        drawRectangle(min.x, max.y, wh.x, wh.y, Color.WHITE);
     }
 
     default void acceptCircle(final DrawableCrappyShape.DrawableCircle c){
@@ -112,14 +122,13 @@ public interface I_CrappilyDrawStuff {
 
         final I_Crappy_AABB b = c.getBody().getAABB();
 
-        System.out.println(b);
 
-        drawRectangle(getGraphicsTransform().TO_SCREEN_COORDS_V(b.getMin()), getGraphicsTransform().TO_SCREEN_COORDS_V(b.getMax()), Color.WHITE);
+        acceptAABB(c);
 
         drawFilledCircle(screenPos, xRad, yRad, SELECT_COLOR_BODY(c.getShapeType(), c.getBody().getBodyType(), true));
         drawCircle(screenPos, xRad, yRad, SELECT_COLOR_BODY(c.getShapeType(), c.getBody().getBodyType(), false));
-
-        drawLine(screenPos, screenPos.add(getGraphicsTransform().TO_RAW_SCREEN_SCALE_M(c.getDrawableVel())), Color.RED);
+        drawLine(screenPos, screenPos.add(getGraphicsTransform().TO_SCREEN_COORDS_V(c.getDrawableRot())), Color.CYAN);
+        drawLine(screenPos, screenPos.add(getGraphicsTransform().TO_SCREEN_COORDS_V(c.getDrawableVel())), Color.RED);
     }
 
 
@@ -139,7 +148,8 @@ public interface I_CrappilyDrawStuff {
 
         acceptCircle(p.getDrawableIncircle());
         drawPolygon(screenPos, screenVertices, SELECT_COLOR_BODY(p.getShapeType(), p.getBody().getBodyType(), false));
-        drawLine(screenPos, screenPos.add(getGraphicsTransform().TO_RAW_SCREEN_SCALE_M(p.getDrawableVel())), Color.ORANGE);
+        drawLine(screenPos, screenPos.add(getGraphicsTransform().TO_RAW_SCREEN_SCALE_M(p.getDrawableRot())), Color.CYAN);
+        drawLine(screenPos, screenPos.add(getGraphicsTransform().TO_SCREEN_COORDS_V(p.getDrawableVel())), Color.RED);
     }
 
 

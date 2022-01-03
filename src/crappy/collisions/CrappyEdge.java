@@ -1,11 +1,15 @@
 package crappy.collisions;
 
+import crappy.CrappyBody_ShapeSetter_Interface;
 import crappy.CrappyBody_Shape_Interface;
 import crappy.I_Transform;
 import crappy.graphics.DrawableCrappyShape;
 import crappy.graphics.I_CrappilyDrawStuff;
+import crappy.math.I_Vect2D;
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
+
+import java.util.Vector;
 
 public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge, DrawableCrappyShape.DrawableEdge {
 
@@ -33,9 +37,27 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge, DrawableC
     private Vect2D drawableEnd;
     private Vect2D drawableNorm;
 
+
+    /**
+     * Public constructor
+     * @param body body which this shape will be attached to
+     * @param localStart local start point of this edge
+     * @param localEnd local end point
+     */
+    public CrappyEdge(
+            final CrappyBody_ShapeSetter_Interface body, final Vect2D localStart, final Vect2D localEnd
+    ){
+        this(localStart, body, localEnd);
+
+        body.__setShape__internalDoNotCallYourselfPlease(
+                this, Vect2DMath.LINE_START_CENTROID_MOMENT_OF_INERTIA(localStart, getCentroid(), body.getMass())
+        );
+
+    }
+
     CrappyEdge(
-            final CrappyBody_Shape_Interface body,
             final Vect2D localStart,
+            final CrappyBody_Shape_Interface body,
             final Vect2D localProj
     ) {
         super(body, CRAPPY_SHAPE_TYPE.EDGE, localStart.addScaled(localProj, 0.5));
@@ -51,10 +73,10 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge, DrawableC
 
     CrappyEdge(
             final Vect2D localStart,
-            final Vect2D localEnd,
+            final I_Vect2D localEnd,
             final CrappyBody_Shape_Interface body
     ){
-        this(body, localStart, Vect2DMath.VECTOR_BETWEEN(localStart, localEnd));
+        this(localStart, body, Vect2DMath.VECTOR_BETWEEN(localStart, localEnd));
     }
 
     CrappyEdge(
@@ -178,7 +200,7 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge, DrawableC
      */
     private static class EdgePointCircle implements I_CrappyCircle, DrawableCircle{
 
-        private final I_CrappyEdge edge;
+        private final CrappyEdge edge;
 
         private final Crappy_AABB point_aabb;
 
@@ -252,6 +274,11 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge, DrawableC
             return 0;
         }
 
+        @Override
+        public Vect2D getDrawableRot() {
+            return Vect2D.ZERO;
+        }
+
         /**
          * Obtains the centroid of this body in local coords.
          *
@@ -275,6 +302,16 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge, DrawableC
         @Override
         public I_Crappy_AABB getBoundingBox() {
             return point_aabb;
+        }
+
+        /**
+         * Where was the centroid of this object (in world coords) last frame?
+         *
+         * @return world coords of this object's centroid last frame.
+         */
+        @Override
+        public Vect2D getLastFrameWorldPos() {
+            return edge.getLastFrameWorldPos().add(edge.getLocalStart());
         }
 
         /**

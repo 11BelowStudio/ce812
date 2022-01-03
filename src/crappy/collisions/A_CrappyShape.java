@@ -1,13 +1,16 @@
 package crappy.collisions;
 
 
+import crappy.CrappyBody_ShapeSetter_Interface;
 import crappy.CrappyBody_Shape_Interface;
 import crappy.I_Transform;
 import crappy.graphics.DrawableBody;
 import crappy.graphics.DrawableCrappyShape;
 import crappy.graphics.I_CrappilyDrawStuff;
 import crappy.internals.CrappyInternalException;
+import crappy.math.I_Vect2D;
 import crappy.math.Vect2D;
+import crappy.math.Vect2DMath;
 
 import java.util.Objects;
 
@@ -144,11 +147,11 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I
 
 
     public void timestepStartUpdate(){
-        aabb.update_aabb(thisFrameAABB);
+        thisFrameAABB.update_aabb(aabb);
     }
 
     public void midTimestepUpdate(){
-        aabb.add_aabb(updateShape(getBodyTransform()));
+        thisFrameAABB.add_aabb(updateShape(getBodyTransform()));
     }
 
     public void timestepEndUpdate(){
@@ -213,6 +216,10 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I
         }
     }
 
+    public Vect2D getLastFrameWorldPos(){
+        return Vect2DMath.LOCAL_TO_WORLD_M(getCentroid(), body.getLastPos(), body.getLastRot()).finished();
+    }
+
     /**
      * Computes the normals for a polygon shape
      * @param vertices array holding all of the vertices
@@ -256,5 +263,21 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I
         }
     }
 
-
+    @Override
+    public String toString() {
+        return "A_CrappyShape{" +
+                "shapeType=" + shapeType +
+                ", aabb=" + aabb +
+                ", thisFrameAABB=" + thisFrameAABB +
+                ", lastFrameAABB=" + lastFrameAABB +
+                ", localCentroid=" + localCentroid +
+                ", radius=" + radius +
+                ", radiusSquared=" + radiusSquared +
+                ", syncer=" + syncer +
+                ", drawableSyncer=" + drawableSyncer +
+                ", drawableWorldCentroid=" + drawableWorldCentroid +
+                ", drawableWorldPos=" + drawableWorldPos +
+                ", drawableVel=" + drawableVel +
+                '}';
+    }
 }

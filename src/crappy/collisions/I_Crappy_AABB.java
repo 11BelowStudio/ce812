@@ -3,6 +3,7 @@ package crappy.collisions;
 import crappy.math.I_Vect2D;
 import crappy.math.Vect2D;
 import crappy.utils.containers.IPair;
+import org.junit.Test;
 
 import java.util.function.Predicate;
 
@@ -32,15 +33,7 @@ public interface I_Crappy_AABB extends IPair<Vect2D, Vect2D>, Cloneable, Predica
      * @return true if the I_Vect2D is in bounds, false otherwise.
      */
     default boolean check_if_in_bounds(final I_Vect2D v){
-        return v.isGreaterThanOrEqualTo(getMin()) && getMin().isGreaterThanOrEqualTo(v);
-    }
-
-    default boolean check_bb_intersect(final I_Crappy_AABB other){
-        return check_if_in_bounds(other.getMax()) || check_if_in_bounds(other.getMin());
-    }
-
-    default boolean check_bb_intersect(final IPair<? extends I_Vect2D, ? extends I_Vect2D> other){
-        return check_if_in_bounds(other.getFirst()) || check_if_in_bounds(other.getSecond());
+        return v.isGreaterThanOrEqualTo(getMin()) && v.isLessThanOrEqualTo(getMax());
     }
 
     /**
@@ -48,9 +41,7 @@ public interface I_Crappy_AABB extends IPair<Vect2D, Vect2D>, Cloneable, Predica
      * @param other the other bounding box
      * @return true if the other AABB intersects with this AABB, false otherwise
      */
-    default boolean check_bb_intersect(final Crappy_AABB other){
-        return check_if_in_bounds(other.getMax()) || check_if_in_bounds(other.getMin());
-    }
+
 
     /**
      * Evaluates this predicate on the given argument.
@@ -61,7 +52,34 @@ public interface I_Crappy_AABB extends IPair<Vect2D, Vect2D>, Cloneable, Predica
      */
     @Override
     default boolean test(final I_Crappy_AABB otherAABB) {
-        return check_bb_intersect(otherAABB);
+        //return check_bb_intersect(otherAABB);
+        return I_Crappy_AABB.DO_THESE_BOUNDING_BOXES_OVERLAP(this, otherAABB);
+    }
+
+    default IPair<Double, Double> getWidthHeight(){
+
+        return getMax().addScaled(getMin(), -1);
+
+    }
+
+    /**
+     * Checks if these two bounding boxes overlap at any point
+     * @param a first bounding box
+     * @param b other bounding box
+     * @return true if they overlap.
+     */
+    static boolean DO_THESE_BOUNDING_BOXES_OVERLAP(final I_Crappy_AABB a, final I_Crappy_AABB b){
+
+        // TODO TODO TODO TODO!!!
+
+        return a.__innerBBOverlapCheck(b) || b.__innerBBOverlapCheck(a);
+
+    }
+
+    default boolean __innerBBOverlapCheck(final I_Crappy_AABB other){
+        return getMin().isLessThanOrEqualTo(other.getMax()) && getMax().isGreaterThanOrEqualTo(other.getMin());
     }
 
 }
+
+

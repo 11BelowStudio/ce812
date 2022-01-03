@@ -20,6 +20,18 @@ public interface I_View_CrappyBody extends I_Transform, IHaveBitmask {
     I_Vect2D getTempPos();
 
     /**
+     * Obtains previous position of the body, before most recent getPos position.
+     * @return prior position
+     */
+    I_Vect2D getLastPos();
+
+    /**
+     * Obtains previous rotation of the body, before most recent getRot rotation
+     * @return prior rotation
+     */
+    I_Rot2D getLastRot();
+
+    /**
      * mid-timestep rotation
      * @return mid-timestep rotation
      */
@@ -112,7 +124,9 @@ public interface I_View_CrappyBody extends I_Transform, IHaveBitmask {
         private double tempAngVel;
 
         I_CrappyBody_Temp_Transform(final I_View_CrappyBody cb){
+
             this.cb = cb;
+            update();
         }
 
         void update(){
@@ -151,6 +165,14 @@ public interface I_View_CrappyBody extends I_Transform, IHaveBitmask {
             return cb;
         }
 
-
+        @Override
+        public String toString() {
+            return "I_CrappyBody_Temp_Transform{" +
+                    ", tempPos=" + tempPos +
+                    ", tempVel=" + tempVel +
+                    ", tempRot=" + tempRot +
+                    ", tempAngVel=" + tempAngVel +
+                    '}';
+        }
     }
 }

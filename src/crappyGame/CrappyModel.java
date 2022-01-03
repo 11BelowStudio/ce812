@@ -7,6 +7,7 @@ import crappy.I_View_CrappyBody;
 import crappy.collisions.AABBQuadTreeTools;
 import crappy.collisions.CrappyCircle;
 import crappy.collisions.CrappyLine;
+import crappy.collisions.CrappyPolygon;
 import crappy.graphics.I_GraphicsTransform;
 import crappy.math.Rot2D;
 import crappy.math.Vect2D;
@@ -36,16 +37,17 @@ public class CrappyModel implements Viewable {
                 Rot2D.IDENTITY,
                 0,
                 0,
+                1.5,
+                0,
+                0,
                 CrappyBody.CRAPPY_BODY_TYPE.STATIC,
                 1,
-                3,
+                -1,
                 new CrappyCallbackHandler() {},
                 new Object(),
                 "crap"
         );
-        c.setShape(
-                new CrappyLine(c, new Vect2D(0, 1), new Vect2D(10, 1.25))
-        );
+        new CrappyLine(c, new Vect2D(0, 1), new Vect2D(10, 1.25));
 
         statics.add(c);
 
@@ -56,13 +58,17 @@ public class CrappyModel implements Viewable {
 
         CrappyBody c2 = new CrappyBody(
                 new Vect2D(2.5, 5),
-                Vect2D.ZERO,
+                //Vect2D.ZERO,
+                Vect2D.POLAR(Rot2D.FROM_DEGREES(-45), 5),
                 Rot2D.IDENTITY,
                 0,
-                3,
+                1,
+                1.5,
+                0.0001,
+                0.0001,
                 CrappyBody.CRAPPY_BODY_TYPE.DYNAMIC,
                 3,
-                1,
+                -1,
                 new CrappyCallbackHandler() {
 
                     @Override
@@ -73,14 +79,39 @@ public class CrappyModel implements Viewable {
                 new Object(),
                 "cungaradeo"
         );
-        c2.setShape(
-                new CrappyCircle(c2, 0.25)
-        );
+        new CrappyCircle(c2, 0.25);
 
         world.addBody(c2);
 
 
+        CrappyBody c3 = new CrappyBody(
+                new Vect2D(7.5, 5),
+                //Vect2D.ZERO,
+                Vect2D.POLAR(Rot2D.FROM_DEGREES(45), 5),
+                Rot2D.IDENTITY,
+                0,
+                1.2,
+                1.5,
+                0.0001,
+                0.0001,
+                CrappyBody.CRAPPY_BODY_TYPE.DYNAMIC,
+                3,
+                -1,
+                new CrappyCallbackHandler() {
 
+                    @Override
+                    public void collidedWith(I_View_CrappyBody otherBody) {
+                        System.out.println(otherBody.getName());
+                    }
+                },
+                new Object(),
+                "cungaradeo"
+        );
+
+        new CrappyCircle(c3, 0.25);
+        //CrappyPolygon.POLYGON_FACTORY_REGULAR(c3, 5, 0.375);
+
+        world.addBody(c3);
     }
 
 

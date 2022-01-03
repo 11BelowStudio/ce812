@@ -1,5 +1,6 @@
 package crappy.collisions;
 
+import crappy.CrappyBody_ShapeSetter_Interface;
 import crappy.CrappyBody_Shape_Interface;
 import crappy.I_Transform;
 import crappy.graphics.DrawableCrappyShape;
@@ -7,6 +8,7 @@ import crappy.graphics.I_CrappilyDrawStuff;
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -38,7 +40,7 @@ public class CrappyLine extends A_CrappyShape implements Iterable<I_CrappyEdge>,
      * @param body the CrappyBody which this line belongs to
      * @param end the end point for this line (in local coords)
      */
-    public CrappyLine(final CrappyBody_Shape_Interface body, final Vect2D end){
+    public CrappyLine(final CrappyBody_ShapeSetter_Interface body, final Vect2D end){
         this(body, end, Vect2D.ZERO);
     }
 
@@ -49,7 +51,7 @@ public class CrappyLine extends A_CrappyShape implements Iterable<I_CrappyEdge>,
      * @param start where this line starts
      * @param end where this line ends
      */
-    public CrappyLine(final CrappyBody_Shape_Interface body, final Vect2D start, final Vect2D end) {
+    public CrappyLine(final CrappyBody_ShapeSetter_Interface body, final Vect2D start, final Vect2D end) {
         super(body, CRAPPY_SHAPE_TYPE.LINE, Vect2DMath.MIDPOINT(start, end));
 
 
@@ -65,12 +67,17 @@ public class CrappyLine extends A_CrappyShape implements Iterable<I_CrappyEdge>,
                 Vect2DMath.LOCAL_TO_WORLD_FOR_BODY_TO_OUT_AND_GET_BOUNDS(body, localVertices, worldVertices)
         );
 
-        body.setMomentOfInertia(Vect2DMath.LINE_MOMENT_OF_INERTIA(start, end, body.getMass()));
+        body.__setShape__internalDoNotCallYourselfPlease(
+                this, Vect2DMath.LINE_START_CENTROID_MOMENT_OF_INERTIA(start, getCentroid(), body.getMass())
+        );
+
 
     }
 
     @Override
     public Crappy_AABB updateShape(final I_Transform rootTransform) {
+
+        // TODO: update AABB without using localVertices/worldVertices,
         aabb.update_aabb(
                 Vect2DMath.LOCAL_TO_WORLD_FOR_BODY_TO_OUT_AND_GET_BOUNDS(rootTransform, localVertices, worldVertices)
         );
@@ -120,6 +127,30 @@ public class CrappyLine extends A_CrappyShape implements Iterable<I_CrappyEdge>,
         super.timestepEndUpdate();
         edgeA.timestepEndUpdate();
         edgeB.timestepEndUpdate();
+    }
+
+
+    @Override
+    public String toString() {
+        return "CrappyLine{" +
+                "shapeType=" + shapeType +
+                //", body=" + body +
+                ", aabb=" + aabb +
+                ", thisFrameAABB=" + thisFrameAABB +
+                ", lastFrameAABB=" + lastFrameAABB +
+                ", localCentroid=" + localCentroid +
+                ", radius=" + radius +
+                ", radiusSquared=" + radiusSquared +
+                ", syncer=" + syncer +
+                ", edgeA=" + edgeA +
+                ", edgeB=" + edgeB +
+                ", localVertices=" + Arrays.toString(localVertices) +
+                ", worldVertices=" + Arrays.toString(worldVertices) +
+                ", drawableStart=" + drawableStart +
+                ", drawableEnd=" + drawableEnd +
+                ", drawableNormStart=" + drawableNormStart +
+                ", drawableNormEnd=" + drawableNormEnd +
+                '}';
     }
 
     /**

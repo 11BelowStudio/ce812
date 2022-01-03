@@ -204,10 +204,8 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
      * @param radius the radius of the circle which this bounding box describes
      */
     public void update_aabb_circle(final Vect2D mid, final double radius){
-        System.out.println(this);
         this.min = mid.add(-radius);
         this.max = mid.add(radius);
-        System.out.println(this);
 
     }
 
@@ -248,7 +246,7 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
      * @return true if argument intersected before it was added, false otherwise
      */
     public boolean add_aabb_but_also_check_if_in_bounds(final I_Crappy_AABB aabb){
-        final boolean res = check_bb_intersect(aabb);
+        final boolean res = I_Crappy_AABB.DO_THESE_BOUNDING_BOXES_OVERLAP(this, aabb);
         add_aabb(aabb);
         return res;
     }
@@ -275,6 +273,7 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
         return "Crappy_AABB{" +
                 "min=" + min +
                 ", max=" + max +
+                ", range=" + getWidthHeight() +
                 '}';
     }
 }
