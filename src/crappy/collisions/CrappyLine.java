@@ -55,8 +55,8 @@ public class CrappyLine extends A_CrappyShape implements Iterable<I_CrappyEdge>,
         super(body, CRAPPY_SHAPE_TYPE.LINE, Vect2DMath.MIDPOINT(start, end));
 
 
-        edgeA = new CrappyEdge(start, end, body);
-        edgeB = new CrappyEdge(end, start, body);
+        edgeA = new CrappyEdge(start, end, body, 0.0);
+        edgeB = new CrappyEdge(end, start, body, 0.0);
 
 
         this.localVertices = new Vect2D[]{start, end};

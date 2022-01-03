@@ -3,6 +3,8 @@ package crappy.collisions;
 import crappy.CrappyBody;
 import crappy.math.*;
 
+import java.util.Vector;
+
 import static crappy.math.Vect2DMath.RETURN_1_IF_0;
 
 public final class CrappyCollisionMath {
@@ -415,12 +417,48 @@ public final class CrappyCollisionMath {
         // we obtain the signed distance between the edge itself and the circle
         final double distOnCorrectSideOfBarrierToCentre = ap.dot(e.getWorldNorm());
 
-        if (distOnCorrectSideOfBarrierToCentre > c.getRadius() * BUFFERING || // if circle is too far away from the barrier
-                (distOnCorrectSideOfBarrierToCentre < -c.getRadius() * BUFFERING)// if circle is already past the barrier
+        if (distOnCorrectSideOfBarrierToCentre > c.getRadius() || // if circle is too far away from the barrier
+                (Double.isFinite(e.getDepth()) && distOnCorrectSideOfBarrierToCentre < -(c.getRadius() + e.getDepth())) // if circle is already past the barrier
         ){
             return false; // if the circle's too deep, we move along
         }
 
+
+        Vect2D endToNowPos = Vect2DMath.VECTOR_BETWEEN(e.getWorldStart(), c.getPos());
+        //System.out.println("\tendToNowPos = " + endToNowPos);
+        Vect2D tang = e.getWorldTang();
+        double thisFrameDistAlongBarrier = e.getWorldTang().dot(endToNowPos);
+        //System.out.println("\tthisFrameDistAlongBarrier = " + thisFrameDistAlongBarrier);
+
+        if (thisFrameDistAlongBarrier < -c.getRadius() || thisFrameDistAlongBarrier > e.getLength() + c.getRadius()){
+            //System.out.println("Too far!");
+            return false;
+        }
+
+        double velDotNorm = c.getVel().dot(e.getWorldNorm());
+
+        if (!c.getBody().isTangible() || !e.getBody().isTangible()){
+            return true;
+        }
+
+        Vect2D collisionPos = e.getWorldStart().addScaled(tang, thisFrameDistAlongBarrier);
+
+        if (c.getBody().getBodyType() == CrappyBody.CRAPPY_BODY_TYPE.DYNAMIC && e.getBody().getBodyType() != CrappyBody.CRAPPY_BODY_TYPE.DYNAMIC){
+
+            ShapeAgainstImmovableEdge(c, e, collisionPos, e.getWorldNorm());
+        } else {
+            CALCULATE_AND_APPLY_IMPULSE(
+                    c, Vect2DMath.WORLD_TO_LOCAL_M(collisionPos, c.getBodyTransform()),
+                    e, Vect2DMath.WORLD_TO_LOCAL_M(collisionPos, e.getBodyTransform()),
+                    e.getWorldNorm()
+            );
+        }
+        return true;
+
+
+
+
+        /*
         final double distAlongBarrier = ap.dot(e.getWorldTang());
 
         if (distAlongBarrier < 0 || distAlongBarrier > e.getLength()){
@@ -444,6 +482,8 @@ public final class CrappyCollisionMath {
         }
 
         return true;
+
+         */
 
     }
 
@@ -876,6 +916,24 @@ public final class CrappyCollisionMath {
             return true;
         }
 
+        Vect2D endToNowPos = Vect2DMath.VECTOR_BETWEEN(e.getWorldStart(), p.getPos());
+        //System.out.println("\tendToNowPos = " + endToNowPos);
+        Vect2D tang = e.getWorldTang();
+        double thisFrameDistAlongBarrier = tang.dot(endToNowPos);
+        //System.out.println("\tthisFrameDistAlongBarrier = " + thisFrameDistAlongBarrier);
+
+        Vect2D collisionPoint = e.getWorldStart().addScaled(tang, thisFrameDistAlongBarrier);
+
+        if (p.isWorldPointInPolyBounds(collisionPoint)){
+            return COLLIDE_CIRCLE_EDGE(
+                    p.getCircleForWorldCollisionPos(collisionPoint),
+                    e,
+                    deltaT
+            );
+        }
+        return false;
+
+        /*
         // if the edge's normal is pointing away from the polygon, return false.
         if (polygonToEdgeCentroid.dot(e.getWorldNorm()) > 0){
             return false;
@@ -893,6 +951,8 @@ public final class CrappyCollisionMath {
         }
 
         return false;
+
+         */
     }
 
     public static boolean POLYGON_LINE_COLLISIONS(final I_CrappyPolygon p, final I_CrappyLine l, final double deltaT){

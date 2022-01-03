@@ -37,6 +37,8 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge, DrawableC
     private Vect2D drawableEnd;
     private Vect2D drawableNorm;
 
+    private final double depth;
+
 
     /**
      * Public constructor
@@ -45,45 +47,50 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge, DrawableC
      * @param localEnd local end point
      */
     public CrappyEdge(
-            final CrappyBody_ShapeSetter_Interface body, final Vect2D localStart, final Vect2D localEnd
+            final CrappyBody_ShapeSetter_Interface body, final Vect2D localStart, final Vect2D localEnd, final double depth
     ){
-        this(localStart, body, localEnd);
+        this(localStart, body, localEnd, depth);
 
         body.__setShape__internalDoNotCallYourselfPlease(
                 this, Vect2DMath.LINE_START_CENTROID_MOMENT_OF_INERTIA(localStart, getCentroid(), body.getMass())
         );
 
+        //TODO: where bounding box?
+        this.aabb.update_aabb(Vect2DMath.GET_BOUNDS_VARARGS(worldStart, worldStart.add(worldProj)));
     }
 
     CrappyEdge(
             final Vect2D localStart,
             final CrappyBody_Shape_Interface body,
-            final Vect2D localProj
+            final Vect2D localProj,
+            final double depth
     ) {
         super(body, CRAPPY_SHAPE_TYPE.EDGE, localStart.addScaled(localProj, 0.5));
-
         this.localStart = localStart;
         this.localProj = localProj;
         this.length = localProj.mag();
         this.localTang = localProj.mult(1/length); // probably quicker than calling norm when we already know the length
         this.localNorm = localTang.rotate90degreesAnticlockwise();
-
+        this.depth = depth;
         updateShape(body);
+        this.aabb.update_aabb(Vect2DMath.GET_BOUNDS_VARARGS(worldStart, worldStart.add(worldProj)));
     }
 
     CrappyEdge(
             final Vect2D localStart,
             final I_Vect2D localEnd,
-            final CrappyBody_Shape_Interface body
+            final CrappyBody_Shape_Interface body,
+            final double depth
     ){
-        this(localStart, body, Vect2DMath.VECTOR_BETWEEN(localStart, localEnd));
+        this(localStart, body, Vect2DMath.VECTOR_BETWEEN(localStart, localEnd), depth);
     }
 
     CrappyEdge(
             final Vect2D localStart,
             final Vect2D localEnd,
             final CrappyBody_Shape_Interface body,
-            final Vect2D centroid
+            final Vect2D centroid,
+            final double depth
     ){
         super(body, CRAPPY_SHAPE_TYPE.EDGE, centroid);
         this.localStart = localStart;
@@ -91,7 +98,7 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge, DrawableC
         this.length = localProj.mag();
         this.localTang = localProj.mult(1/length); // probably quicker than calling norm when we already know the length
         this.localNorm = localTang.rotate90degreesAnticlockwise();
-
+        this.depth = depth;
         updateShape(body);
     }
 
@@ -191,6 +198,10 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge, DrawableC
         synchronized (drawableSyncer) {
             return circle;
         }
+    }
+
+    public double getDepth(){
+        return depth;
     }
 
 

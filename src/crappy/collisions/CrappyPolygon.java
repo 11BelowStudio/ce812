@@ -125,7 +125,7 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
         Vect2D current = localVertices[0];
         for (int i = 1; i <= vertexCount; i++) {
             final Vect2D next = localVertices[(i < vertexCount-1)? i : 0];
-            edges[i-1] = new CrappyEdge(current, next, body, localCentroid);
+            edges[i-1] = new CrappyEdge(current, next, body, localCentroid, 0.01);
             worldVertices[i-1] = edges[i-1].getWorldStart();
             current = next;
         }
@@ -137,7 +137,7 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
                         getCentroid(), localVertices, localWhiskers
                 );
 
-        System.out.println("localWhiskers = " + Arrays.toString(localWhiskers));
+        //System.out.println("localWhiskers = " + Arrays.toString(localWhiskers));
 
         for (int i = 0; i < vertexCount; i++) {
             normalWhiskers[i] = localWhiskers[i].norm();

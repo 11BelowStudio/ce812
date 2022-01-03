@@ -48,7 +48,7 @@ public class CrappyModel implements Viewable {
         );
         //new CrappyLine(c, new Vect2D(0, 1), new Vect2D(10, 1));
 
-        new CrappyEdge(c, new Vect2D(0, 1), new Vect2D(10, 1));
+        new CrappyEdge(c, new Vect2D(0, 1), new Vect2D(10, 1), Double.NaN);
 
         statics.add(c);
 
