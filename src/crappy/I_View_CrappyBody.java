@@ -8,10 +8,12 @@ import crappy.collisions.A_CrappyShape;
 import crappy.collisions.Crappy_AABB;
 import crappy.utils.bitmasks.IHaveBitmask;
 
+import java.util.UUID;
+
 /**
  * A view-only interface of the CrappyBody.
  */
-public interface I_View_CrappyBody extends I_Transform, IHaveBitmask {
+public interface I_View_CrappyBody extends I_Transform, IHaveBitmask, IHaveIdentifier {
 
     /**
      * mid-timestep position
@@ -109,6 +111,14 @@ public interface I_View_CrappyBody extends I_Transform, IHaveBitmask {
      * @return true if is active.
      */
     boolean isActive();
+
+    /**
+     * Checks if this object is actually allowed to collide with the other object
+     * @param other the other object
+     * @return true if they can collide, otherwise false.
+     */
+    boolean allowedToCollideWith(final I_View_CrappyBody other);
+
 
 
     class I_CrappyBody_Temp_Transform implements I_Transform{

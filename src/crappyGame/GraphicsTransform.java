@@ -5,6 +5,8 @@ import crappy.math.I_Vect2D;
 import crappy.math.Vect2D;
 import crappy.utils.containers.IPair;
 
+import java.awt.*;
+
 public class GraphicsTransform implements I_GraphicsTransform {
 
 
@@ -15,12 +17,21 @@ public class GraphicsTransform implements I_GraphicsTransform {
     Vect2D viewportCorner = Vect2D.ZERO;
 
 
-    GraphicsTransform(double viewableWorldWidth, double viewableWorldHeight, double screenX, double screenY){
+    public GraphicsTransform(double viewableWorldWidth, double viewableWorldHeight, Dimension screenSize, I_Vect2D viewport){
+        this(viewableWorldWidth, viewableWorldHeight, screenSize.getWidth(), screenSize.getHeight());
+        viewportCorner = viewport.toVect2D();
+    }
+
+    public GraphicsTransform(double viewableWorldWidth, double viewableWorldHeight, double screenX, double screenY){
 
         worldToScreenScale = IPair.of(viewableWorldWidth/screenX, viewableWorldHeight/screenY);
 
         worldToScreenCorrectionOffset = IPair.of(0.0, -screenY);
 
+    }
+
+    public void updateViewport(I_Vect2D newViewport){
+        viewportCorner = newViewport.toVect2D();
     }
 
 

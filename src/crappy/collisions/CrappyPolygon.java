@@ -260,17 +260,15 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
     @Override
     public I_CrappyCircle getCircleForWorldCollisionPos(final I_Vect2D v) {
 
-        double newRadius = Vect2DMath.WORLD_TO_LOCAL_M(v, getBodyTransform()).mag();
-        if (newRadius > radius){
-            newRadius = radius;
-        }
-        return proxyCircleForCollisions.overwriteRadiusAndGetAsCircle(newRadius);
+        return getCircleForLocalCollisionPos(Vect2DMath.WORLD_TO_LOCAL_M(v, getBodyTransform()).finished());
     }
 
     @Override
     public I_CrappyCircle getCircleForLocalCollisionPos(final I_Vect2D v){
 
-        double rad = v.mag();
+        Vect2D edgePoint = Vect2DMath.GET_POINT_ON_POLYGON_EDGE_WHERE_LINE_FROM_ORIGIN_INTERSECTS_WITH_EDGE(v, getRotatedLocals(getRot()));
+
+        double rad = edgePoint.mag();
         if (rad > radius){
             rad = radius;
         }
@@ -617,6 +615,19 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
             aabb.add_circle(getPos(), radius);
         }
 
+        @Override
+        public String toString() {
+            return "CrappyPolygonIncircle{" +
+                    "parent pos=" + p.getPos() +
+                    ", localCentroid=" + localCentroid +
+                    ", radius=" + radius +
+                    ", radiusSquared=" + radiusSquared +
+                    ", aabb=" + aabb +
+                    ", drawablePos=" + drawablePos +
+                    ", drawableVel=" + drawableVel +
+                    ", syncer=" + syncer +
+                    '}';
+        }
     }
 
 
@@ -645,7 +656,6 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
         return new CrappyPolygon(
                 body, Vect2DMath.MAKE_REGULAR_POLYGON(vertices, radius)
         );
-
 
 
 

@@ -1,13 +1,11 @@
 package crappyGame;
 
-import crappy.CrappyBody;
-import crappy.CrappyCallbackHandler;
-import crappy.CrappyWorld;
-import crappy.I_View_CrappyBody;
+import crappy.*;
 import crappy.collisions.*;
 import crappy.graphics.I_GraphicsTransform;
 import crappy.math.Rot2D;
 import crappy.math.Vect2D;
+import crappy.math.Vect2DMath;
 import crappyGame.UI.Viewable;
 
 import java.util.*;
@@ -16,13 +14,13 @@ import java.util.List;
 
 public class CrappyModel implements Viewable {
 
-    final Dimension dims = new Dimension(800,600 );
+    final Dimension dims = new Dimension(800,650 );
 
     final static Vect2D THRUST_GRAV = new Vect2D(0, -0.95);
 
     final CrappyWorld world = new CrappyWorld(CrappyWorld.GRAVITY);
 
-    final I_GraphicsTransform gt = new GraphicsTransform(10, 10, 800, 600);
+    final GraphicsTransform gt = new GraphicsTransform(10, 10, 800, 650);
 
     final MyRenderer r = new MyRenderer(gt);
 
@@ -42,13 +40,20 @@ public class CrappyModel implements Viewable {
                 CrappyBody.CRAPPY_BODY_TYPE.STATIC,
                 1,
                 -1,
-                new CrappyCallbackHandler() {},
+                new CrappyCallbackHandler() {
+
+                    @Override
+                    public void collidedWith(I_View_CrappyBody otherBody) {
+                        System.out.println(otherBody.getName());
+                    }
+                },
+                //new CrappyCallbackHandler() {},
                 new Object(),
                 "line"
         );
-        //new CrappyLine(c, new Vect2D(0, 1), new Vect2D(10, 1));
+        new CrappyLine(c, new Vect2D(10, 1), new Vect2D(0, 2));
 
-        new CrappyEdge(c, new Vect2D(0, 1), new Vect2D(10, 1), Double.NaN);
+        //new CrappyEdge(c, new Vect2D(0, 1), new Vect2D(10, 1), 0.0);
 
         statics.add(c);
 
@@ -59,14 +64,14 @@ public class CrappyModel implements Viewable {
 
         CrappyBody c2 = new CrappyBody(
                 new Vect2D(2.5, 5),
-                //Vect2D.ZERO,
-                Vect2D.POLAR(Rot2D.FROM_DEGREES(-45), 5),
+                Vect2D.ZERO,
+                //Vect2D.POLAR(Rot2D.FROM_DEGREES(-45), 10),
                 Rot2D.IDENTITY,
                 0,
                 1,
-                0.9,
+                1,
                 0.01,
-                0.001,
+                0.0001,
                 CrappyBody.CRAPPY_BODY_TYPE.DYNAMIC,
                 3,
                 -1,
@@ -88,14 +93,14 @@ public class CrappyModel implements Viewable {
 
         CrappyBody c3 = new CrappyBody(
                 new Vect2D(7.5, 5),
-                //Vect2D.ZERO,
-                Vect2D.POLAR(Rot2D.FROM_DEGREES(45), 5),
+                Vect2D.ZERO,
+                //Vect2D.POLAR(Rot2D.FROM_DEGREES(45), 10),
                 Rot2D.IDENTITY,
                 1,
-                1.2,
-                0.9,
+                1,
+                1,
                 0.01,
-                0.001,
+                0.0001,
                 CrappyBody.CRAPPY_BODY_TYPE.DYNAMIC,
                 3,
                 -1,
@@ -120,9 +125,9 @@ public class CrappyModel implements Viewable {
                 Vect2D.ZERO,
                 //Vect2D.POLAR(Rot2D.FROM_DEGREES(45), 5),
                 Rot2D.IDENTITY,
-                0,
+                1,
                 2,
-                0.9,
+                1,
                 0.01,
                 0.001,
                 CrappyBody.CRAPPY_BODY_TYPE.DYNAMIC,
@@ -152,6 +157,21 @@ public class CrappyModel implements Viewable {
         //CrappyPolygon.POLYGON_FACTORY_REGULAR(c3, 5, 0.375);
 
         world.addBody(c4);
+
+        world.addConnector(
+                new CrappyConnector(
+                        c2,
+                        Vect2D.ZERO,
+                        c3,
+                        Vect2D.ZERO,
+                        5,
+                        10,
+                        10,
+                        true,
+                        CrappyConnector.TRUNCATION_RULE_FACTORY(CrappyConnector.TruncationEnum.STANDARD_TRUNCATION, 10),
+                        false
+                )
+        );
     }
 
 
@@ -164,8 +184,10 @@ public class CrappyModel implements Viewable {
     @Override
     public void draw(Graphics2D g) {
 
+        //gt.updateViewport(Vect2DMath.ADD_SCALED(gt.viewportCorner, Vect2D.ONES, 0.002));
+
         g.setColor(new Color(40, 43, 47));
-        g.fillRect(0, 0, 800, 600);
+        g.fillRect(0, 0, 800, 650);
 
         r.prepareToRender(g);
 

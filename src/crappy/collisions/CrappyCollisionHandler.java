@@ -74,38 +74,43 @@ public final class CrappyCollisionHandler {
 
             // assuming that the two objects are actually allowed to collide with each other,
             // we attempt to let them collide.
-            if (c.getBody().anyMatchInBitmasks(s.getBody())){
+            if (c.getBody().allowedToCollideWith(s.getBody())){
                 switch (s.getShapeType()){
                     case CIRCLE:
                         assert (s instanceof I_CrappyCircle);
-                        if (! CrappyCollisionMath.COLLIDE_CIRCLE_CIRCLE(c, s, deltaT)){
-                            continue;
+                        if (CrappyCollisionMath.COLLIDE_CIRCLE_CIRCLE(c, s, deltaT)){
+                            NOTIFY_ABOUT_COLLISION(c.getBody(), s.getBody());
                         }
                         break;
                     case EDGE:
                         assert (s instanceof I_CrappyEdge);
-                        if (!CrappyCollisionMath.COLLIDE_CIRCLE_EDGE(c, (I_CrappyEdge) s, deltaT)){
-                            continue;
+                        if (CrappyCollisionMath.COLLIDE_CIRCLE_EDGE(c, (I_CrappyEdge) s, deltaT)){
+                            NOTIFY_ABOUT_COLLISION(c.getBody(), s.getBody());
                         }
                         break;
                     case LINE:
                         assert (s instanceof I_CrappyLine);
-                        if (!CrappyCollisionMath.COLLIDE_CIRCLE_LINE(c, (I_CrappyLine) s, deltaT)){
-                            continue;
+                        if (CrappyCollisionMath.COLLIDE_CIRCLE_LINE(c, (I_CrappyLine) s, deltaT)){
+                            NOTIFY_ABOUT_COLLISION(c.getBody(), s.getBody());
                         }
                         break;
                     case POLYGON:
                         assert (s instanceof I_CrappyPolygon);
-                        if (!CrappyCollisionMath.COLLIDE_CIRCLE_POLYGON(c, (I_CrappyPolygon) s, deltaT)){
-                            continue;
+                        if (CrappyCollisionMath.COLLIDE_CIRCLE_POLYGON(c, (I_CrappyPolygon) s, deltaT)){
+                            NOTIFY_ABOUT_COLLISION(c.getBody(), s.getBody());
                         }
                         break;
                 }
-                c.getBody().notifyAboutCollision(s.getBody());
-                s.getBody().notifyAboutCollision(c.getBody());
+                //c.getBody().notifyAboutCollision(s.getBody());
+                //s.getBody().notifyAboutCollision(c.getBody());
             }
         }
 
+    }
+
+    private static void NOTIFY_ABOUT_COLLISION(CrappyBody_Shape_Interface a, CrappyBody_Shape_Interface b){
+        a.notifyAboutCollision(b);
+        b.notifyAboutCollision(a);
     }
 
     /**
@@ -125,35 +130,33 @@ public final class CrappyCollisionHandler {
 
             // assuming that the two objects are actually allowed to collide with each other,
             // we attempt to let them collide.
-            if (l.getBody().anyMatchInBitmasks(s.getBody())){
+            if (l.getBody().allowedToCollideWith(s.getBody())){
                 switch (s.getShapeType()){
                     case CIRCLE:
                         assert (s instanceof I_CrappyCircle);
-                        if (! CrappyCollisionMath.COLLIDE_CIRCLE_LINE(s, l, deltaT)){
-                            continue;
+                        if (CrappyCollisionMath.COLLIDE_CIRCLE_LINE(s, l, deltaT)){
+                            NOTIFY_ABOUT_COLLISION(s.getBody(), l.getBody());
                         }
                         break;
                     case EDGE:
                         assert (s instanceof I_CrappyEdge);
-                        if (!CrappyCollisionMath.COLLIDE_LINE_EDGE(l, (I_CrappyEdge) s, deltaT)){
-                            continue;
+                        if (CrappyCollisionMath.COLLIDE_LINE_EDGE(l, (I_CrappyEdge) s, deltaT)){
+                            NOTIFY_ABOUT_COLLISION(s.getBody(), l.getBody());
                         }
                         break;
                     case LINE:
                         assert (s instanceof I_CrappyLine);
-                        if (!CrappyCollisionMath.COLLIDE_LINE_LINE(l, (I_CrappyLine) s, deltaT)){
-                            continue;
+                        if (CrappyCollisionMath.COLLIDE_LINE_LINE(l, (I_CrappyLine) s, deltaT)){
+                            NOTIFY_ABOUT_COLLISION(s.getBody(), l.getBody());
                         }
                         break;
                     case POLYGON:
                         assert (s instanceof I_CrappyPolygon);
-                        if (!CrappyCollisionMath.POLYGON_LINE_COLLISIONS((I_CrappyPolygon) s, l, deltaT)){
-                            continue;
+                        if (CrappyCollisionMath.POLYGON_LINE_COLLISIONS((I_CrappyPolygon) s, l, deltaT)){
+                            NOTIFY_ABOUT_COLLISION(s.getBody(), l.getBody());
                         }
                         break;
                 }
-                l.getBody().notifyAboutCollision(s.getBody());
-                s.getBody().notifyAboutCollision(l.getBody());
             }
         }
 
@@ -176,35 +179,33 @@ public final class CrappyCollisionHandler {
 
             // assuming that the two objects are actually allowed to collide with each other,
             // we attempt to let them collide.
-            if (e.getBody().anyMatchInBitmasks(s.getBody())){
+            if (e.getBody().allowedToCollideWith(s.getBody())){
                 switch (s.getShapeType()){
                     case CIRCLE:
                         assert (s instanceof I_CrappyCircle);
-                        if (! CrappyCollisionMath.COLLIDE_CIRCLE_EDGE(s, e, deltaT)){
-                            continue;
+                        if (CrappyCollisionMath.COLLIDE_CIRCLE_EDGE(s, e, deltaT)){
+                            NOTIFY_ABOUT_COLLISION(s.getBody(), e.getBody());
                         }
                         break;
                     case EDGE:
                         assert (s instanceof I_CrappyEdge);
-                        if (!CrappyCollisionMath.COLLIDE_EDGE_EDGE(e, (I_CrappyEdge) s, deltaT)){
-                            continue;
+                        if (CrappyCollisionMath.COLLIDE_EDGE_EDGE(e, (I_CrappyEdge) s, deltaT)){
+                            NOTIFY_ABOUT_COLLISION(s.getBody(), e.getBody());
                         }
                         break;
                     case LINE:
                         assert (s instanceof I_CrappyLine);
-                        if (!CrappyCollisionMath.COLLIDE_LINE_EDGE((I_CrappyLine) s, e, deltaT)){
-                            continue;
+                        if (CrappyCollisionMath.COLLIDE_LINE_EDGE((I_CrappyLine) s, e, deltaT)){
+                            NOTIFY_ABOUT_COLLISION(s.getBody(), e.getBody());
                         }
                         break;
                     case POLYGON:
                         assert (s instanceof I_CrappyPolygon);
-                        if (!CrappyCollisionMath.POLYGON_EDGE_COLLISIONS((I_CrappyPolygon) s, e, deltaT)){
-                            continue;
+                        if (CrappyCollisionMath.POLYGON_EDGE_COLLISIONS((I_CrappyPolygon) s, e, deltaT)){
+                            NOTIFY_ABOUT_COLLISION(s.getBody(), e.getBody());
                         }
                         break;
                 }
-                e.getBody().notifyAboutCollision(s.getBody());
-                s.getBody().notifyAboutCollision(e.getBody());
             }
         }
 
@@ -227,30 +228,30 @@ public final class CrappyCollisionHandler {
 
             // assuming that the two objects are actually allowed to collide with each other,
             // we attempt to let them collide.
-            if (p.getBody().anyMatchInBitmasks(s.getBody())){
+            if (p.getBody().allowedToCollideWith(s.getBody())){
                 switch (s.getShapeType()){
                     case CIRCLE:
                         assert (s instanceof I_CrappyCircle);
-                        if (! CrappyCollisionMath.COLLIDE_CIRCLE_POLYGON((I_CrappyCircle) s, p, deltaT)){
-                            continue;
+                        if (CrappyCollisionMath.COLLIDE_CIRCLE_POLYGON((I_CrappyCircle) s, p, deltaT)){
+                            NOTIFY_ABOUT_COLLISION(s.getBody(), s.getBody());
                         }
                         break;
                     case EDGE:
                         assert (s instanceof I_CrappyEdge);
-                        if (!CrappyCollisionMath.POLYGON_EDGE_COLLISIONS(p, (I_CrappyEdge) s, deltaT)){
-                            continue;
+                        if (CrappyCollisionMath.POLYGON_EDGE_COLLISIONS(p, (I_CrappyEdge) s, deltaT)){
+                            NOTIFY_ABOUT_COLLISION(s.getBody(), s.getBody());
                         }
                         break;
                     case LINE:
                         assert (s instanceof I_CrappyLine);
-                        if (!CrappyCollisionMath.POLYGON_LINE_COLLISIONS(p, (I_CrappyLine) s, deltaT)){
-                            continue;
+                        if (CrappyCollisionMath.POLYGON_LINE_COLLISIONS(p, (I_CrappyLine) s, deltaT)){
+                            NOTIFY_ABOUT_COLLISION(s.getBody(), s.getBody());
                         }
                         break;
                     case POLYGON:
                         assert (s instanceof I_CrappyPolygon);
-                        if (!CrappyCollisionMath.POLYGON_POLYGON_COLLISIONS(p, (I_CrappyPolygon) s, deltaT)){
-                            continue;
+                        if (CrappyCollisionMath.POLYGON_POLYGON_COLLISIONS(p, (I_CrappyPolygon) s, deltaT)){
+                            NOTIFY_ABOUT_COLLISION(s.getBody(), s.getBody());
                         }
                         break;
                 }

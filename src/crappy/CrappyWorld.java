@@ -180,7 +180,7 @@ public class CrappyWorld {
 
                 // remove any connectors that need to be removed
                 for (conIter = connectors.iterator(); conIter.hasNext(); ) {
-                    if (!conIter.next().shouldIStillExist()) {
+                    if (conIter.next().startingDisposal()) {
                         conIter.remove();
                     }
                 }
@@ -196,7 +196,7 @@ public class CrappyWorld {
             //  and remove any bodies marked for removal as a result of collision handling
 
 
-
+            // now we update the drawable versions of these bodies.
 
             synchronized (drawableDynamics){
                 drawableDynamics.clear();
@@ -220,15 +220,14 @@ public class CrappyWorld {
                 }
             }
 
+            /*
             synchronized (drawableStatics){
                 drawableStatics.forEach(DrawableBody::updateDrawables);
             }
 
-            // TODO: overwrite main dynamic/kinematic quadtree
+             */
 
-            // TODO: method to accept clicks
 
-            // TODO: debug draw.
         }
 
     }
@@ -268,21 +267,22 @@ public class CrappyWorld {
         }
     }
 
-    public void addBody(final CrappyBody b) throws IllegalArgumentException{
+    public void addBody(final CrappyBody b) throws IllegalArgumentException, AssertionError{
         synchronized (UPDATE_SYNC_OBJECT) {
             if (b.getShape() == null) {
                 throw new IllegalArgumentException("Please initialize a shape for this body first!");
             }
-            switch (b.bodyType) {
+            switch (b.getBodyType()) {
                 case STATIC:
                     break;
                 case KINEMATIC:
-                    b.applyAllTempChanges();
                     kinematicBodies.add(b);
                     break;
                 case DYNAMIC:
-                default:
                     dynamicBodies.add(b);
+                    break;
+                default:
+                    throw new AssertionError("Did not expect a body of type " + b.getBodyType() + "!");
             }
         }
     }
@@ -293,26 +293,20 @@ public class CrappyWorld {
         }
     }
 
+    /**
+     * Marks the given body B for prompt removal.
+     * @param b the body that needs to be removed.
+     */
     public void removeBody(final CrappyBody b){
-        synchronized (UPDATE_SYNC_OBJECT) {
-            switch (b.bodyType) {
-                case STATIC:
-                    break;
-                case KINEMATIC:
-                    kinematicBodies.remove(b);
-                    break;
-                case DYNAMIC:
-                default:
-                    dynamicBodies.remove(b);
-                    break;
-            }
-        }
+        b.setMarkForRemoval(true);
     }
 
+    /**
+     * Marks the given connector C for prompt removal
+     * @param c connector that needs to be removed.
+     */
     public void removeConnector(final CrappyConnector c){
-        synchronized (UPDATE_SYNC_OBJECT) {
-            connectors.remove(c);
-        }
+        c.setAllowedToExist(false);
     }
 
     /**

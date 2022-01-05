@@ -10,6 +10,8 @@ import crappy.utils.lazyFinal.LazyFinal;
 import crappy.utils.PendingStateChange;
 import crappy.utils.bitmasks.IHaveBitmask;
 
+import java.util.*;
+
 /**
  * A rigidbody class used by Crappy
  */
@@ -82,7 +84,7 @@ public class CrappyBody implements
 
     //A_CrappyShape shape;
 
-    final LazyFinal<A_CrappyShape> shape = new LazyFinal<>();
+    public final LazyFinal<A_CrappyShape> shape = new LazyFinal<>();
 
     /**
      * Current angular velocity of this CrappyBody
@@ -107,7 +109,7 @@ public class CrappyBody implements
     /**
      * How much mass does this body have?
      */
-    final double mass;
+    public final double mass;
 
     /**
      * What's the moment of inertia of this body?
@@ -146,7 +148,7 @@ public class CrappyBody implements
     /**
      * This is a view of the CrappyBody's transform mid-timestep.
      */
-    final I_CrappyBody_Temp_Transform intermediateTransform = new I_CrappyBody_Temp_Transform(this);
+    public final I_CrappyBody_Temp_Transform intermediateTransform = new I_CrappyBody_Temp_Transform(this);
 
     /**
      * How much drag is this CrappyBody experiencing?
@@ -161,7 +163,7 @@ public class CrappyBody implements
     /**
      * the restitution of this object
      */
-    protected double restitution = 0.9;
+    protected double restitution = 1;
 
     /**
      * Whether or not this body is considered 'active'.
@@ -217,27 +219,43 @@ public class CrappyBody implements
     /**
      * This is a bitmask, as some sort of arbitrary 'tag' system for bodies.
      */
-    final int myBodyTagBits;
+    public final int myBodyTagBits;
 
     /**
      * A bitmask indicating what object tags this object can collide with.
      * Set this to -1 to indicate that it can collide with anything.
      */
-    final int tagsICanCollideWithBitmask;
+    public final int tagsICanCollideWithBitmask;
 
     // TODO: basically call this after done with euler updates, give collidedWithBitmask,
     //  intended for external objects to see what this collided with this timestep, and to handle it appropriately.
-    final CrappyCallbackHandler callbackHandler;
+    public final CrappyCallbackHandler callbackHandler;
 
     /**
      * any user-defined data
      */
-    final Object userData;
+    public final Object userData;
 
     /**
      * Also has a string name, for ease of use.
      */
-    final String name;
+    public final String name;
+
+    /**
+     * A unique identifier.
+     */
+    public final UUID uniqueIdentifier;
+
+
+    /**
+     * A set with all of the connectors attached to this body.
+     */
+    final Set<CrappyConnector> myConnections = new HashSet<>();
+
+    /**
+     * IDs of bodies that I cannot collide with.
+     */
+    private final Set<IHaveIdentifier> idsICannotCollideWith = new HashSet<>();
 
     /**
      * Constructs a new CrappyBody
@@ -307,6 +325,7 @@ public class CrappyBody implements
         intermediateTransform.update();
         eus = EULER_UPDATE_STATE.NOTHING;
 
+        uniqueIdentifier = UUID.randomUUID();
     }
 
     /**
@@ -342,6 +361,21 @@ public class CrappyBody implements
     @Override
     public void accept(final IHaveBitmask other) {
         combinedBitsOfOtherObjectsCollidedWith |= other.getBitmask();
+    }
+
+    /**
+     * Checks if this object is actually allowed to collide with the other object
+     * @param other the other object
+     * @return true if they can collide, otherwise false.
+     */
+    public boolean allowedToCollideWith(final I_View_CrappyBody other){
+
+        if (idsICannotCollideWith.contains(other)){
+            return false;
+        } else {
+            return anyMatchInBitmasks(other);
+        }
+
     }
 
     /**
@@ -493,6 +527,28 @@ public class CrappyBody implements
         pendingIntangbility = PendingStateChange.SAME_AS_IT_EVER_WAS;
         return psc;
     }
+
+    /**
+     * Sets the new linear drag for this object.
+     * Please keep it between 0 (no drag) and 1 (all the drag).
+     * (but if you want to give it a weird value, feel free)
+     * @param newDrag new linear drag force.
+     */
+    public void setLinearDrag(double newDrag){
+        linearDrag = newDrag;
+    }
+
+    /**
+     * Sets the new angular drag for this object.
+     * Please keep it between 0 (no drag) and 1 (all the drag).
+     * (but if you want to give it a weird value, feel free)
+     * @param newDrag new angular drag force.
+     */
+    public void setAngularDrag(double newDrag){
+        angularDrag = newDrag;
+    }
+
+
 
     /**
      * What type of body is this?
@@ -933,6 +989,31 @@ public class CrappyBody implements
     }
 
     @Override
+    public void __addConnector_internalPlsDontUseManually(final CrappyConnector c) {
+        myConnections.add(c);
+        refreshBodiesICannotCollideWith();
+    }
+
+    @Override
+    public void __removeConnector_internalPlsDontUseManually(final CrappyConnector c) {
+        myConnections.remove(c);
+        refreshBodiesICannotCollideWith();
+    }
+
+    /**
+     * Refreshes the set of bodies that this object cannot collide with.
+     */
+    private void refreshBodiesICannotCollideWith(){
+        Collection<IHaveIdentifier> badIDs = new HashSet<>();
+        for (CrappyConnector c: myConnections) {
+            if (!c.canBodiesCollide()){
+                badIDs.add(c.getOtherBody(this));
+            }
+        }
+        idsICannotCollideWith.clear();
+        idsICannotCollideWith.addAll(badIDs);
+    }
+
     public DrawableCrappyShape getDrawableShape() {
         return getShape();
     }
@@ -1193,6 +1274,25 @@ public class CrappyBody implements
         }
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CrappyBody that = (CrappyBody) o;
+        return Double.compare(that.getMass(), getMass()) == 0 && Double.compare(that.inertia, inertia) == 0 && myBodyTagBits == that.myBodyTagBits && tagsICanCollideWithBitmask == that.tagsICanCollideWithBitmask && getShape().equals(that.getShape()) && getBodyType() == that.getBodyType() && getName().equals(that.getName()) && uniqueIdentifier.equals(that.uniqueIdentifier);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getShape(), getMass(), inertia, getBodyType(), myBodyTagBits, tagsICanCollideWithBitmask, getName(), uniqueIdentifier);
+    }
+
+    @Override
+    public UUID getID() {
+        return uniqueIdentifier;
+    }
+
+
 
     /**
      * Inspired somewhat by JBox2D's BodyDef class,
@@ -1236,6 +1336,7 @@ public class CrappyBody implements
         public String name = "";
 
         public CrappyBodyCreator(){}
+
 
         public static class DEFAULT_CALLBACK_HANDLER implements CrappyCallbackHandler { }
 

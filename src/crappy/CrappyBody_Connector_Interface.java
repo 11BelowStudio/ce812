@@ -6,7 +6,7 @@ import crappy.math.I_Vect2D;
 import crappy.math.Rot2D;
 import crappy.math.Vect2D;
 
-public interface CrappyBody_Connector_Interface extends I_Transform{
+public interface CrappyBody_Connector_Interface extends I_Transform, IHaveIdentifier{
 
     Vect2D getPos();
 
@@ -28,7 +28,9 @@ public interface CrappyBody_Connector_Interface extends I_Transform{
 
     boolean isActive();
 
-    DrawableCrappyShape getDrawableShape();
+    void __addConnector_internalPlsDontUseManually(final CrappyConnector c);
+
+    void __removeConnector_internalPlsDontUseManually(final CrappyConnector c);
 
 
 }
