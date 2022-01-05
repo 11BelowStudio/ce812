@@ -52,7 +52,7 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge, DrawableC
         this(localStart, body, localEnd, depth);
 
         body.__setShape__internalDoNotCallYourselfPlease(
-                this, Vect2DMath.LINE_START_CENTROID_MOMENT_OF_INERTIA(localStart, getCentroid(), body.getMass())
+                this, Vect2DMath.LINE_START_CENTROID_MOMENT_OF_INERTIA(localStart, getLocalCentroid(), body.getMass())
         );
 
         //TODO: where bounding box?

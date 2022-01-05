@@ -381,6 +381,7 @@ public class CrappyBody implements
     /**
      * COMPARES THIS OBJECT'S 'tagsICanCollideWith' BITMASK TO THE OTHER OBJECT'S BITMASK!
      * Also returns true if 'tagsICanCollideWith' is -1
+     * Also returns true if 'tagsICanCollideWith' is -1
      * @param other the other object with a bitmask
      * @return true if tagsICanCollideWithBitmask is -1,
      * or if the result of tagsICanCollideWithBitmask & other.getBitmask() is greater than 0.
@@ -788,18 +789,30 @@ public class CrappyBody implements
      */
     public void applyForce(final I_Vect2D force, final I_Vect2D localForcePos, final FORCE_SOURCE source){
         if (canApplyThisForce(source)){
-            System.out.println("CrappyBody.applyForce");
-            System.out.println("force = " + force + ", localForcePos = " + localForcePos + ", source = " + source);
+            //System.out.println("CrappyBody.applyForce");
+            //System.out.println("force = " + force + ", localForcePos = " + localForcePos + ", source = " + source);
 
-            System.out.println("pending_forces_this_timestep = " + pending_forces_this_timestep);
+            //System.out.println("pending_forces_this_timestep = " + pending_forces_this_timestep);
             //pending_forces_this_timestep.add_discardOther(Vect2DMath.DIVIDE_M(force, mass));
             pending_forces_this_timestep.add(force);
-            System.out.println("pending_forces_this_timestep = " + pending_forces_this_timestep);
+            //System.out.println("pending_forces_this_timestep = " + pending_forces_this_timestep);
 
-            System.out.println("pending_torque_this_timestep = " + pending_torque_this_timestep);
+            //System.out.println("pending_torque_this_timestep = " + pending_torque_this_timestep);
             pending_torque_this_timestep += M_Vect2D.GET(localForcePos).rotate(rotation).cross_discard(force);
-            System.out.println("pending_torque_this_timestep = " + pending_torque_this_timestep);
+            //System.out.println("pending_torque_this_timestep = " + pending_torque_this_timestep);
         }
+    }
+
+    private void applyGravityForce(final I_Vect2D grav){
+
+        if (canApplyThisForce(FORCE_SOURCE.ENGINE)){
+
+            pending_forces_this_timestep.add(Vect2DMath.MULTIPLY(grav, getMass()));
+
+            pending_torque_this_timestep += inertia * M_Vect2D.GET(getShape().getLocalCentroid()).rotate(rotation).cross_discard(grav);
+
+        }
+
     }
 
     /**
@@ -1047,7 +1060,9 @@ public class CrappyBody implements
                 return;
             case DYNAMIC:
                 // we apply gravity to the body
-                pending_forces_this_timestep.add(gravity);
+                //pending_forces_this_timestep.add(gravity);
+                //applyForce(Vect2DMath.MULTIPLY(gravity, mass), getShape().getCentroid(), FORCE_SOURCE.ENGINE);
+                applyGravityForce(gravity);
 
                 //pending_torque_this_timestep += angVelocity;
 
@@ -1055,7 +1070,11 @@ public class CrappyBody implements
 
                 pending_forces_this_timestep.mult(1/mass);
 
-                pending_torque_this_timestep = (inertia == 0) ? 0 : pending_torque_this_timestep/inertia;
+                //pending_torque_this_timestep = (inertia == 0) ? 0 : (pending_torque_this_timestep/inertia);
+
+                pending_torque_this_timestep = Vect2DMath.RETURN_X_IF_NOT_FINITE(
+                        pending_torque_this_timestep/inertia, 0
+                );
 
 
                 tempVel.set(velocity);
@@ -1067,7 +1086,7 @@ public class CrappyBody implements
 
                 tempPosition.set(position);
                 tempRot.set(rotation);
-                tempAngVelocity = angVelocity * 1-linearDrag;
+                tempAngVelocity = angVelocity * (1-angularDrag);
 
                 tempVel.addScaled(pending_forces_this_timestep, deltaT);
 
@@ -1146,6 +1165,14 @@ public class CrappyBody implements
             throw new AssertionError("Expected state of 'SUB_UPDATING', was in " + eus + "!");
         }
 
+        //System.out.println("name = " + name);
+        //System.out.println("tempAngVelocity = " + tempAngVelocity);
+        //System.out.println("angVelocity = " + angVelocity);
+        //System.out.println("\n");
+        if (tempAngVelocity != 0){
+            double a = 0;
+            double b = a+3;
+        }
 
         velocity = new Vect2D(tempVel);
         lastPosition = position;

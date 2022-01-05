@@ -68,7 +68,7 @@ public class CrappyLine extends A_CrappyShape implements Iterable<I_CrappyEdge>,
         );
 
         body.__setShape__internalDoNotCallYourselfPlease(
-                this, Vect2DMath.LINE_START_CENTROID_MOMENT_OF_INERTIA(start, getCentroid(), body.getMass())
+                this, Vect2DMath.LINE_START_CENTROID_MOMENT_OF_INERTIA(start, getLocalCentroid(), body.getMass())
         );
 
 

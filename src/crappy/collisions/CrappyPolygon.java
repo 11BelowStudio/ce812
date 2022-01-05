@@ -106,7 +106,7 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
         drawableVertices = new Vect2D[vertexCount];
 
 
-        body.setMomentOfInertia(Vect2DMath.POLYGON_MOMENT_OF_INERTIA_ABOUT_ZERO(body.getMass(), vertices));
+        //body.setMomentOfInertia(Vect2DMath.POLYGON_MOMENT_OF_INERTIA_ABOUT_ZERO(body.getMass(), vertices));
 
         if (area < 0) {
             // if area is negative, we can copy them in directly as-is,
@@ -149,15 +149,18 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
 
 
 
-        circle = new CrappyPolygonIncircle(this, getCentroid(), innerCircleRadius, Math.pow(innerCircleRadius, 2));
+        circle = new CrappyPolygonIncircle(this, getLocalCentroid(), innerCircleRadius, Math.pow(innerCircleRadius, 2));
 
         proxyCircleForCollisions = new CrappyPolygonIncircle(this, Vect2D.ZERO, radius, radiusSquared);
 
         body.__setShape__internalDoNotCallYourselfPlease(
                 this,
+                //Vect2DMath.POLYGON_MOMENT_OF_INERTIA_ABOUT_ZERO(body.getMass(), vertices)
+
                 Vect2DMath.POLYGON_MOMENT_OF_INERTIA_ABOUT_ZERO_GIVEN_CENTROID_MASS_AND_AREA(
-                        body.getMass(), area, getCentroid(), vertices
+                        body.getMass(), area, getLocalCentroid(), vertices
                 )
+
         );
 
         updateShape(body);

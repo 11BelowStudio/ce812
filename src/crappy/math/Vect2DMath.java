@@ -1346,12 +1346,18 @@ public final class Vect2DMath {
 
             double currAreaMass = mass * AREA_OF_ARBITRARY_TRIANGLE(centroid, prev, current) / area;
 
-            centroidMoment += DIST_SQUARED(centroid, currCentroid) * currAreaMass;
+            centroidMoment += (DIST_SQUARED(centroid, currCentroid) * currAreaMass);
 
             prev = current;
 
+            System.out.println("currAreaMass = " + currAreaMass);
+            System.out.println("DIST_SQUARED() = " + DIST_SQUARED(centroid, currCentroid));
+            System.out.println("(currAreaMass * DIST_SQUARED(centroid, currCentroid)) = " + (currAreaMass * DIST_SQUARED(centroid, currCentroid)));
+            System.out.println("centroidMoment = " + centroidMoment);
+
         }
 
+        System.out.println("(centroidMoment + (mass * centroid.magSquared())) = " + (centroidMoment + (mass * centroid.magSquared())));
         return centroidMoment + (mass * centroid.magSquared());
 
 
@@ -1939,8 +1945,39 @@ public final class Vect2DMath {
         rot.dispose();
     }
 
+    public static Vect2D[] OFFSET_VECTORS_INTO_NEW_LIST(final Vect2D offset, final Vect2D... vects){
+        final Vect2D[] out = new Vect2D[vects.length];
+        for (int i = vects.length-1; i >= 0 ; i--) {
+            out[i] = vects[i].add(offset);
+        }
+        return out;
+    }
 
+    public static void OFFSET_VECTORS_TO_OUT(final Vect2D offset, final Vect2D[] in, final Vect2D[] out){
+        for (int i = in.length-1; i >= 0 ; i--) {
+            out[i] = in[i].add(offset);
+        }
+    }
 
+    public static void OFFSET_VECTORS_IN_PLACE(final Vect2D offset, final Vect2D[] in){
+        for (int i = in.length-1; i >= 0 ; i--) {
+            in[i] = in[i].add(offset);
+        }
+    }
+
+    /**
+     * Returns n only if it's finite and also a number
+     * @param n default value
+     * @param x backup value if n is infinite/not a number
+     * @return n, or x if n is infinite/not a number.
+     */
+    public static double RETURN_X_IF_NOT_FINITE(final double n, final double x){
+        if (Double.isFinite(n)){
+            return n;
+        } else {
+            return x;
+        }
+    }
 
 
 }

@@ -35,23 +35,16 @@ public class CrappyModel implements Viewable {
                 0,
                 0,
                 1,
-                0,
+                0.000000001,
                 0,
                 CrappyBody.CRAPPY_BODY_TYPE.STATIC,
                 1,
                 -1,
-                new CrappyCallbackHandler() {
-
-                    @Override
-                    public void collidedWith(I_View_CrappyBody otherBody) {
-                        System.out.println(otherBody.getName());
-                    }
-                },
-                //new CrappyCallbackHandler() {},
+                new CrappyCallbackHandler() {},
                 new Object(),
                 "line"
         );
-        new CrappyLine(c, new Vect2D(10, 1), new Vect2D(0, 2));
+        new CrappyLine(c, new Vect2D(0, 1), new Vect2D(10, 2));
 
         //new CrappyEdge(c, new Vect2D(0, 1), new Vect2D(10, 1), 0.0);
 
@@ -70,18 +63,12 @@ public class CrappyModel implements Viewable {
                 0,
                 1,
                 1,
-                0.01,
+                0.0001,
                 0.0001,
                 CrappyBody.CRAPPY_BODY_TYPE.DYNAMIC,
                 3,
                 -1,
-                new CrappyCallbackHandler() {
-
-                    @Override
-                    public void collidedWith(I_View_CrappyBody otherBody) {
-                        System.out.println(otherBody.getName());
-                    }
-                },
+                new CrappyCallbackHandler() {},
                 new Object(),
                 "cungaradeo"
         );
@@ -96,21 +83,15 @@ public class CrappyModel implements Viewable {
                 Vect2D.ZERO,
                 //Vect2D.POLAR(Rot2D.FROM_DEGREES(45), 10),
                 Rot2D.IDENTITY,
+                0,
                 1,
                 1,
-                1,
-                0.01,
+                0.0000001,
                 0.0001,
                 CrappyBody.CRAPPY_BODY_TYPE.DYNAMIC,
                 3,
                 -1,
-                new CrappyCallbackHandler() {
-
-                    @Override
-                    public void collidedWith(I_View_CrappyBody otherBody) {
-                        System.out.println(otherBody.getName());
-                    }
-                },
+                new CrappyCallbackHandler() {},
                 new Object(),
                 "cungaradeo2"
         );
@@ -125,46 +106,54 @@ public class CrappyModel implements Viewable {
                 Vect2D.ZERO,
                 //Vect2D.POLAR(Rot2D.FROM_DEGREES(45), 5),
                 Rot2D.IDENTITY,
-                1,
+                0,
                 2,
                 1,
-                0.01,
+                0.000001,
                 0.001,
                 CrappyBody.CRAPPY_BODY_TYPE.DYNAMIC,
                 3,
                 -1,
-                new CrappyCallbackHandler() {
-
-                    @Override
-                    public void collidedWith(I_View_CrappyBody otherBody) {
-                        System.out.println(otherBody.getName());
-                    }
-                },
+                new CrappyCallbackHandler() {},
                 new Object(),
                 "cungaradeo3"
         );
 
-        /*
+        //CrappyPolygon.POLYGON_FACTORY_REGULAR(c4, 4, 0.25);
+
+        Vect2D[] shipShape = new Vect2D[]{
+                new Vect2D(0,0.25), new Vect2D(-0.25, -0.25), new Vect2D(0, -0.1), new Vect2D(0.25, -0.25)
+        };
+        //Vect2D shipCentroid = Vect2DMath.AREA_AND_CENTROID_OF_VECT2D_POLYGON(shipShape).getSecond();
+        //System.out.println(Arrays.toString(shipShape));
+        //Vect2DMath.OFFSET_VECTORS_IN_PLACE(shipCentroid.invert(), shipShape);
+        //System.out.println(Arrays.toString(shipShape));
         new CrappyPolygon(
-                c4, new Vect2D[]{
-                        new Vect2D(0,0.25), new Vect2D(-0.25, -0.25), new Vect2D(0, -0.1), new Vect2D(0.25, -0.25)
-                }
+                c4, shipShape
         );
 
-         */
+
+
+        System.out.println(c.getMomentOfInertia());
+        System.out.println(c2.getMomentOfInertia());
+        System.out.println(c3.getMomentOfInertia());
+        System.out.println(c4.getMomentOfInertia());
+
+
         //CrappyPolygon.POLYGON_FACTORY_REGULAR(c4, 3, Math.sqrt(2)/4);
-        new CrappyCircle(c4, 0.25);
+        //new CrappyCircle(c4, 0.25);
         //CrappyPolygon.POLYGON_FACTORY_REGULAR(c3, 5, 0.375);
 
         world.addBody(c4);
+
 
         world.addConnector(
                 new CrappyConnector(
                         c2,
                         Vect2D.ZERO,
                         c3,
-                        Vect2D.ZERO,
-                        5,
+                        new Vect2D(0.1, 0.1),
+                        0.0/0.0,
                         10,
                         10,
                         true,
@@ -172,6 +161,8 @@ public class CrappyModel implements Viewable {
                         false
                 )
         );
+
+
     }
 
 
