@@ -441,9 +441,6 @@ public final class CrappyCollisionMath {
             return false;
         }
 
-        System.out.println("velDotNorm = " + velDotNorm);
-        System.out.println("c.getVel() = " + c.getVel());
-
         if (!c.getBody().isTangible() || !e.getBody().isTangible()){
             return true;
         }
@@ -659,14 +656,10 @@ public final class CrappyCollisionMath {
 
         Vect2D localCollisionPos = Vect2DMath.WORLD_TO_LOCAL_M(worldCollisionPos, c.getPos(), c.getRot()).finished();
 
-        System.out.println("localCollisionPos = " + localCollisionPos);
-        System.out.println("c.getPos() = " + c.getPos());
 
         Vect2D velCentroid = c.getVel();
 
-        System.out.println("velCentroid = " + velCentroid);
         Vect2D velColPos = velCentroid.add(localCollisionPos.cross(c.getAngVel(), false));
-        System.out.println("velColPos = " + velColPos);
         
         double jDenominator = (1/c.getMass()) + (
                 localCollisionPos.cross(localCollisionPos.cross(norm), false).divide(c.getMInertia()).dot(norm)
@@ -675,15 +668,7 @@ public final class CrappyCollisionMath {
 
         double j = (-(AVG_RESTITUTION(c, r) + 1) * velColPos.dot(norm)) / jDenominator;
 
-        System.out.println("norm = " + norm);
-        System.out.println("velColPos.dot(norm) = " + velColPos.dot(norm));
 
-        System.out.println("localCollisionPos.cross(norm) = " + localCollisionPos.cross(norm));
-        System.out.println("c.getAngVel() + ((localCollisionPos.cross(norm) * j)/c.getMInertia()) = " + (c.getAngVel() + ((localCollisionPos.cross(norm) * j)/c.getMInertia())));
-
-        System.out.println("c.getVel().addScaled(norm, j/c.getMass()) = " + c.getVel().addScaled(norm, j/c.getMass()));
-
-        System.out.println("!!!!!");
 
         c.getBody().overwriteVelocityAfterCollision(
                 c.getVel().addScaled(
@@ -938,8 +923,6 @@ public final class CrappyCollisionMath {
             final I_CrappyPolygon p, final I_CrappyEdge e, final  double deltaT, final Vect2D polygonToEdgeCentroid
     ){
 
-        System.out.println("polygonToEdgeCentroid.dot(e.getWorldNorm()) = " + polygonToEdgeCentroid.dot(e.getWorldNorm()));
-        System.out.println("p.getVel().dot(e.getWorldNorm()) = " + p.getVel().dot(e.getWorldNorm()));
         // if the edge's normal is pointing away from the polygon, return false.
         if (polygonToEdgeCentroid.dot(e.getWorldNorm()) >= 0 || p.getVel().dot(e.getWorldNorm()) > 0){
             return false;
@@ -963,18 +946,11 @@ public final class CrappyCollisionMath {
             return false;
         }
 
-        System.out.println(collisionPoint);
+
 
        Vect2D worldVelOfCollisionPoint = Vect2DMath.WORLD_VEL_OF_LOCAL_COORD_M(Vect2DMath.WORLD_TO_LOCAL_M(collisionPoint, p.getBodyTransform()).finished(), p.getBodyTransform()).finished();
        
 
-        System.out.println("world vel of collision point = " + worldVelOfCollisionPoint);
-
-        System.out.println("worldVelOfCollisionPoint.dot(e.getWorldNorm()) = " + worldVelOfCollisionPoint.dot(e.getWorldNorm()));
-        
-        System.out.println(p.getCircleForWorldCollisionPos(collisionPoint));
-
-        System.out.println("");
 
 
         if (Vect2DMath.WORLD_VEL_OF_LOCAL_COORD_M(

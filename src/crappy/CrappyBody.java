@@ -1,5 +1,7 @@
 package crappy;
 
+import crappy.collisions.CrappyEdge;
+import crappy.collisions.CrappyLine;
 import crappy.graphics.DrawableBody;
 import crappy.graphics.DrawableCrappyShape;
 import crappy.graphics.I_CrappilyDrawStuff;
@@ -273,6 +275,9 @@ public class CrappyBody implements
      * @param callback A callback handler to call when this body gets collided with
      * @param userData an object of arbitrary user data, use at your own risk!
      * @param id a name for this body.
+     * @param tangible
+     * @param canMoveLinearly
+     * @param canRotate
      */
     public CrappyBody(
             final Vect2D pos,
@@ -288,7 +293,10 @@ public class CrappyBody implements
             final int tagsICanCollideWithBits,
             final CrappyCallbackHandler callback,
             final Object userData,
-            final String id
+            final String id,
+            final boolean tangible,
+            final boolean canMoveLinearly,
+            final boolean canRotate
     ) {
         this.bodyType = bodyType;
         if (bodyType == CRAPPY_BODY_TYPE.STATIC){
@@ -326,6 +334,9 @@ public class CrappyBody implements
         eus = EULER_UPDATE_STATE.NOTHING;
 
         uniqueIdentifier = UUID.randomUUID();
+        this.tangible = tangible;
+        this.canMoveLinearly = canMoveLinearly;
+        this.canRotate = canRotate;
     }
 
     /**
@@ -839,13 +850,9 @@ public class CrappyBody implements
     @Override
     public void applyForce(final I_Vect2D force, final FORCE_SOURCE source){
 
-        System.out.println("CrappyBody.applyForce");
-        System.out.println("force = " + force + ", source = " + source);
 
         if (canApplyThisForce(source)) {
-            System.out.println("pending_forces_this_timestep = " + pending_forces_this_timestep);
             pending_forces_this_timestep.add(force);
-            System.out.println("pending_forces_this_timestep = " + pending_forces_this_timestep);
         }
     }
 
@@ -1288,8 +1295,7 @@ public class CrappyBody implements
 
     public void overwriteVelocityAfterCollision(final I_Vect2D newVel, final double newAngVel, final FORCE_SOURCE overwriteSource){
 
-        System.out.println("CrappyBody.overwriteVelocityAfterCollision: " + name);
-        System.out.println("newVel = " + newVel + ", newAngVel = " + newAngVel + ", overwriteSource = " + overwriteSource);
+
 
         if (canApplyThisForce(overwriteSource)) {
             velocity = newVel.toVect2D();
@@ -1362,6 +1368,10 @@ public class CrappyBody implements
 
         public String name = "";
 
+        public boolean isTangible = true;
+        public boolean canMoveLinearly = true;
+        public boolean canRotate = true;
+
         public CrappyBodyCreator(){}
 
 
@@ -1384,12 +1394,76 @@ public class CrappyBody implements
                     tagsOfBodiesThatCanBeCollidedWith,
                     handler,
                     userData,
-                    name
+                    name,
+                    isTangible,
+                    canMoveLinearly,
+                    canRotate
             );
 
         }
 
     }
+
+    public static CrappyBody EDGE_BODY_MAKER(
+            final CrappyWorld w, final Vect2D start, final Vect2D end, final double depth,
+            final double restitution, final int myTags, final int collideWithTags,
+            final CrappyCallbackHandler callback, final Object userData, final String name
+    ){
+        final CrappyBody c = new CrappyBody(
+                start,
+                Vect2D.ZERO,
+                Rot2D.IDENTITY,
+                0,
+                0,
+                restitution,
+                0,
+                0,
+                CRAPPY_BODY_TYPE.STATIC,
+                myTags,
+                collideWithTags,
+                callback,
+                userData,
+                name,
+                true,
+                false,
+                false
+                );
+        new CrappyEdge(c, start, end, depth);
+        w.addBody(c);
+        return c;
+
+    }
+
+    public static CrappyBody LINE_BODY_MAKER(
+            final CrappyWorld w, final Vect2D start, final Vect2D end,
+            final double restitution, final int myTags, final int collideWithTags,
+            final CrappyCallbackHandler callback, final Object userData, final String name
+    ){
+        final CrappyBody c = new CrappyBody(
+                start,
+                Vect2D.ZERO,
+                Rot2D.IDENTITY,
+                0,
+                0,
+                restitution,
+                0,
+                0,
+                CRAPPY_BODY_TYPE.STATIC,
+                myTags,
+                collideWithTags,
+                callback,
+                userData,
+                name,
+                true,
+                false,
+                false
+        );
+        new CrappyLine(c, start, end);
+        w.addBody(c);
+        return c;
+
+    }
+
 }
 
 

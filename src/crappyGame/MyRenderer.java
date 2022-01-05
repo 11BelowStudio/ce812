@@ -10,60 +10,22 @@ import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.RoundRectangle2D;
-import java.awt.image.ImageObserver;
-import java.awt.image.VolatileImage;
-import java.util.Arrays;
 
 public class MyRenderer implements I_CrappilyDrawStuff {
 
-    private I_GraphicsTransform gTransform;
-
-    private VolatileImage img;
+    private final I_GraphicsTransform gTransform;
 
     private Graphics2D g;
-
-    private JComponent view;
-
-    MyRenderer(JComponent v){
-
-        view = v;
-        generateImage();
-    }
 
     MyRenderer(I_GraphicsTransform gt){
         gTransform = gt;
     }
 
 
-    void generateImage(){
-
-        img = view.createVolatileImage(view.getWidth(), view.getHeight());
-
-        g = img.createGraphics();
-
-    }
-
     void prepareToRender(Graphics2D g0){
         g = g0;
     }
 
-    public void getCurrentGraphics(Graphics2D g){
-        // TODO: work out how this is going to actually be able to use the graphics object.
-        //  could take a really stupid approach and have it make a long queue of
-        //  lambdas that apply a draw operation to a Graphics2D to be iterated through and done in the draw method or something
-    }
-
-    /**
-     * You can use this to set the I_GraphicsTransform which will be used to work out where all the vertices and such
-     * need to go
-     *
-     * @param g the I_GraphicsTransform
-     */
-    @Override
-    public void setGraphicsTransform(final I_GraphicsTransform g) {
-
-    }
 
     /**
      * Please write this getter for the I_GraphicsTransform which was supposed to be set with {@link
@@ -86,8 +48,6 @@ public class MyRenderer implements I_CrappilyDrawStuff {
      */
     @Override
     public void drawCircle(final I_Vect2D pos, final double radiusX, final double radiusY, final Color col) {
-
-
 
         g.setColor(col);
 
@@ -174,6 +134,7 @@ public class MyRenderer implements I_CrappilyDrawStuff {
         );
     }
 
+    @Override
     public void drawRectangle(
             final double x, final double y, final double w, final double h, final Color col
     ){

@@ -1,11 +1,9 @@
 package crappyGame;
 
-import crappy.CrappyWorld;
 import crappyGame.UI.DisplayFrame;
 import crappyGame.UI.View;
 
 import javax.swing.*;
-import java.awt.*;
 
 import static crappy.CrappyWorld.DELAY;
 
@@ -52,7 +50,7 @@ public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
 
     private void placeholderLoop() throws InterruptedException{
 
-        CrappyModel m = new CrappyModel();
+        SampleCrappyModel m = new SampleCrappyModel();
 
         theView.setViewable(m);
 

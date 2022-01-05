@@ -13,6 +13,14 @@ public enum BodyTagEnum implements IHaveAndConsumeBitmask {
 
     public final int bitmask;
 
+    public static int COMBINE_BITMASKS(final BodyTagEnum... tags){
+        int bm = 0b0000;
+        for (int i = tags.length-1; i >= 0; i--) {
+            bm |= tags[i].getBitmask();
+        }
+        return bm;
+    }
+
     private static int intsToBitmask(int... ints){
         int out = 0;
         for (int i: ints){

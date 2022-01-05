@@ -1,11 +1,10 @@
 package crappy.collisions;
 
-import crappy.CrappyBody_ShapeSetter_Interface;
-import crappy.CrappyBody_Shape_Interface;
-import crappy.I_Transform;
+import crappy.*;
 import crappy.graphics.DrawableCrappyShape;
 import crappy.graphics.I_CrappilyDrawStuff;
 import crappy.math.I_Vect2D;
+import crappy.math.Rot2D;
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
 
@@ -38,6 +37,7 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge, DrawableC
     private Vect2D drawableNorm;
 
     private final double depth;
+
 
 
     /**

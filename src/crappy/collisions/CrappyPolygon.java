@@ -88,8 +88,6 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
     ){
         super(CRAPPY_SHAPE_TYPE.POLYGON, body, areaCentroid.getSecond(), vertices.length);
 
-        System.out.println("CrappyPolygon.CrappyPolygon");
-        System.out.println("body = " + body + ",\n\tvertices = " + Arrays.deepToString(vertices) + ",\n\tareaCentroid = " + areaCentroid);
 
 
         area = areaCentroid.getFirst();

@@ -1,0 +1,11 @@
+clap.wav, plac.wav:
+    Made by me (Rachel Lowe) in 2020, for 'The Button Factory' (a terrible game I made for the 'So Bad Its Good' Jam 2020)
+
+explosion.wav:
+    Made by me (Rachel Lowe) in 2020, for 'Muffin Mania' (a terrible game I made because reasons)
+
+thruster-y noise:
+    Originally made by me (Rachel Lowe) in 2021, for 'Inconvenient Space Rocks 2' (an incredibly terrible game I made for the 'So Bad Its Good' Jam 2021)
+
+solidHit.wav:
+    Originally made by me (Rachel Lowe) in 2020, for 'Inconvenient Space Rocks' (an utterly terrible game I made for CE218)

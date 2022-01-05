@@ -1144,7 +1144,6 @@ public final class Vect2DMath {
                     last.cross(current)/DIST(current, last)/2.0
             );
 
-            System.out.println("currentHeight = " + currentHeight);
             if (currentHeight < minIncircle){
                 minIncircle = currentHeight;
             }
@@ -1350,14 +1349,10 @@ public final class Vect2DMath {
 
             prev = current;
 
-            System.out.println("currAreaMass = " + currAreaMass);
-            System.out.println("DIST_SQUARED() = " + DIST_SQUARED(centroid, currCentroid));
-            System.out.println("(currAreaMass * DIST_SQUARED(centroid, currCentroid)) = " + (currAreaMass * DIST_SQUARED(centroid, currCentroid)));
-            System.out.println("centroidMoment = " + centroidMoment);
+
 
         }
 
-        System.out.println("(centroidMoment + (mass * centroid.magSquared())) = " + (centroidMoment + (mass * centroid.magSquared())));
         return centroidMoment + (mass * centroid.magSquared());
 
 

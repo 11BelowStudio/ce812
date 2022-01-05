@@ -2,17 +2,17 @@ package crappyGame;
 
 import crappy.*;
 import crappy.collisions.*;
-import crappy.graphics.I_GraphicsTransform;
 import crappy.math.Rot2D;
 import crappy.math.Vect2D;
-import crappy.math.Vect2DMath;
 import crappyGame.UI.Viewable;
+import crappyGame.assets.ImageManager;
 
+import java.awt.geom.Rectangle2D;
 import java.util.*;
 import java.awt.*;
 import java.util.List;
 
-public class CrappyModel implements Viewable {
+public class SampleCrappyModel implements Viewable {
 
     final Dimension dims = new Dimension(800,650 );
 
@@ -24,7 +24,7 @@ public class CrappyModel implements Viewable {
 
     final MyRenderer r = new MyRenderer(gt);
 
-    CrappyModel(){
+    SampleCrappyModel(){
 
         List<CrappyBody> statics = new ArrayList<>();
 
@@ -42,7 +42,10 @@ public class CrappyModel implements Viewable {
                 -1,
                 new CrappyCallbackHandler() {},
                 new Object(),
-                "line"
+                "line",
+                true,
+                false,
+                false
         );
         new CrappyLine(c, new Vect2D(0, 1), new Vect2D(10, 2));
 
@@ -70,7 +73,10 @@ public class CrappyModel implements Viewable {
                 -1,
                 new CrappyCallbackHandler() {},
                 new Object(),
-                "cungaradeo"
+                "cungaradeo",
+                true,
+                true,
+                true
         );
         CrappyPolygon.POLYGON_FACTORY_REGULAR(c2, 5, 0.375);
         //new CrappyCircle(c2, 0.25);
@@ -93,7 +99,10 @@ public class CrappyModel implements Viewable {
                 -1,
                 new CrappyCallbackHandler() {},
                 new Object(),
-                "cungaradeo2"
+                "cungaradeo2",
+                true,
+                true,
+                true
         );
 
         //new CrappyCircle(c3, 0.25);
@@ -116,7 +125,10 @@ public class CrappyModel implements Viewable {
                 -1,
                 new CrappyCallbackHandler() {},
                 new Object(),
-                "cungaradeo3"
+                "cungaradeo3",
+                true,
+                true,
+                true
         );
 
         //CrappyPolygon.POLYGON_FACTORY_REGULAR(c4, 4, 0.25);
@@ -178,6 +190,19 @@ public class CrappyModel implements Viewable {
         //gt.updateViewport(Vect2DMath.ADD_SCALED(gt.viewportCorner, Vect2D.ONES, 0.002));
 
         g.setColor(new Color(40, 43, 47));
+        //g.fillRect(0, 0, 800, 650);
+        /*
+        ImageManager.getImages().c("bg1", (s, i) -> {
+            g.setPaint(
+                    new TexturePaint(
+                            i,
+                            new Rectangle2D.Double(gt.viewportCorner.getX(), gt.viewportCorner.getY(), dims.getWidth(), dims.getHeight())
+                    )
+            );
+        })
+        // TODO: double check how to optional
+         */
+
         g.fillRect(0, 0, 800, 650);
 
         r.prepareToRender(g);
