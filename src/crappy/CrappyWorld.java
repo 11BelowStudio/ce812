@@ -40,6 +40,8 @@ public class CrappyWorld {
 
     public final int delay;
 
+    public final double totalDelta;
+
     public final double deltaT;
 
 
@@ -79,8 +81,8 @@ public class CrappyWorld {
         this.eulerSubsteps = eulerSubsteps;
         this.eulerUpdatesPerUpdate = eulerUpdatesPerUpdate;
         this.delay = delay;
-
-        this.deltaT = delay / 1000.0 / (double) eulerUpdatesPerUpdate;
+        this.totalDelta = delay / 1000.0;
+        this.deltaT = totalDelta / (double) eulerUpdatesPerUpdate;
 
         this.grav = gravity;
     }

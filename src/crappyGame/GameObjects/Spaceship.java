@@ -10,7 +10,7 @@ import crappy.math.Vect2D;
 import crappyGame.Controller.IAction;
 import crappyGame.assets.SoundManager;
 
-public class Spaceship implements CrappyCallbackHandler, Respawnable {
+public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject {
 
 
     private final CrappyBody.CrappyBodyCreator spaceshipMaker = new CrappyBody.CrappyBodyCreator();
@@ -29,12 +29,12 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable {
 
     boolean justDied = false;
 
-    enum SHIP_STATE{
+    public enum SHIP_STATE{
         JUST_RESPAWNED,
         GOING_IN,
         TOWING,
         DONE,
-        FAILED,
+        FREEFALL_OF_SHAME,
         DEAD
     }
 
@@ -51,6 +51,32 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable {
         this.startPos = startPos;
         respawn(world);
 
+    }
+
+    public SHIP_STATE getState(){
+        return state;
+    }
+
+    public void setState(SHIP_STATE s){
+        state = s;
+    }
+
+    public Vect2D getPos(){
+        return body.getPos();
+    }
+
+    @Override
+    public Rot2D getRot() {
+        return body.getRot();
+    }
+
+    public CrappyBody getBody(){
+        return body;
+    }
+
+    @Override
+    public Vect2D getVel() {
+        return body.getVel();
     }
 
 
@@ -77,14 +103,17 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable {
                 }
 
                 if (act.isUpHeld()){
-                    body.applyForce(THRUST_FORCE.rotate(body.getRot()));
+                    body.applyForce(THRUST_FORCE.rotate(body.getRot()).mult(body.getMass()));
                 }
 
                 SoundManager.togglePlayThrusters(act.isLeftHeld() | act.isRightHeld() | act.isUpHeld());
                 break;
+            case FREEFALL_OF_SHAME:
+                SoundManager.togglePlayThrusters(false);
             case DEAD:
                 if (justDied){
                     SoundManager.playBoom();
+                    justDied = false;
                 }
         }
 
@@ -93,7 +122,7 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable {
 
     public void respawn(final CrappyWorld w){
 
-        if (state == SHIP_STATE.FAILED){
+        if (state == SHIP_STATE.FREEFALL_OF_SHAME){
             body.setMarkForRemoval(true);
             w.removeBody(body);
         } else if (state != SHIP_STATE.DEAD){

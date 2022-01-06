@@ -13,6 +13,14 @@ public interface IHaveAndConsumeBitmask extends IHaveBitmask, BitmaskConsumer {
      * @return true if there are any 1s in the result of anding this bitmask with the other one.
      */
     default boolean anyMatchInBitmasks(final IHaveBitmask other){
-        return (getBitmask() & other.getBitmask()) > 0;
+        return anyMatchInBitmasks(other.getBitmask());
+    }
+    /**
+     * Do any bits in this object's bitmask and the other given bitmask match?
+     * @param otherbm the other bitmask
+     * @return true if there are any 1s in the result of anding this bitmask with the other one.
+     */
+    default boolean anyMatchInBitmasks(final int otherbm){
+        return (getBitmask() & otherbm) > 0;
     }
 }

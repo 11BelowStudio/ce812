@@ -25,6 +25,8 @@ public final class SoundManager {
 
     private static final Clip solidHit = getClip("solidHit");
 
+    private static final Clip scoredPoint = getClip("scored point!");
+
     /**
      * plays the given clip.
      * @param clip the clip
@@ -68,6 +70,8 @@ public final class SoundManager {
     public static void playSolidHit(){
         play(solidHit);
     }
+
+    public static void playScored(){play(scoredPoint);}
 
     /**
      * Toggles whether or not the thrusters should be playing

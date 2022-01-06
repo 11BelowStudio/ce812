@@ -1,34 +1,39 @@
 package crappyGame;
 
+import crappy.CrappyBody;
 import crappy.CrappyWorld;
 import crappy.math.Vect2D;
 import crappyGame.Controller.IController;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.Optional;
+import java.util.List;
 
 public abstract class A_Model implements IModel{
 
-    final Dimension dims = new Dimension(880,660 );
+    protected final Dimension dims = new Dimension(880,660 );
 
-    final double VISIBLE_WORLD_HEIGHT = 10;
-    final double VISIBLE_WORLD_WIDTH = (10*4)/3.0;
-    Vect2D viewportCorner = Vect2D.ZERO;
+    protected final double VISIBLE_WORLD_HEIGHT = 10;
+    protected final double VISIBLE_WORLD_WIDTH = (10*4)/3.0;
+    protected Vect2D viewportCorner = Vect2D.ZERO;
 
-    final GraphicsTransform gt = new GraphicsTransform(VISIBLE_WORLD_WIDTH, VISIBLE_WORLD_HEIGHT, dims, viewportCorner);
+    protected final GraphicsTransform gt = new GraphicsTransform(VISIBLE_WORLD_WIDTH, VISIBLE_WORLD_HEIGHT, dims, viewportCorner);
 
-    final Vect2D GAME_GRAVITY = new Vect2D(0, -1.9);
+    protected final Vect2D GAME_GRAVITY = new Vect2D(0, -1.9);
 
-    final CrappyWorld world = new CrappyWorld(GAME_GRAVITY);
+    protected final CrappyWorld world = new CrappyWorld(GAME_GRAVITY);
 
-    final MyRenderer renderer = new MyRenderer(gt);
+    protected final MyRenderer renderer = new MyRenderer(gt);
 
-    final IController controller;
+    protected final IController controller;
+
+    protected final List<CrappyBody> pendingBodiesToAdd = new ArrayList<>();
 
 
 
-    A_Model(final IController ctrl){
+    protected A_Model(final IController ctrl){
         controller = ctrl;
     }
 
@@ -56,6 +61,11 @@ public abstract class A_Model implements IModel{
      */
     @Override
     public void notifyAboutPause(boolean isPaused) {}
+
+
+    public void addNewBody(final CrappyBody c){
+        pendingBodiesToAdd.add(c);
+    }
 
 
 

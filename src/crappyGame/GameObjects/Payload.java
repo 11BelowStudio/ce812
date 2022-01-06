@@ -8,15 +8,16 @@ import crappy.collisions.CrappyCircle;
 import crappy.math.Rot2D;
 import crappy.math.Vect2D;
 
-public class Payload implements CrappyCallbackHandler, Respawnable {
+public class Payload implements CrappyCallbackHandler, Respawnable, GameObject {
 
 
 
-    enum BALL_STATE{
+    public enum BALL_STATE{
         WAITING,
         BEING_TOWED,
         DROPPED,
-        DED
+        DED,
+        SUCCESS
     }
 
     private BALL_STATE state = BALL_STATE.DED;
@@ -60,11 +61,12 @@ public class Payload implements CrappyCallbackHandler, Respawnable {
         );
         new CrappyCircle(body, 0.2);
 
+        w.addBody(body);
         state = BALL_STATE.WAITING;
 
     }
 
-    void setBeingTowed(final boolean towed){
+    public void setBeingTowed(final boolean towed){
         if (towed){
             body.setFrozen(false);
             state = BALL_STATE.BEING_TOWED;
@@ -73,6 +75,32 @@ public class Payload implements CrappyCallbackHandler, Respawnable {
         }
     }
 
+
+    public Vect2D getPos(){
+        return body.getPos();
+    }
+
+    @Override
+    public Rot2D getRot() {
+        return body.getRot();
+    }
+
+    public CrappyBody getBody(){
+        return body;
+    }
+
+    @Override
+    public Vect2D getVel() {
+        return body.getVel();
+    }
+
+    public BALL_STATE getState(){
+        return state;
+    }
+
+    public void setState(final BALL_STATE s){
+        state = s;
+    }
 
     /**
      * The crappybody will call this with info about the other body when it notices that the other body has been
@@ -97,7 +125,12 @@ public class Payload implements CrappyCallbackHandler, Respawnable {
      */
     @Override
     public void acceptCollidedWithBitmaskAfterAllCollisions(int collidedWithBits) {
-        CrappyCallbackHandler.super.acceptCollidedWithBitmaskAfterAllCollisions(collidedWithBits);
+        if (BodyTagEnum.FINISH_LINE.anyMatchInBitmasks(collidedWithBits)){
+            this.state = BALL_STATE.SUCCESS;
+        } else if (BodyTagEnum.WORLD.anyMatchInBitmasks(collidedWithBits)){
+            this.state = BALL_STATE.DED;
+            body.setMarkForRemoval(true);
+        }
     }
 
 }

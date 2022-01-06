@@ -250,6 +250,18 @@ public final class M_Vect2D implements I_Vect2D {
     }
 
     /**
+     * Adds ax to x and adds ay to y
+     * @param ax add this to x
+     * @param ay add this to y
+     * @return this + (ax, ay)
+     */
+    public M_Vect2D add(final double ax, final double ay){
+        this.x += ax;
+        this.y += ay;
+        return this;
+    }
+
+    /**
      * Subtracts the other vector from this vector
      * @param other other vector to subtract
      * @return this-x

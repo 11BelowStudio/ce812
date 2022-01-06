@@ -47,6 +47,9 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I
 
     Vect2D drawableVel;
 
+    /**
+     * Is this considered renderable by the default draw operation?
+     */
     public boolean renderable = true;
 
     // TODO: collision method

@@ -1,6 +1,7 @@
 package crappy.collisions;
 
 import crappy.math.I_Vect2D;
+import crappy.math.M_Vect2D;
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
 import crappy.utils.containers.IPair;
@@ -226,10 +227,10 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
 
         Vect2D mid = getMidpoint();
 
-        Vect2D minProj = Vect2DMath.VECTOR_BETWEEN(mid, min);
+        Vect2D minProj = Vect2DMath.VECTOR_BETWEEN_M(mid, min).add(-0.1, -0.1).finished();
         min = mid.addScaled(minProj, scale);
 
-        Vect2D maxProj = Vect2DMath.VECTOR_BETWEEN(mid, max);
+        Vect2D maxProj = Vect2DMath.VECTOR_BETWEEN_M(mid, max).add(0.1, 0.1).finished();
         max = mid.addScaled(maxProj, scale);
 
     }

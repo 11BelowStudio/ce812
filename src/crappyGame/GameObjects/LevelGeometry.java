@@ -3,7 +3,11 @@ package crappyGame.GameObjects;
 import crappy.CrappyBody;
 import crappy.CrappyWorld;
 import crappy.collisions.AABBQuadTreeTools;
+import crappy.collisions.CrappyEdge;
+import crappy.math.Rot2D;
 import crappy.math.Vect2D;
+import crappy.math.Vect2DMath;
+import crappy.utils.bitmasks.IHaveBitmask;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,6 +47,35 @@ public final class LevelGeometry {
         bodies.add(edgeMaker(WIDTH*10/12, HEIGHT/2, WIDTH*3/4, HEIGHT*3/4, 0.1));
         bodies.add(edgeMaker(WIDTH*3/4, HEIGHT*3/4, WIDTH/2, HEIGHT, 0.1));
         bodies.add(edgeMaker(0, 0, WIDTH, 0));
+
+
+        CrappyBody finishLineBody = new CrappyBody(
+                new Vect2D(WIDTH/2, HEIGHT),
+                Vect2D.ZERO,
+                Rot2D.IDENTITY,
+                0,
+                0,
+                0,
+                0,
+                0,
+                CrappyBody.CRAPPY_BODY_TYPE.STATIC,
+                BodyTagEnum.FINISH_LINE.getBitmask(),
+                IHaveBitmask.COMBINE_BITMASKS_OR(BodyTagEnum.PAYLOAD, BodyTagEnum.SHIP),
+                CrappyBody.CrappyBodyCreator.defaultCallbackHandler,
+                new Object(),
+                "Finish line",
+                false,
+                false,
+                false
+        );
+
+        CrappyEdge finishLineEdge = new CrappyEdge(
+                finishLineBody, Vect2D.ZERO, Vect2DMath.VECTOR_BETWEEN(new Vect2D(WIDTH/2, HEIGHT),
+                new Vect2D(WIDTH/3, HEIGHT*3/4)), Double.NaN
+        );
+        finishLineEdge.renderable = false;
+
+        bodies.add(finishLineBody);
 
         // TODO: finish line
 
