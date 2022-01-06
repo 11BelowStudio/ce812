@@ -351,7 +351,9 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
 
     @Override
     public void drawCrappily(I_CrappilyDrawStuff renderer) {
-        renderer.acceptPolygon(this);
+        if (renderable) {
+            renderer.acceptPolygon(this);
+        }
     }
 
     /**

@@ -5,17 +5,18 @@ import crappy.math.Vect2D;
 public interface IAction {
 
 
-    boolean isLeftPressed();
+    boolean isLeftHeld();
 
-    boolean isRightPressed();
+    boolean isRightHeld();
 
-    boolean isUpPressed();
+    boolean isUpHeld();
 
     boolean isSpacePressed();
 
-    Vect2D isLeftClick();
+    boolean pressedAny();
+
+    boolean isLeftClick();
 
     Vect2D getClickLocation();
-
 
 }

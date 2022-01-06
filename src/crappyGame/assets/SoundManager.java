@@ -13,7 +13,7 @@ public final class SoundManager {
 
     private static boolean isThrusting = false;
 
-    private static final String path = "src/crappyGame/assets/audio";
+    private static final String path = "/crappyGame/assets/audio/";
 
     private static final Clip boom = getClip("explosion");
 
@@ -53,19 +53,19 @@ public final class SoundManager {
         return clip;
     }
 
-    public void playClap(){
+    public static void playClap(){
         play(clap);
     }
 
-    public void playPlac(){
+    public static void playPlac(){
         play(plac);
     }
 
-    public void playBoom(){
+    public static void playBoom(){
         play(boom);
     }
 
-    public void playSolidHit(){
+    public static void playSolidHit(){
         play(solidHit);
     }
 
@@ -74,7 +74,7 @@ public final class SoundManager {
      * @param thrusting true if they are thrusting, false otherwise.
      */
     @SuppressWarnings("BooleanParameter")
-    public void togglePlayThrusters(final boolean thrusting){
+    public static void togglePlayThrusters(final boolean thrusting){
 
         if (thrusting ^ isThrusting){
             if (thrusting){

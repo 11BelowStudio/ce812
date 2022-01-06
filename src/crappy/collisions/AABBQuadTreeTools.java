@@ -889,16 +889,14 @@ public final class AABBQuadTreeTools {
             }
 
             // if this child has all the children from the parent
-            if (nextLayerShapes.size() == currentLayerShapeCount){
-                // if we completely failed to bisect this region
-                if (nextLayerShapes.size() == shapesFromThisLayerOnOtherSide) {
+            if (nextLayerShapes.size() >= (double)currentLayerShapeCount * 0.75){
+                // if we've had no improvement over 2 generations, we give up.
+                if (nextLayerShapes.size() >= (double)grandparentLayerShapeCount * 0.75){
 
-                    // if we've had no improvement over 2 generations, we give up.
-                    if (nextLayerShapes.size() == grandparentLayerShapeCount){
-
-                        return new MultipleItemQuadtreeLeafNodeStaticGeom(nextLayerShapes);
-                    }
-                    // we try again, with a completely random median for midpoint
+                    return new MultipleItemQuadtreeLeafNodeStaticGeom(nextLayerShapes);
+                } else if ( // / if we completely failed to bisect this region
+                        nextLayerShapes.size() == shapesFromThisLayerOnOtherSide
+                ) { // we try again, with a completely random median for midpoint
                     return new StaticGeometryAABBTreeNode(
                             nextLayerShapes,
                             parentLayerShapeCount,
@@ -910,30 +908,28 @@ public final class AABBQuadTreeTools {
                             // otherwise we calmly attempt comparing maximums
                     );
 
-                } else if (nextLayerShapes.size() == parentLayerShapeCount){
+                } else if (nextLayerShapes.size() >= (double)parentLayerShapeCount * 0.75){
                     // if there are some shapes that were at least omitted from the other side
                     // we try a different approach to make sure we properly bisect it
                     return new StaticGeometryAABBTreeNode(
                             nextLayerShapes,
                             parentLayerShapeCount,
                             currentLayerShapeCount,
-                            (nextLayerShapes.size() == grandparentLayerShapeCount)
-                                    ? MIDPOINT_SELECTION_MODE.WHATEVER
-                                    // we panic if no improvement since grandparent
-                                    : MIDPOINT_SELECTION_MODE.MEDIAN_OF_MAX
+                            MIDPOINT_SELECTION_MODE.WHATEVER
                             // otherwise we calmly attempt comparing maximums
                     );
                 } else {
-                    // if this was an improvement over the parent (somehow), we try another midpoint comparison
+                    // if this was an improvement over the parent (somehow), we try comparing minimums
                     return new StaticGeometryAABBTreeNode(
                             nextLayerShapes,
                             parentLayerShapeCount,
                             currentLayerShapeCount,
-                            MIDPOINT_SELECTION_MODE.MEDIAN_OF_MIDPOINTS
+                            MIDPOINT_SELECTION_MODE.MEDIAN_OF_MIN
                     );
                 }
             }
 
+            // otherwise we just compare the midpoints as per usual
             return new StaticGeometryAABBTreeNode(
                     nextLayerShapes,
                     parentLayerShapeCount,

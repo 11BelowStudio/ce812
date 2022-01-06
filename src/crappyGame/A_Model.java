@@ -2,8 +2,11 @@ package crappyGame;
 
 import crappy.CrappyWorld;
 import crappy.math.Vect2D;
+import crappyGame.Controller.IController;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.util.Optional;
 
 public abstract class A_Model implements IModel{
 
@@ -15,15 +18,21 @@ public abstract class A_Model implements IModel{
 
     final GraphicsTransform gt = new GraphicsTransform(VISIBLE_WORLD_WIDTH, VISIBLE_WORLD_HEIGHT, dims, viewportCorner);
 
+    final Vect2D GAME_GRAVITY = new Vect2D(0, -1.9);
 
-    CrappyWorld world;
+    final CrappyWorld world = new CrappyWorld(GAME_GRAVITY);
 
     final MyRenderer renderer = new MyRenderer(gt);
 
-    @Override
-    public void update() {
+    final IController controller;
 
+
+
+    A_Model(final IController ctrl){
+        controller = ctrl;
     }
+
+
 
 
 

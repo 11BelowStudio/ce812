@@ -222,6 +222,18 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
         this.update_aabb(Vect2DMath.GET_BOUNDS_VARARGS(worldStart, worldStart.add(worldProj)));
     }
 
+    public void enlarge(final double scale){
+
+        Vect2D mid = getMidpoint();
+
+        Vect2D minProj = Vect2DMath.VECTOR_BETWEEN(mid, min);
+        min = mid.addScaled(minProj, scale);
+
+        Vect2D maxProj = Vect2DMath.VECTOR_BETWEEN(mid, max);
+        max = mid.addScaled(maxProj, scale);
+
+    }
+
     @Override
     public Vect2D getMax() {
         return max;

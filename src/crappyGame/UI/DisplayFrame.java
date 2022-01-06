@@ -45,7 +45,7 @@ public class DisplayFrame implements I_DisplayFrame {
 
         theFrame.addWindowListener(new DisplayFrameWindowListener(runner));
 
-        view.addComponentListener(new WindowResizeListenerForceMaintainAspectRatio(view, theFrame));
+
 
     }
 
@@ -75,61 +75,7 @@ public class DisplayFrame implements I_DisplayFrame {
 
 
 
-    private static class WindowResizeListenerForceMaintainAspectRatio implements ComponentListener{
 
-        final JComponent view;
-
-        final JFrame frame;
-
-        WindowResizeListenerForceMaintainAspectRatio(JComponent v, JFrame f){
-            view = v;
-            frame = f;
-        }
-
-        /**
-         * Invoked when the component's size changes.
-         *
-         * @param e the event to be processed
-         */
-        @Override
-        public void componentResized(ComponentEvent e) {
-
-            Dimension newSize = view.getSize();
-            System.out.println(e.getSource());
-
-
-        }
-
-        /**
-         * Invoked when the component's position changes.
-         *
-         * @param e the event to be processed
-         */
-        @Override
-        public void componentMoved(ComponentEvent e) {
-
-        }
-
-        /**
-         * Invoked when the component has been made visible.
-         *
-         * @param e the event to be processed
-         */
-        @Override
-        public void componentShown(ComponentEvent e) {
-
-        }
-
-        /**
-         * Invoked when the component has been made invisible.
-         *
-         * @param e the event to be processed
-         */
-        @Override
-        public void componentHidden(ComponentEvent e) {
-
-        }
-    }
 
 
     /**

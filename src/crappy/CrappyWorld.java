@@ -22,17 +22,25 @@ public class CrappyWorld {
     /**
      * How many stages are there in each euler update?
      */
-    public static final int EULER_SUBSTEPS = 2;
+    public static final int DEFAULT_EULER_SUBSTEPS = 2;
 
-    public static final int EULER_UPDATES_PER_RENDER_ATTEMPT = 100;
+    public static final int DEFAULT_EULER_UPDATES_PER_RENDER_ATTEMPT = 100;
 
-    public static final int DELAY = 20;
+    public static final int DEFAULT_DELAY = 20;
 
-    public static final double DELTA_T = DELAY / 1000.0 / (double) EULER_UPDATES_PER_RENDER_ATTEMPT;
+    public static final double DEFAULT_DELTA_T = DEFAULT_DELAY / 1000.0 / (double) DEFAULT_EULER_UPDATES_PER_RENDER_ATTEMPT;
 
-    public static final Vect2D GRAVITY = new Vect2D(0, -9.81);
+    public static final Vect2D DEFAULT_GRAVITY = new Vect2D(0, -9.81);
 
     public final Vect2D grav;
+
+    public final int eulerSubsteps;
+
+    public final int eulerUpdatesPerUpdate;
+
+    public final int delay;
+
+    public final double deltaT;
 
 
     final List<CrappyBody> dynamicBodies = new ArrayList<>();
@@ -67,8 +75,22 @@ public class CrappyWorld {
     public final List<DrawableBody> drawableStatics = synchronizedList(new ArrayList<>());
     public final List<DrawableConnector> drawableConnectors = synchronizedList(new ArrayList<>());
 
-    public CrappyWorld(final Vect2D gravity){
+    public CrappyWorld(final Vect2D gravity, final int eulerSubsteps, final int eulerUpdatesPerUpdate, final int delay){
+        this.eulerSubsteps = eulerSubsteps;
+        this.eulerUpdatesPerUpdate = eulerUpdatesPerUpdate;
+        this.delay = delay;
+
+        this.deltaT = delay / 1000.0 / (double) eulerUpdatesPerUpdate;
+
         this.grav = gravity;
+    }
+
+    public CrappyWorld(final Vect2D gravity){
+        this(gravity, DEFAULT_EULER_SUBSTEPS, DEFAULT_EULER_UPDATES_PER_RENDER_ATTEMPT, DEFAULT_DELAY);
+    }
+
+    public CrappyWorld(){
+        this (DEFAULT_GRAVITY, DEFAULT_EULER_SUBSTEPS, DEFAULT_EULER_UPDATES_PER_RENDER_ATTEMPT, DEFAULT_DELAY);
     }
 
     // TODO: synchronized sets of bodies/connectors that are 'safe' for the programmer using CRAPPY
@@ -76,7 +98,7 @@ public class CrappyWorld {
 
 
     public void update(){
-        update(DELTA_T, grav, EULER_UPDATES_PER_RENDER_ATTEMPT, EULER_SUBSTEPS);
+        update(deltaT, grav, eulerUpdatesPerUpdate, eulerSubsteps);
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
@@ -97,10 +119,21 @@ public class CrappyWorld {
 
         synchronized (UPDATE_SYNC_OBJECT) {
 
+            // we make sure that any changes to the states of the bodies since the last update call have been resolved.
+            resolveChangesToBodies(dynamicBodies);
+            resolveChangesToBodies(kinematicBodies);
+
+            // same for the connectors.
+            for (conIter = connectors.iterator(); conIter.hasNext(); ) {
+                if (conIter.next().startingDisposal()) {
+                    conIter.remove();
+                }
+            }
+
             final AABBQuadTreeTools.I_DynamicKinematicAABBQuadTreeRootNode newObjectTree =
                     AABBQuadTreeTools.DYN_KYN_AABB_FACTORY_BOUNDS_FINDER(dynamicBodies, kinematicBodies);
 
-            for (int i = 0; i < EULER_UPDATES_PER_RENDER_ATTEMPT; i++) {
+            for (int i = 0; i < eulerIterations; i++) {
 
                 //connectors.forEach(CrappyConnector::applyForcesToBodies);
 
@@ -120,7 +153,7 @@ public class CrappyWorld {
                     ;
 
 
-                for (int steps = 1; steps < EULER_SUBSTEPS; steps++) {
+                for (int steps = 1; steps < eulerSubsteps; steps++) {
                     for (conIter = connectors.iterator(); conIter.hasNext(); conIter.next().applyForcesToBodies()) ;
                     for (iter = dynamicBodies.iterator(); iter.hasNext(); iter.next().euler_substep(subDelta)) ;
                     for (iter = kinematicBodies.iterator(); iter.hasNext(); iter.next().euler_substep(subDelta)) ;

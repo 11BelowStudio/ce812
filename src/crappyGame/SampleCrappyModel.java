@@ -4,10 +4,12 @@ import crappy.*;
 import crappy.collisions.*;
 import crappy.math.Rot2D;
 import crappy.math.Vect2D;
+import crappyGame.GameObjects.LevelGeometry;
 import crappyGame.UI.Viewable;
 import crappyGame.assets.ImageManager;
 
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 import java.util.*;
 import java.awt.*;
 import java.util.List;
@@ -18,13 +20,18 @@ public class SampleCrappyModel implements Viewable {
 
     final static Vect2D THRUST_GRAV = new Vect2D(0, -0.95);
 
-    final CrappyWorld world = new CrappyWorld(CrappyWorld.GRAVITY);
+    final CrappyWorld world = new CrappyWorld(THRUST_GRAV);
+        //new CrappyWorld(CrappyWorld.GRAVITY);
 
     final GraphicsTransform gt = new GraphicsTransform(10, 10, 800, 650);
 
     final MyRenderer r = new MyRenderer(gt);
 
+    final Optional<BufferedImage> bg;
+
     SampleCrappyModel(){
+
+        bg = ImageManager.BG1.getOptional();
 
         List<CrappyBody> statics = new ArrayList<>();
 
@@ -50,13 +57,16 @@ public class SampleCrappyModel implements Viewable {
         new CrappyLine(c, new Vect2D(0, 1), new Vect2D(10, 2));
 
         //new CrappyEdge(c, new Vect2D(0, 1), new Vect2D(10, 1), 0.0);
-
+        /*
         statics.add(c);
 
         world.setStaticGeometry(
                 AABBQuadTreeTools.STATIC_GEOMETRY_AABB_QUADTREE_FACTORY(statics)
         );
 
+         */
+
+        LevelGeometry.makeLevel1(world, 10, 10);
 
         CrappyBody c2 = new CrappyBody(
                 new Vect2D(2.5, 5),
@@ -110,6 +120,7 @@ public class SampleCrappyModel implements Viewable {
 
         world.addBody(c3);
 
+
         CrappyBody c4 = new CrappyBody(
                 new Vect2D(5, 10),
                 Vect2D.ZERO,
@@ -131,18 +142,19 @@ public class SampleCrappyModel implements Viewable {
                 true
         );
 
-        //CrappyPolygon.POLYGON_FACTORY_REGULAR(c4, 4, 0.25);
+        CrappyPolygon.POLYGON_FACTORY_REGULAR(c4, 3, 0.25);
 
-        Vect2D[] shipShape = new Vect2D[]{
-                new Vect2D(0,0.25), new Vect2D(-0.25, -0.25), new Vect2D(0, -0.1), new Vect2D(0.25, -0.25)
-        };
+        //Vect2D[] shipShape = new Vect2D[]{
+        //        new Vect2D(0,0.25), new Vect2D(-0.25, -0.25), new Vect2D(0, -0.1), new Vect2D(0.25, -0.25)
+        //};
+
         //Vect2D shipCentroid = Vect2DMath.AREA_AND_CENTROID_OF_VECT2D_POLYGON(shipShape).getSecond();
         //System.out.println(Arrays.toString(shipShape));
         //Vect2DMath.OFFSET_VECTORS_IN_PLACE(shipCentroid.invert(), shipShape);
         //System.out.println(Arrays.toString(shipShape));
-        new CrappyPolygon(
-                c4, shipShape
-        );
+        //new CrappyPolygon(
+        //        c4, shipShape
+        //);
 
 
 
@@ -159,6 +171,12 @@ public class SampleCrappyModel implements Viewable {
         world.addBody(c4);
 
 
+
+        //Spaceship s = new Spaceship(new Vect2D(5, 10), world);
+
+
+
+        /*
         world.addConnector(
                 new CrappyConnector(
                         c2,
@@ -174,14 +192,20 @@ public class SampleCrappyModel implements Viewable {
                 )
         );
 
+         */
+
 
     }
 
 
     public void update(){
-
-
+        /*
+        gt.updateViewport(
+                Vect2DMath.ADD_SCALED(gt.viewportCorner, new Vect2D(0.1, 0.1), 0.1)
+        );
+                 */
         world.update();
+
     }
 
     @Override
@@ -190,6 +214,20 @@ public class SampleCrappyModel implements Viewable {
         //gt.updateViewport(Vect2DMath.ADD_SCALED(gt.viewportCorner, Vect2D.ONES, 0.002));
 
         g.setColor(new Color(40, 43, 47));
+
+
+        bg.ifPresent(bufferedImage -> g.setPaint(
+                new TexturePaint(
+                        bufferedImage,
+                        new Rectangle2D.Double(
+                                gt.viewportCorner.getX(),
+                                gt.viewportCorner.getY(),
+                                bufferedImage.getWidth(),
+                                bufferedImage.getHeight()
+                        )
+                )
+        ));
+
         //g.fillRect(0, 0, 800, 650);
         /*
         ImageManager.getImages().c("bg1", (s, i) -> {

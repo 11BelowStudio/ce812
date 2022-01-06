@@ -44,19 +44,25 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge, DrawableC
      * Public constructor
      * @param body body which this shape will be attached to
      * @param localStart local start point of this edge
-     * @param localEnd local end point
+     * @param localProj local projection
+     * @param depth thickness of edge
      */
     public CrappyEdge(
-            final CrappyBody_ShapeSetter_Interface body, final Vect2D localStart, final Vect2D localEnd, final double depth
+            final CrappyBody_ShapeSetter_Interface body, final Vect2D localStart, final Vect2D localProj, final double depth
     ){
-        this(localStart, body, localEnd, depth);
+        this(localStart, body, localProj, depth);
 
         body.__setShape__internalDoNotCallYourselfPlease(
                 this, Vect2DMath.LINE_START_CENTROID_MOMENT_OF_INERTIA(localStart, getLocalCentroid(), body.getMass())
         );
 
-        //TODO: where bounding box?
         this.aabb.update_aabb(Vect2DMath.GET_BOUNDS_VARARGS(worldStart, worldStart.add(worldProj)));
+
+        if (Double.isFinite(depth)){
+            this.aabb.enlarge(1.2);
+        }
+
+        //this.aabb.enlarge(1.1);
     }
 
     CrappyEdge(
@@ -111,6 +117,9 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge, DrawableC
         worldNorm = localNorm.rotate(rootTransform.getRot());
 
         thisFrameAABB.update_aabb_edge(worldStart, worldProj);
+        if (Double.isFinite(depth)){
+            this.aabb.enlarge(1.2);
+        }
         return thisFrameAABB;
     }
 
@@ -118,7 +127,9 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge, DrawableC
 
     @Override
     public void drawCrappily(I_CrappilyDrawStuff renderer) {
-        renderer.acceptEdge(this);
+        if (renderable) {
+            renderer.acceptEdge(this);
+        }
     }
 
     public void timestepStartUpdate(){

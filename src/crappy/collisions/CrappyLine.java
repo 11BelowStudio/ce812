@@ -89,8 +89,10 @@ public class CrappyLine extends A_CrappyShape implements Iterable<I_CrappyEdge>,
 
 
     @Override
-    public void drawCrappily(I_CrappilyDrawStuff renderer) {
-        renderer.acceptLine(this);
+    public void drawCrappily(final I_CrappilyDrawStuff renderer) {
+        if (renderable) {
+            renderer.acceptLine(this);
+        }
     }
 
     public Vect2D getWorldStart(){

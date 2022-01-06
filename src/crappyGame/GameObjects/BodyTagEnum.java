@@ -7,7 +7,7 @@ public enum BodyTagEnum implements IHaveAndConsumeBitmask {
 
     WORLD,
     SHIP,
-    TOWABLE,
+    PAYLOAD,
     FINISH_LINE,
     DECORATIVE_PARTICLE;
 

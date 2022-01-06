@@ -1,11 +1,12 @@
 package crappyGame;
 
+import crappyGame.Controller.Controller;
 import crappyGame.UI.DisplayFrame;
 import crappyGame.UI.View;
 
 import javax.swing.*;
 
-import static crappy.CrappyWorld.DELAY;
+import static crappy.CrappyWorld.DEFAULT_DELAY;
 
 public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
 
@@ -23,17 +24,24 @@ public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
 
     private boolean isPaused = false;
 
+    private final Controller ctrl;
+
 
     public GameRunner(){
 
 
         theView = new View();
 
+        ctrl = new Controller(theView);
+
         display = new DisplayFrame(theView, "placeholder", this);
+
+        display.addKeyListener(ctrl);
+        display.addMouseListener(ctrl);
 
         display.repackAndRevalidateAndSetVisible();
 
-        repaintTimer = new Timer(DELAY, e -> theView.repaint());
+        repaintTimer = new Timer(DEFAULT_DELAY, e -> theView.repaint());
 
         runIt();
     }
@@ -70,7 +78,7 @@ public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
                 m.update();
             }
             endTime = System.currentTimeMillis();
-            timeout = DELAY - (endTime - startTime);
+            timeout = DEFAULT_DELAY - (endTime - startTime);
             if (timeout > 0){
                 Thread.sleep(timeout);
             }

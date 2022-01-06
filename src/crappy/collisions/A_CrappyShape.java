@@ -47,6 +47,8 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I
 
     Vect2D drawableVel;
 
+    public boolean renderable = true;
+
     // TODO: collision method
 
     /**
@@ -230,7 +232,7 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I
     }
 
 
-    public abstract void drawCrappily(I_CrappilyDrawStuff renderer);
+    public abstract void drawCrappily(final I_CrappilyDrawStuff renderer);
 
 
     public void updateDrawables(){

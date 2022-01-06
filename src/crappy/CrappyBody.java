@@ -1360,7 +1360,7 @@ public class CrappyBody implements
 
         public int tagsOfBodiesThatCanBeCollidedWith = -1;
 
-        private static final CrappyCallbackHandler defaultCallbackHandler = new DEFAULT_CALLBACK_HANDLER();
+        public static final CrappyCallbackHandler defaultCallbackHandler = new DEFAULT_CALLBACK_HANDLER();
 
         public CrappyCallbackHandler handler = defaultCallbackHandler;
 
@@ -1405,7 +1405,7 @@ public class CrappyBody implements
     }
 
     public static CrappyBody EDGE_BODY_MAKER(
-            final CrappyWorld w, final Vect2D start, final Vect2D end, final double depth,
+            final Vect2D start, final Vect2D end, final double depth,
             final double restitution, final int myTags, final int collideWithTags,
             final CrappyCallbackHandler callback, final Object userData, final String name
     ){
@@ -1428,14 +1428,13 @@ public class CrappyBody implements
                 false,
                 false
                 );
-        new CrappyEdge(c, start, end, depth);
-        w.addBody(c);
+        new CrappyEdge(c, Vect2D.ZERO, Vect2DMath.MINUS(end, start), depth);
         return c;
 
     }
 
     public static CrappyBody LINE_BODY_MAKER(
-            final CrappyWorld w, final Vect2D start, final Vect2D end,
+            final Vect2D start, final Vect2D end,
             final double restitution, final int myTags, final int collideWithTags,
             final CrappyCallbackHandler callback, final Object userData, final String name
     ){
@@ -1459,7 +1458,6 @@ public class CrappyBody implements
                 false
         );
         new CrappyLine(c, start, end);
-        w.addBody(c);
         return c;
 
     }
