@@ -233,30 +233,29 @@ public final class CrappyCollisionHandler {
                     case CIRCLE:
                         assert (s instanceof I_CrappyCircle);
                         if (CrappyCollisionMath.COLLIDE_CIRCLE_POLYGON((I_CrappyCircle) s, p, deltaT)){
-                            NOTIFY_ABOUT_COLLISION(s.getBody(), s.getBody());
+                            NOTIFY_ABOUT_COLLISION(p.getBody(), s.getBody());
                         }
                         break;
                     case EDGE:
                         assert (s instanceof I_CrappyEdge);
                         if (CrappyCollisionMath.POLYGON_EDGE_COLLISIONS(p, (I_CrappyEdge) s, deltaT)){
-                            NOTIFY_ABOUT_COLLISION(s.getBody(), s.getBody());
+                            NOTIFY_ABOUT_COLLISION(p.getBody(), s.getBody());
                         }
                         break;
                     case LINE:
                         assert (s instanceof I_CrappyLine);
                         if (CrappyCollisionMath.POLYGON_LINE_COLLISIONS(p, (I_CrappyLine) s, deltaT)){
-                            NOTIFY_ABOUT_COLLISION(s.getBody(), s.getBody());
+                            NOTIFY_ABOUT_COLLISION(p.getBody(), s.getBody());
                         }
                         break;
                     case POLYGON:
                         assert (s instanceof I_CrappyPolygon);
                         if (CrappyCollisionMath.POLYGON_POLYGON_COLLISIONS(p, (I_CrappyPolygon) s, deltaT)){
-                            NOTIFY_ABOUT_COLLISION(s.getBody(), s.getBody());
+                            NOTIFY_ABOUT_COLLISION(p.getBody(), s.getBody());
                         }
                         break;
                 }
-                p.getBody().notifyAboutCollision(s.getBody());
-                s.getBody().notifyAboutCollision(p.getBody());
+
             }
         }
 

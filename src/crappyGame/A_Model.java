@@ -15,8 +15,8 @@ public abstract class A_Model implements IModel{
 
     protected final Dimension dims = new Dimension(880,660 );
 
-    protected final double VISIBLE_WORLD_HEIGHT = 10;
-    protected final double VISIBLE_WORLD_WIDTH = (10*4)/3.0;
+    protected static final double VISIBLE_WORLD_HEIGHT = 10;
+    protected static final double VISIBLE_WORLD_WIDTH = (10*4)/3.0;
     protected Vect2D viewportCorner = Vect2D.ZERO;
 
     protected final GraphicsTransform gt = new GraphicsTransform(VISIBLE_WORLD_WIDTH, VISIBLE_WORLD_HEIGHT, dims, viewportCorner);

@@ -551,6 +551,7 @@ public final class AABBQuadTreeTools {
             // if there's no geometry, we return an empty leaf node.
             return new EmptyQuadtreeLeafNodeStaticGeom();
         }
+        System.out.println(geometryShapes.size());
         return new StaticGeometryAABBTreeNode.StaticGeometryRootNode(
                 geometryShapes.stream()
                     .unordered()
@@ -823,15 +824,34 @@ public final class AABBQuadTreeTools {
                     final AABB_Quad_Enum.AABB_Choose_Quadtree_Enum e = AABB_Quad_Enum.AABB_Choose_Quadtree_Enum.get(
                             midpoint, shape
                     );
+                    System.out.println(shape);
+                    System.out.println(e);
                     map.forEach(
                         (k, v) ->{
                             if (k.test(e)){
+                                System.out.println(k);
                                 v.add(shape);
                             }
                         }
                     );
                 }
             );
+            
+            Set<CrappyShape_QuadTree_Interface> leSet = new HashSet<>();
+            
+            map.forEach((k, v) -> leSet.addAll(v));
+
+            if(leSet.size() != getCandidatesLeft()){
+                System.out.println("OH NO!!!!");
+                for (CrappyShape_QuadTree_Interface cs: geometryShapes) {
+                    if (!leSet.contains(cs)){
+                        System.out.println(cs);
+                    }
+
+                }
+                throw new AssertionError("Expected " + getCandidatesLeft() + " objects in child lists, only " + leSet.size() + " found!");
+            }
+            
 
             GG = NEXT_LAYER_FACTORY_FOR_STATIC_GEOMETRY(
                     map.get(AABB_Quad_Enum.X_GREATER_Y_GREATER),

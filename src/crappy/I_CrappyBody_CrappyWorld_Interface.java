@@ -63,4 +63,8 @@ public interface I_CrappyBody_CrappyWorld_Interface extends I_CrappyBody, I_View
     void updateDrawables();
 
     void doneEulers();
+
+    void handleStuffBeforeFirstEulerUpdate();
+
+    void resolveStuffAfterLastEulerUpdate();
 }

@@ -404,9 +404,7 @@ public final class CrappyCollisionMath {
         // TODO: completely rewrite this (same for the polygon version)
 
         if( // first, we attempt to collide the circle with the end point edge of this body.
-                //c.getBoundingBox().check_bb_intersect(e.getEndPointCircle().getBoundingBox())
-                I_Crappy_AABB.DO_THESE_BOUNDING_BOXES_OVERLAP(c.getBoundingBox(), e.getEndPointCircle().getBoundingBox())
-                && COLLIDE_CIRCLE_CIRCLE(c, e.getEndPointCircle(), deltaT)
+                COLLIDE_CIRCLE_CIRCLE(c, e.getEndPointCircle(), deltaT)
         ){
             // if they collided, we stop here.
             return true;
@@ -430,7 +428,7 @@ public final class CrappyCollisionMath {
         double thisFrameDistAlongBarrier = e.getWorldTang().dot(endToNowPos);
         //System.out.println("\tthisFrameDistAlongBarrier = " + thisFrameDistAlongBarrier);
 
-        if (thisFrameDistAlongBarrier < -c.getRadius() || thisFrameDistAlongBarrier > e.getLength() + c.getRadius()){
+        if (thisFrameDistAlongBarrier < 0 || thisFrameDistAlongBarrier > e.getLength()){
             //System.out.println("Too far!");
             return false;
         }

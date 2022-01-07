@@ -132,7 +132,7 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
 
         final IPair<Double, Double> min_max_radius =
                 Vect2DMath.INCIRCLE_AND_MAX_MAGNITUDE_OFFSET_ALSO_CENTROID_TO_CORNERS_TO_OUT(
-                        getCentroid(), localVertices, localWhiskers
+                        getLocalCentroid(), localVertices, localWhiskers
                 );
 
         //System.out.println("localWhiskers = " + Arrays.toString(localWhiskers));

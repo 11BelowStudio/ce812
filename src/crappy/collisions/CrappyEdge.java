@@ -58,9 +58,7 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge, DrawableC
 
         this.aabb.update_aabb(Vect2DMath.GET_BOUNDS_VARARGS(worldStart, worldStart.add(worldProj)));
 
-        if (Double.isFinite(depth)){
-            this.aabb.enlarge(1.2);
-        }
+        this.aabb.enlarge(1.25);
 
         //this.aabb.enlarge(1.1);
     }
@@ -117,9 +115,7 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge, DrawableC
         worldNorm = localNorm.rotate(rootTransform.getRot());
 
         thisFrameAABB.update_aabb_edge(worldStart, worldProj);
-        if (Double.isFinite(depth)){
-            this.aabb.enlarge(1.2);
-        }
+        this.aabb.enlarge(1.25);
         return thisFrameAABB;
     }
 

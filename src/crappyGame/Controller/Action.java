@@ -40,6 +40,7 @@ public class Action implements IAction{
 
     @Override
     public boolean isUpHeld() {
+        //return true;
         return upHeld;
     }
 
@@ -82,15 +83,19 @@ public class Action implements IAction{
         switch (a){
             case UP:
                 upHeld = true;
+                System.out.println("up pressed!");
                 break;
             case RIGHT:
-                rightHeld =true;
+                rightHeld = true;
+                System.out.println("right pressed!");
                 break;
             case LEFT:
                 leftHeld = true;
+                System.out.println("left pressed!");
                 break;
             case SPACE:
                 spacePressed = true;
+                System.out.println("space pressed!");
                 break;
         }
     }

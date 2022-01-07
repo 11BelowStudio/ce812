@@ -1101,6 +1101,27 @@ public final class Vect2DMath {
         return IPair.of(minIncircle, maxMag);
     }
 
+    public static Vect2D CLOSEST_POINT_ON_LINE_SEGMENT(I_Vect2D lineStart, I_Vect2D lineEnd, I_Vect2D observer){
+
+        Vect2D s = Vect2DMath.VECTOR_BETWEEN(lineStart, observer);
+        Vect2D proj = Vect2DMath.VECTOR_BETWEEN(lineStart, lineEnd);
+
+        double toEndSquared = proj.magSquared();
+        double sDotE = s.dot(proj);
+        double dist = sDotE/toEndSquared;
+
+        if (dist < 0) {
+            return lineStart.toVect2D();
+        } if (dist > 1){
+            return lineEnd.toVect2D();
+        } else{
+            return ADD_SCALED(lineStart, proj, dist);
+        }
+
+
+
+    }
+
     /**
      * Obtains the radius of the incircle from the centroid,
      * as well as the distance between the furthest vector from the centroid and the centroid
@@ -1117,7 +1138,7 @@ public final class Vect2DMath {
         final M_Vect2D last = M_Vect2D.GET(vects[vects.length-1]).sub(centroid);
         final M_Vect2D current = M_Vect2D._GET_RAW();
         double minIncircle = last.magSquared();
-        double maxMag = 0;
+        double maxMagSquared = 0;
 
         double lastMag = last.mag();
 
@@ -1128,25 +1149,20 @@ public final class Vect2DMath {
             out[i] = new Vect2D(current);
 
 
-            final double thisMag = current.mag();
-            if (thisMag > maxMag){
-                maxMag = thisMag;
+            final double thisMag = current.magSquared();
+            if (thisMag > maxMagSquared){
+                maxMagSquared = thisMag;
             }
 
-            
-            // area of triangle = base * height * 0.5
-            //
-            // height of triangle = 2(area / base)
-            //
-            // https://tutors.com/math-tutors/geometry-help/how-to-find-the-height-of-a-triangle
-            //
-            final double currentHeight = Math.abs(
-                    last.cross(current)/DIST(current, last)/2.0
+            double thisClosestDist = DIST(
+                    CLOSEST_POINT_ON_LINE_SEGMENT(last, current, centroid), centroid
             );
 
-            if (currentHeight < minIncircle){
-                minIncircle = currentHeight;
+
+            if (thisClosestDist < minIncircle){
+                minIncircle = thisClosestDist;
             }
+
 
             last.set(current);
         }
@@ -1154,7 +1170,7 @@ public final class Vect2DMath {
         current.discard();
         last.discard();
 
-        return IPair.of(minIncircle, maxMag);
+        return IPair.of(minIncircle, Math.sqrt(maxMagSquared));
 
     }
 
@@ -1946,6 +1962,10 @@ public final class Vect2DMath {
             out[i] = vects[i].add(offset);
         }
         return out;
+    }
+
+    public static Vect2D[] OFFSET_VECTORS_SO_CENTROID_IS_AT_ZERO_INTO_NEW_LIST(final Vect2D... vects){
+        return OFFSET_VECTORS_INTO_NEW_LIST(AREA_AND_CENTROID_OF_VECT2D_POLYGON(vects).getSecond(), vects);
     }
 
     public static void OFFSET_VECTORS_TO_OUT(final Vect2D offset, final Vect2D[] in, final Vect2D[] out){

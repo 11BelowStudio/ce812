@@ -125,6 +125,11 @@ public class CrappyWorld {
             resolveChangesToBodies(dynamicBodies);
             resolveChangesToBodies(kinematicBodies);
 
+            // and doing any other prep stuff we need to resolve before the first euler update
+            for(iter = dynamicBodies.iterator(); iter.hasNext(); iter.next().handleStuffBeforeFirstEulerUpdate());
+            for(iter = kinematicBodies.iterator(); iter.hasNext(); iter.next().handleStuffBeforeFirstEulerUpdate());
+
+
             // same for the connectors.
             for (conIter = connectors.iterator(); conIter.hasNext(); ) {
                 if (conIter.next().startingDisposal()) {
@@ -156,7 +161,6 @@ public class CrappyWorld {
 
 
                 for (int steps = 1; steps < eulerSubsteps; steps++) {
-                    for (conIter = connectors.iterator(); conIter.hasNext(); conIter.next().applyForcesToBodies()) ;
                     for (iter = dynamicBodies.iterator(); iter.hasNext(); iter.next().euler_substep(subDelta)) ;
                     for (iter = kinematicBodies.iterator(); iter.hasNext(); iter.next().euler_substep(subDelta)) ;
                 }
@@ -221,7 +225,9 @@ public class CrappyWorld {
                 }
             }
 
-
+            // last-minute cleanup (removing any external forces applied last timestep that aren't needed any more etc)
+            for(iter = dynamicBodies.iterator(); iter.hasNext(); iter.next().resolveStuffAfterLastEulerUpdate());
+            for(iter = kinematicBodies.iterator(); iter.hasNext(); iter.next().resolveStuffAfterLastEulerUpdate());
 
             // TODO:
             //   * Put the dynamic bodies into qTree, obtain bounding box intersects per dynamic body

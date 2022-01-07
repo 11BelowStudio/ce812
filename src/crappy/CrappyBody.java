@@ -128,6 +128,12 @@ public class CrappyBody implements
 
 
     /**
+     * For forces that need to remain sustained throughout all of the update iterations
+     */
+    protected final M_Vect2D pending_external_forces = M_Vect2D.GET();
+
+
+    /**
      * All the torques to apply to this body which remain constant throughout current timestep
      */
     protected double pending_torque_this_timestep = 0;
@@ -141,6 +147,11 @@ public class CrappyBody implements
      * All the torques to apply to this body which may change mid-timestep
      */
     protected double pending_torque_mid_timestep = 0;
+
+    /**
+     * For torques that need to remain sustained throughout all of the update iterations
+     */
+    protected double pending_external_torque = 0;
 
     /**
      * What sort of body is this?
@@ -800,17 +811,28 @@ public class CrappyBody implements
      */
     public void applyForce(final I_Vect2D force, final I_Vect2D localForcePos, final FORCE_SOURCE source){
         if (canApplyThisForce(source)){
-            //System.out.println("CrappyBody.applyForce");
-            //System.out.println("force = " + force + ", localForcePos = " + localForcePos + ", source = " + source);
 
-            //System.out.println("pending_forces_this_timestep = " + pending_forces_this_timestep);
-            //pending_forces_this_timestep.add_discardOther(Vect2DMath.DIVIDE_M(force, mass));
-            pending_forces_this_timestep.add(force);
-            //System.out.println("pending_forces_this_timestep = " + pending_forces_this_timestep);
+            switch (source){
+                case ENGINE:
+                    //System.out.println("CrappyBody.applyForce");
+                    //System.out.println("force = " + force + ", localForcePos = " + localForcePos + ", source = " + source);
 
-            //System.out.println("pending_torque_this_timestep = " + pending_torque_this_timestep);
-            pending_torque_this_timestep += M_Vect2D.GET(localForcePos).rotate(rotation).cross_discard(force);
-            //System.out.println("pending_torque_this_timestep = " + pending_torque_this_timestep);
+                    //System.out.println("pending_forces_this_timestep = " + pending_forces_this_timestep);
+                    //pending_forces_this_timestep.add_discardOther(Vect2DMath.DIVIDE_M(force, mass));
+                    pending_forces_this_timestep.add(force);
+                    //System.out.println("pending_forces_this_timestep = " + pending_forces_this_timestep);
+
+                    //System.out.println("pending_torque_this_timestep = " + pending_torque_this_timestep);
+                    pending_torque_this_timestep += M_Vect2D.GET(localForcePos).rotate(rotation).cross_discard(force);
+                    //System.out.println("pending_torque_this_timestep = " + pending_torque_this_timestep);
+                    break;
+                case MANUAL:
+                    pending_external_forces.add(force);
+                    pending_external_torque +=  M_Vect2D.GET(localForcePos).rotate(rotation).cross_discard(force);
+                    break;
+            }
+
+
         }
     }
 
@@ -852,7 +874,14 @@ public class CrappyBody implements
 
 
         if (canApplyThisForce(source)) {
-            pending_forces_this_timestep.add(force);
+            switch (source){
+                case ENGINE:
+                    pending_forces_this_timestep.add(force);
+                    break;
+                case MANUAL:
+                    pending_external_forces.add(force);
+                    break;
+            }
         }
     }
 
@@ -884,9 +913,19 @@ public class CrappyBody implements
     public void applyMidTimestepForce(final I_Vect2D force, final I_Vect2D localForcePos, final FORCE_SOURCE source){
 
         if (canApplyThisForce(source) && force.isNotZero()) {
-            pending_forces_mid_timestep.add_discardOther(Vect2DMath.DIVIDE_M(force, mass));
+            switch (source){
+                case ENGINE:
+                    pending_forces_mid_timestep.add_discardOther(Vect2DMath.DIVIDE_M(force, mass));
 
-            pending_torque_mid_timestep += M_Vect2D.GET(localForcePos).cross_discard(force);
+                    pending_torque_mid_timestep += M_Vect2D.GET(localForcePos).cross_discard(force);
+                    break;
+                case MANUAL:
+                    pending_external_forces.add_discardOther(Vect2DMath.DIVIDE_M(force, mass));
+
+                    pending_external_torque += M_Vect2D.GET(localForcePos).cross_discard(force);
+                    break;
+            }
+
         }
 
     }
@@ -911,7 +950,12 @@ public class CrappyBody implements
     @Override
     public void applyMidTimestepForce(final I_Vect2D force, final FORCE_SOURCE source){
         if (canApplyThisForce(source) && force.isNotZero()){
-            pending_forces_mid_timestep.add_discardOther(Vect2DMath.DIVIDE_M(force, mass));
+            switch (source){
+                case ENGINE:
+                    pending_forces_mid_timestep.add_discardOther(Vect2DMath.DIVIDE_M(force, mass));
+                case MANUAL:
+                    pending_external_forces.add_discardOther(Vect2DMath.DIVIDE_M(force, mass));
+            }
         }
     }
 
@@ -926,7 +970,14 @@ public class CrappyBody implements
     public void applyTorque(final double torque, final FORCE_SOURCE source){
 
         if (canApplyThisForce(source) && inertia > 0){
-            pending_torque_this_timestep += torque;
+            switch (source){
+                case ENGINE:
+                    pending_torque_this_timestep += torque;
+                    break;
+                case MANUAL:
+                    pending_external_torque += torque;
+                    break;
+            }
         }
 
     }
@@ -949,7 +1000,14 @@ public class CrappyBody implements
     public void applyMidTimestepTorque(final double torque, final FORCE_SOURCE source){
 
         if (canApplyThisForce(source) && inertia > 0){
-            pending_torque_mid_timestep += torque;
+            switch (source){
+                case ENGINE:
+                    pending_torque_mid_timestep += torque;
+                    break;
+                case MANUAL:
+                    pending_external_torque += torque;
+                    break;
+            }
         }
     }
 
@@ -1130,12 +1188,14 @@ public class CrappyBody implements
 
         tempVel.addScaled(pending_forces_this_timestep, substepDeltaT);
         tempVel.addScaled(pending_forces_mid_timestep.mult(1/mass), substepDeltaT);
+        tempVel.addScaled(pending_external_forces, substepDeltaT);
 
         pending_forces_mid_timestep.reset();
 
         if (inertia != 0) {
             tempAngVelocity += (pending_torque_this_timestep * substepDeltaT);
             tempAngVelocity += ((pending_torque_mid_timestep / inertia) * substepDeltaT);
+            tempAngVelocity += (pending_external_torque * substepDeltaT);
         }
 
         pending_torque_mid_timestep = 0;
@@ -1148,6 +1208,18 @@ public class CrappyBody implements
 
     public void doneEulers(){
         eus = EULER_UPDATE_STATE.DONE;
+    }
+
+    @Override
+    public void handleStuffBeforeFirstEulerUpdate() {
+        pending_external_torque /= inertia;
+        pending_external_forces.divide(mass);
+    }
+
+    @Override
+    public void resolveStuffAfterLastEulerUpdate() {
+        pending_external_forces.reset();
+        pending_external_torque = 0;
     }
 
 

@@ -7,21 +7,28 @@ import crappy.I_View_CrappyBody;
 import crappy.collisions.CrappyPolygon;
 import crappy.math.Rot2D;
 import crappy.math.Vect2D;
+import crappy.math.Vect2DMath;
+import crappyGame.A_Model;
 import crappyGame.Controller.IAction;
 import crappyGame.assets.SoundManager;
+import crappyGame.models.IRecieveDebris;
 
 public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject {
 
-
-    private final CrappyBody.CrappyBodyCreator spaceshipMaker = new CrappyBody.CrappyBodyCreator();
 
     public CrappyBody body;
 
     final Vect2D startPos;
 
-    final static int SPACESHIP_CAN_COLLIDE_WITH = BodyTagEnum.COMBINE_BITMASKS(BodyTagEnum.WORLD, BodyTagEnum.FINISH_LINE, BodyTagEnum.PAYLOAD);
+    final IRecieveDebris debrisGoesHere;
+
+    final static int SPACESHIP_CAN_COLLIDE_WITH = BodyTagEnum.COMBINE_BITMASKS(BodyTagEnum.WORLD, BodyTagEnum.FINISH_LINE);
 
     final static Vect2D THRUST_FORCE = new Vect2D(0, 7.6);
+
+    static{
+        System.out.println(THRUST_FORCE);
+    }
 
     final static double STEER_RATE = 2 * Math.PI;
 
@@ -41,23 +48,31 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
     SHIP_STATE state = SHIP_STATE.DEAD;
 
 
-    private static final Vect2D[] SHIP_SHAPE = new Vect2D[]{
-            new Vect2D(0, 0.25), new Vect2D(-0.25, -0.25),
-            new Vect2D(0, -0.1), new Vect2D( 0.25, -0.25)
-    };
+    private static final Vect2D[] SHIP_SHAPE = Vect2DMath.OFFSET_VECTORS_SO_CENTROID_IS_AT_ZERO_INTO_NEW_LIST(
+            new Vect2D(0, 0.2), new Vect2D(-0.2, -0.2),
+            new Vect2D(0, -0.1), new Vect2D( 0.2, -0.2)
+    );
 
-    public Spaceship(Vect2D startPos, CrappyWorld world){
+
+    /*
+            new Vect2D[]{
+            new Vect2D(0, 0.2), new Vect2D(-0.2, -0.2),
+            new Vect2D(0, -0.1), new Vect2D( 0.2, -0.2)
+    };
+     */
+
+    public Spaceship(Vect2D startPos, CrappyWorld world, IRecieveDebris d){
 
         this.startPos = startPos;
         respawn(world);
-
+        debrisGoesHere = d;
     }
 
     public SHIP_STATE getState(){
         return state;
     }
 
-    public void setState(SHIP_STATE s){
+    public void setState(final SHIP_STATE s){
         state = s;
     }
 
@@ -79,6 +94,9 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
         return body.getVel();
     }
 
+    public boolean isStillAlive(){
+        return stillAlive;
+    }
 
     public void update(IAction act){
 
@@ -96,14 +114,14 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
                     SoundManager.togglePlayThrusters(false);
                 }
                 if (act.isLeftHeld()){
-                    body.applyTorque(body.getMomentOfInertia() * STEER_RATE);
+                    body.applyTorque(STEER_RATE * body.getMomentOfInertia());
                 }
                 if (act.isRightHeld()){
-                    body.applyTorque(body.getMomentOfInertia() * -STEER_RATE);
+                    body.applyTorque(-STEER_RATE * body.getMomentOfInertia());
                 }
 
                 if (act.isUpHeld()){
-                    body.applyForce(THRUST_FORCE.rotate(body.getRot()).mult(body.getMass()));
+                    body.applyForce(THRUST_FORCE.rotate(body.getRot()));
                 }
 
                 SoundManager.togglePlayThrusters(act.isLeftHeld() | act.isRightHeld() | act.isUpHeld());
@@ -111,11 +129,13 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
             case FREEFALL_OF_SHAME:
                 SoundManager.togglePlayThrusters(false);
             case DEAD:
+                SoundManager.togglePlayThrusters(false);
                 if (justDied){
                     SoundManager.playBoom();
                     justDied = false;
                 }
         }
+
 
 
     }
@@ -133,10 +153,10 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
                 Vect2D.ZERO,
                 Rot2D.IDENTITY,
                 0,
-                2,
                 1,
-                0.0000001,
-                0.00075,
+                0,
+                0.0001,
+                0.0001,
                 CrappyBody.CRAPPY_BODY_TYPE.DYNAMIC,
                 BodyTagEnum.SHIP.bitmask,
                 SPACESHIP_CAN_COLLIDE_WITH,
@@ -148,6 +168,7 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
                 false
         );
         new CrappyPolygon(body, SHIP_SHAPE);
+        //CrappyPolygon.POLYGON_FACTORY_REGULAR(body, 3, 0.25);
         w.addBody(body);
         state = SHIP_STATE.JUST_RESPAWNED;
         stillAlive = true;
@@ -163,7 +184,7 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
      */
     @Override
     public void collidedWith(I_View_CrappyBody otherBody) {
-        CrappyCallbackHandler.super.collidedWith(otherBody);
+        System.out.println(otherBody.getName());
     }
 
     /**
@@ -177,7 +198,13 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
     @Override
     public void acceptCollidedWithBitmaskAfterAllCollisions(int collidedWithBits) {
         if ((BodyTagEnum.WORLD.bitmask & collidedWithBits) > 0){
+            if (stillAlive){
+                debrisGoesHere.addDebris(getPos(), getRot(), getVel(), 2 + (int)(Math.random()*5));
+                SoundManager.playBoom();
+                stillAlive = false;
+            }
             body.setMarkForRemoval(true);
+            stillAlive = false;
         }
     }
 

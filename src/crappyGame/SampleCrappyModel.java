@@ -54,7 +54,7 @@ public class SampleCrappyModel implements Viewable {
                 false,
                 false
         );
-        new CrappyLine(c, new Vect2D(0, 1), new Vect2D(10, 2));
+        //new CrappyLine(c, new Vect2D(0, 1), new Vect2D(10, 2));
 
         //new CrappyEdge(c, new Vect2D(0, 1), new Vect2D(10, 1), 0.0);
         /*

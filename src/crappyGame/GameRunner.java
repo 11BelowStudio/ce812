@@ -3,6 +3,7 @@ package crappyGame;
 import crappyGame.Controller.Controller;
 import crappyGame.UI.DisplayFrame;
 import crappyGame.UI.View;
+import crappyGame.models.Level1;
 
 import javax.swing.*;
 
@@ -58,7 +59,9 @@ public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
 
     private void placeholderLoop() throws InterruptedException{
 
-        SampleCrappyModel m = new SampleCrappyModel();
+        //SampleCrappyModel m = new SampleCrappyModel();
+
+        A_Model m = new Level1(ctrl);
 
         theView.setViewable(m);
 

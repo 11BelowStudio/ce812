@@ -293,8 +293,17 @@ public final class Vect2D implements Serializable, I_Vect2D {
      * @param divisor amount to divide X and Y by
      * @return new vector, equal to this/divisor
      */
-    public Vect2D divide(double divisor){
+    public Vect2D divide(final double divisor){
         return new Vect2D(x/divisor, y/divisor);
+    }
+
+    /**
+     * Divides this vector componentwise given divisor
+     * @param divisor amount to divide X and Y by
+     * @return new vector, equal to this/divisor
+     */
+    public Vect2D divide(final IPair<Double, Double> divisor){
+        return new Vect2D(x/divisor.getFirst(), y/divisor.getSecond());
     }
 
 

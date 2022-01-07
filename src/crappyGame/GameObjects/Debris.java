@@ -11,10 +11,13 @@ public class Debris implements GameObject, Updatable {
 
     final CrappyBody body;
 
-    double despawnTimer = 1 + (Math.random() * 3);
+    double despawnTimer = 2 + (Math.random() * 3);
+
+    boolean stillExists = true;
 
     public Debris(Vect2D pos, Vect2D vel, Rot2D rot, double angVel){
 
+        stillExists = true;
         body = new CrappyBody(
                 pos,
                 vel,
@@ -22,8 +25,8 @@ public class Debris implements GameObject, Updatable {
                 angVel,
                 0.1 + (Math.random() * 0.5),
                 0.95,
-                0.000001,
-                0.000001,
+                0.0001,
+                0.0001,
                 CrappyBody.CRAPPY_BODY_TYPE.DYNAMIC,
                 BodyTagEnum.DECORATIVE_PARTICLE.getBitmask(),
                 COLLIDES_WITH,
@@ -64,8 +67,14 @@ public class Debris implements GameObject, Updatable {
     @Override
     public void update(double delta) {
         despawnTimer -= delta;
+        System.out.println("despawnTimer = " + despawnTimer);
         if (despawnTimer < 0){
             body.setMarkForRemoval(true);
+            stillExists = false;
         }
+    }
+
+    public boolean isStillExists(){
+        return stillExists;
     }
 }

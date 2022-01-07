@@ -1,6 +1,7 @@
 package crappyGame.UI;
 
 import crappyGame.IGameRunner;
+import crappyGame.IQuit;
 
 import javax.swing.*;
 import java.awt.*;
@@ -44,7 +45,7 @@ public class DisplayFrame implements I_DisplayFrame {
         theFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
         theFrame.addWindowListener(new DisplayFrameWindowListener(runner));
-
+        theFrame.addKeyListener(new EscapeListener(runner));
 
 
     }
@@ -75,6 +76,21 @@ public class DisplayFrame implements I_DisplayFrame {
 
 
 
+    private static class EscapeListener extends KeyAdapter{
+
+        private final IQuit quitter;
+
+        private EscapeListener(IQuit q){
+            quitter = q;
+        }
+
+        @Override
+        public void keyPressed(KeyEvent e) {
+            if (e.getKeyCode() == KeyEvent.VK_ESCAPE){
+                quitter.quitPrompt();
+            }
+        }
+    }
 
 
 

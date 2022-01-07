@@ -70,8 +70,10 @@ public class StringObject implements Drawable {
         final int w = fm.stringWidth(words);
         final int h = fm.getHeight();
 
-        float x = (float) position.getX();
-        float y = (float) position.getY();
+        System.out.println(position);
+
+        int x = (int) position.getX();
+        int y = (int) position.getY();
 
 
 
@@ -88,7 +90,9 @@ public class StringObject implements Drawable {
 
         AffineTransform at = g.getTransform();
 
-        at.rotate(rotation.sin, rotation.cos, position.x, position.y);
+
+        //g.rotate(rotation.angle());
+
 
         g.setColor(Color.BLACK);
         g.drawString(words, x+1, y+1);

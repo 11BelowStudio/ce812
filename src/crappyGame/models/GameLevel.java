@@ -5,6 +5,7 @@ import crappy.CrappyCallbackHandler;
 import crappy.CrappyConnector;
 import crappy.I_View_CrappyBody;
 import crappy.collisions.AABBQuadTreeTools;
+import crappy.math.M_Vect2D;
 import crappy.math.Rot2D;
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
@@ -22,6 +23,7 @@ import crappyGame.assets.SoundManager;
 import crappyGame.misc.AttributeString;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -29,13 +31,29 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
-public abstract class GameLevel extends A_Model implements IModel, Viewable, CrappyCallbackHandler {
+public abstract class GameLevel extends A_Model implements IModel, Viewable, CrappyCallbackHandler, IRecieveDebris {
 
     Spaceship ship;
 
     Payload pl;
 
-    final static double TOWING_RANGE_SQUARED = Math.pow(1.5, 2);
+    final static double TOWING_RANGE = 2;
+
+    @Override
+    public void addDebris(Vect2D fromPos, Rot2D fromRot, Vect2D fromVel, int debrisToAdd) {
+        double angleOffset = 360.0/(double)debrisToAdd;
+        double fromDeg = Math.toRadians(fromRot.angle());
+        for (int i = 0; i < debrisToAdd; i++) {
+            Debris d = new Debris(
+                            fromPos.add(Vect2DMath.RANDOM_POLAR_VECTOR(0.1, 0.4)),
+                            fromVel.add(Vect2DMath.RANDOM_POLAR_VECTOR(0.2, 0.5)),
+                            fromRot,
+                            fromRot.angle()
+                    );
+            debris.add(d);
+            pendingBodiesToAdd.add(d.getBody());
+        }
+    }
 
     Optional<CrappyConnector> mayOrMayNotBeTheTowrope = Optional.empty();
 
@@ -59,7 +77,7 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
 
     final StringObject.AttributeStringObject<Integer> lifeCounterHUD = new StringObject.AttributeStringObject<>(
             new AttributeString<>(max_lives, "LIVES: ", ""),
-            new Vect2D(VISIBLE_WORLD_HEIGHT/32, VISIBLE_WORLD_HEIGHT/32),
+            gt.TO_RAW_SCREEN_SCALE_M(new Vect2D(31 * VISIBLE_WORLD_WIDTH/32.0, 30 * VISIBLE_WORLD_HEIGHT/32.0)).finished(),
             Rot2D.IDENTITY,
             StringObject.ALIGNMENT_ENUM.RIGHT
     );
@@ -68,35 +86,35 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
 
     final StringObject.AttributeStringObject<Double> fuelUsedHUD = new StringObject.AttributeStringObject<Double>(
             new AttributeString<>(0.0, "FUEL USED: ", "", d -> String.format("%.2f",d)),
-            new Vect2D(VISIBLE_WORLD_HEIGHT/32, VISIBLE_WORLD_HEIGHT*7/8),
+            gt.TO_RAW_SCREEN_SCALE_M(new Vect2D(31 * VISIBLE_WORLD_WIDTH/32.0, 7 * VISIBLE_WORLD_HEIGHT/8.0)).finished(),
             Rot2D.IDENTITY,
             StringObject.ALIGNMENT_ENUM.RIGHT
     );
 
     final StringObject pressTheAnyButtonWords = new StringObject(
             "PRESS THE ANY BUTTON TO START!",
-            new Vect2D(VISIBLE_WORLD_WIDTH/2, VISIBLE_WORLD_HEIGHT/2),
+            gt.TO_RAW_SCREEN_SCALE_M(new Vect2D(VISIBLE_WORLD_WIDTH/2.0, VISIBLE_WORLD_HEIGHT/2.0)).finished(),
             Rot2D.IDENTITY,
-            StringObject.ALIGNMENT_ENUM.MIDDLE
+            StringObject.ALIGNMENT_ENUM.LEFT
     );
 
     final StringObject pressTheAnyButtonToRespawnWords = new StringObject(
             "PRESS THE ANY BUTTON TO TRY AGAIN!",
-            new Vect2D(VISIBLE_WORLD_WIDTH/2, VISIBLE_WORLD_HEIGHT/2),
+            gt.TO_RAW_SCREEN_SCALE_M(new Vect2D(VISIBLE_WORLD_WIDTH/2.0, VISIBLE_WORLD_HEIGHT/2.0)).finished(),
             Rot2D.IDENTITY,
             StringObject.ALIGNMENT_ENUM.MIDDLE
     );
 
     final StringObject congratsWords = new StringObject(
             "congartulation u did it",
-            new Vect2D(VISIBLE_WORLD_WIDTH/2, VISIBLE_WORLD_HEIGHT/2),
+            gt.TO_RAW_SCREEN_SCALE_M(new Vect2D(VISIBLE_WORLD_WIDTH/2.0, VISIBLE_WORLD_HEIGHT/2.0)).finished(),
             Rot2D.IDENTITY,
             StringObject.ALIGNMENT_ENUM.MIDDLE
     );
 
     final StringObject youFailedWords = new StringObject(
             "THAT'S IT, GAME OVER",
-            new Vect2D(VISIBLE_WORLD_WIDTH/2, VISIBLE_WORLD_HEIGHT/2),
+            gt.TO_RAW_SCREEN_SCALE_M(new Vect2D(VISIBLE_WORLD_WIDTH/2.0, VISIBLE_WORLD_HEIGHT/2.0)).finished(),
             Rot2D.IDENTITY,
             StringObject.ALIGNMENT_ENUM.MIDDLE
     );
@@ -107,6 +125,12 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
     final Vect2D safeCameraOffset = new Vect2D(-VISIBLE_WORLD_WIDTH/3.0, -VISIBLE_WORLD_HEIGHT/3.0);
 
     final double lerpSpeed = 0.1;
+
+    final Vect2D screenMid = new Vect2D(dims.getWidth()/2,  dims.getHeight()/2);
+
+    final double dimsRadius = new Vect2D(VISIBLE_WORLD_WIDTH/3.0, VISIBLE_WORLD_HEIGHT/3.0).mag();
+
+    final double squaredDimsRadius = Math.pow(dimsRadius, 2);
 
     // TODO: if ship within middle third, keep camera as-is. Lerp camera when it gets to outer quarters/half
 
@@ -119,15 +143,13 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
             IController ctrl,
             Vect2D shipStartPos,
             Vect2D payloadStartPos,
-            AABBQuadTreeTools.I_StaticGeometryQuadTreeRootNode staticGeom,
             Optional<BufferedImage> bg
     ){
         super(ctrl);
 
-        ship = new Spaceship(shipStartPos, world);
-        pl = new Payload(payloadStartPos, world);
+        ship = new Spaceship(shipStartPos, world, this);
+        pl = new Payload(payloadStartPos, world, this);
 
-        world.setStaticGeometry(staticGeom);
         background = bg;
 
     }
@@ -136,7 +158,7 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
     public void update() {
 
         if (!pendingBodiesToAdd.isEmpty()){
-            for (Iterator<CrappyBody> citer = pendingBodiesToAdd.iterator(); citer.hasNext();){
+            for (final Iterator<CrappyBody> citer = pendingBodiesToAdd.iterator(); citer.hasNext();){
                 world.addBody(citer.next());
                 citer.remove();
             }
@@ -154,7 +176,7 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
                 if (ship.getState() == Spaceship.SHIP_STATE.GOING_IN &&
                         act.isSpacePressed() &&
                         !mayOrMayNotBeTheTowrope.isPresent() &&
-                        Vect2DMath.DIST_SQUARED(ship.getPos(), pl.getPos()) <= TOWING_RANGE_SQUARED
+                        Vect2DMath.DIST(ship.getPos(), pl.getPos()) < TOWING_RANGE
                 ){
                     createTowRope();
                 }
@@ -171,8 +193,12 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
 
         world.update();
 
-        for (Debris d: debris) {
+        for (Iterator<Debris> diter = debris.iterator(); diter.hasNext();) {
+            Debris d = diter.next();
             d.update(world.totalDelta);
+            if (!d.isStillExists()){
+                diter.remove();
+            }
         }
 
         switch (gamestate){
@@ -196,20 +222,45 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
 
         }
 
+        if (ship.isStillAlive()){
 
+
+            Vect2D worldMid = gt.TO_WORLD_COORDS_V(new Vect2D(dims.getWidth()/2.0, dims.getHeight()/2.0));
+
+            Vect2D shipScreenPos = gt.TO_SCREEN_COORDS_V(ship.getPos());
+
+            Vect2D midToShip = Vect2DMath.VECTOR_BETWEEN(screenMid, shipScreenPos);
+
+            if (midToShip.magSquared() > squaredDimsRadius){
+                System.out.println("midToShip = " + midToShip);
+                double currentDist = midToShip.mag();
+
+                double scaleMidToShipBy = dimsRadius/currentDist;
+                //Vect2D finalPos = midToShip.mult(scaleMidToShipBy);
+
+                double nextDist = (1-lerpSpeed) * currentDist + (lerpSpeed * dimsRadius);
+                //viewportCorner = viewportCorner.add(midToShip.divide(currentDist/nextDist));
+
+                //viewportCorner = M_Vect2D.GET(viewportCorner).mult(1-lerpSpeed).addScaled(finalPos, lerpSpeed).finished();
+            }
+
+
+        }
+
+        controller.timestepEndReset();
 
     }
 
     private void lostLife(){
 
         lives -= 1;
+        if (mayOrMayNotBeTheTowrope.isPresent()){
+            world.removeConnector(mayOrMayNotBeTheTowrope.get());
+            mayOrMayNotBeTheTowrope = Optional.empty();
+        }
         if (lives < 0){
             gamestate = GAMESTATE.GAME_OVER_YEAHHHHHHHH;
         } else {
-            if (mayOrMayNotBeTheTowrope.isPresent()){
-                world.removeConnector(mayOrMayNotBeTheTowrope.get());
-                mayOrMayNotBeTheTowrope = Optional.empty();
-            }
             lifeCounterHUD.setData(lives);
             gamestate = GAMESTATE.DEAD;
         }
@@ -227,12 +278,13 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
                 Vect2D.ZERO,
                 pl.getBody(),
                 Vect2D.ZERO,
-                1000000,
-                1000,
+                Vect2DMath.DIST(ship.getPos(), pl.getPos()),
+                50,
+                0.1,
                 false,
                 CrappyConnector.TRUNCATION_RULE_FACTORY(
                         CrappyConnector.TruncationEnum.COSINE_TRUNCATION,
-                        1000000000
+                        0.1
                 ),
                 false
         );
@@ -241,6 +293,7 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
 
         ship.setState(Spaceship.SHIP_STATE.TOWING);
         pl.setBeingTowed(true);
+        pl.getBody().setFrozen(false);
     }
 
     private void won(){
@@ -248,6 +301,7 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
         SoundManager.playScored();
         gamestate = GAMESTATE.WON_LEVEL;
 
+        mayOrMayNotBeTheTowrope.ifPresent(t->t.setAllowedToExist(false));
 
     }
 
@@ -280,7 +334,9 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
 
         gt.updateViewport(viewportCorner);
 
+        AffineTransform at = g.getTransform();
         super.draw(g);
+        g.setTransform(at);
 
         switch (gamestate){
             case AWAITING_INPUT:

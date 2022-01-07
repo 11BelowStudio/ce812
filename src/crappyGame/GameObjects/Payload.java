@@ -7,6 +7,7 @@ import crappy.I_View_CrappyBody;
 import crappy.collisions.CrappyCircle;
 import crappy.math.Rot2D;
 import crappy.math.Vect2D;
+import crappyGame.models.IRecieveDebris;
 
 public class Payload implements CrappyCallbackHandler, Respawnable, GameObject {
 
@@ -28,9 +29,12 @@ public class Payload implements CrappyCallbackHandler, Respawnable, GameObject {
 
     private static final int collidesWithBits = BodyTagEnum.COMBINE_BITMASKS(BodyTagEnum.WORLD, BodyTagEnum.FINISH_LINE);
 
-    public Payload(Vect2D startPos, CrappyWorld w){
+    final IRecieveDebris debrisGoesHere;
+
+    public Payload(Vect2D startPos, CrappyWorld w, IRecieveDebris d){
         this.startPos = startPos;
         respawn(w);
+        debrisGoesHere = d;
     }
 
     @Override
@@ -45,10 +49,10 @@ public class Payload implements CrappyCallbackHandler, Respawnable, GameObject {
                 Vect2D.ZERO,
                 Rot2D.IDENTITY,
                 0,
-                0.3,
+                0.1,
                 0,
                 0,
-                0.75,
+                0.00025,
                 CrappyBody.CRAPPY_BODY_TYPE.DYNAMIC,
                 BodyTagEnum.PAYLOAD.bitmask,
                 collidesWithBits,
@@ -69,6 +73,7 @@ public class Payload implements CrappyCallbackHandler, Respawnable, GameObject {
     public void setBeingTowed(final boolean towed){
         if (towed){
             body.setFrozen(false);
+            body.overwriteVelocityAfterCollision(Vect2D.ZERO, 0, CrappyBody.FORCE_SOURCE.MANUAL);
             state = BALL_STATE.BEING_TOWED;
         } else if (state != BALL_STATE.DED){
             state = BALL_STATE.DROPPED;
@@ -128,7 +133,10 @@ public class Payload implements CrappyCallbackHandler, Respawnable, GameObject {
         if (BodyTagEnum.FINISH_LINE.anyMatchInBitmasks(collidedWithBits)){
             this.state = BALL_STATE.SUCCESS;
         } else if (BodyTagEnum.WORLD.anyMatchInBitmasks(collidedWithBits)){
-            this.state = BALL_STATE.DED;
+            if (state != BALL_STATE.DED) {
+                debrisGoesHere.addDebris(getPos(), getRot(), getVel(), 3 + (int)(Math.random() * 5));
+                this.state = BALL_STATE.DED;
+            }
             body.setMarkForRemoval(true);
         }
     }

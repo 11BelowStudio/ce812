@@ -24,6 +24,8 @@ public interface CrappyBody_Connector_Interface extends I_Transform, IHaveIdenti
 
     double getTempAngVel();
 
+    void applyForce(final I_Vect2D force, final I_Vect2D localForcePos, final CrappyBody.FORCE_SOURCE source);
+
     void applyMidTimestepForce(final I_Vect2D force, final I_Vect2D localForcePos, final CrappyBody.FORCE_SOURCE source);
 
     boolean isActive();

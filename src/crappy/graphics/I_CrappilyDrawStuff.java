@@ -146,7 +146,7 @@ public interface I_CrappilyDrawStuff {
 
         drawFilledPolygon(screenPos, screenVertices, SELECT_COLOR_BODY(p.getShapeType(), p.getBody().getBodyType(), true));
 
-        //acceptCircle(p.getDrawableIncircle());
+        acceptCircle(p.getDrawableIncircle());
         drawPolygon(screenPos, screenVertices, SELECT_COLOR_BODY(p.getShapeType(), p.getBody().getBodyType(), false));
         drawLine(screenPos, screenPos.add(getGraphicsTransform().TO_RAW_SCREEN_SCALE_M(p.getDrawableRot())), Color.CYAN);
         drawLine(screenPos, screenPos.add(getGraphicsTransform().TO_SCREEN_COORDS_V(p.getDrawableVel())), Color.RED);
