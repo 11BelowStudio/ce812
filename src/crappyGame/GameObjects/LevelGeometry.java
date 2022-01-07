@@ -37,16 +37,16 @@ public final class LevelGeometry {
 
         bodies.add(edgeMaker(WIDTH, HEIGHT, 0, HEIGHT));
         bodies.add(edgeMaker(0,HEIGHT,0,0));
-        bodies.add(edgeMaker(0,HEIGHT*3/4, WIDTH/3, HEIGHT*3/4, 0.1));
-        bodies.add(edgeMaker(WIDTH/3, HEIGHT*3/4, WIDTH*3/8, HEIGHT/2, 0.1));
-        bodies.add(edgeMaker(WIDTH*3/8, HEIGHT/2, WIDTH*3/16, HEIGHT*7/16, 0.1));
-        bodies.add(edgeMaker(WIDTH*3/16, HEIGHT*7/16, WIDTH/17, HEIGHT/14, 0.1));
+        bodies.add(edgeMaker(0,HEIGHT*3/4, WIDTH/3, HEIGHT*3/4, 0.15));
+        bodies.add(edgeMaker(WIDTH/3, HEIGHT*3/4, WIDTH*3/8, HEIGHT/2, 0.15));
+        bodies.add(edgeMaker(WIDTH*3/8, HEIGHT/2, WIDTH*3/16, HEIGHT*7/16, 0.15));
+        bodies.add(edgeMaker(WIDTH*3/16, HEIGHT*7/16, WIDTH/17, HEIGHT/14, 0.15));
         bodies.add(edgeMaker(WIDTH/17, HEIGHT/14, WIDTH/2, HEIGHT/16));
         bodies.add(edgeMaker(WIDTH/2, HEIGHT/16, WIDTH*13/16, HEIGHT/8));
         bodies.add(edgeMaker(WIDTH*13/16, HEIGHT/8, WIDTH*10/12, HEIGHT/2));
         bodies.add(edgeMaker(WIDTH*10/12, HEIGHT/2, WIDTH*3/4, HEIGHT*3/4));
         bodies.add(edgeMaker(WIDTH*3/4, HEIGHT*3/4, WIDTH/2, HEIGHT));
-        bodies.add(edgeMaker(0, 0, WIDTH, 0));
+        //bodies.add(edgeMaker(0, 0, WIDTH, 0));
 
         System.out.println(bodies.size());
 

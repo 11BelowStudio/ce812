@@ -23,9 +23,9 @@ public class Debris implements GameObject, Updatable {
                 vel,
                 rot,
                 angVel,
-                0.1 + (Math.random() * 0.5),
+                0.15 + (Math.random() * 0.5),
                 0.95,
-                0.0001,
+                0.001,
                 0.0001,
                 CrappyBody.CRAPPY_BODY_TYPE.DYNAMIC,
                 BodyTagEnum.DECORATIVE_PARTICLE.getBitmask(),
@@ -67,7 +67,6 @@ public class Debris implements GameObject, Updatable {
     @Override
     public void update(double delta) {
         despawnTimer -= delta;
-        System.out.println("despawnTimer = " + despawnTimer);
         if (despawnTimer < 0){
             body.setMarkForRemoval(true);
             stillExists = false;

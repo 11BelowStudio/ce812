@@ -911,6 +911,9 @@ public final class CrappyCollisionMath {
     /**
      * Call this to collide a polygon with an edge when we know what the normalized 'polygon centroid to edge centroid'
      * vector is.
+     *
+     * KNOWN ISSUES: if the incircle of the polygon collides with the edge, the polygon will 'rotate' around the edge.
+     *
      * @param p the polygon
      * @param e the edge
      * @param deltaT timestep
@@ -946,9 +949,7 @@ public final class CrappyCollisionMath {
 
 
 
-       Vect2D worldVelOfCollisionPoint = Vect2DMath.WORLD_VEL_OF_LOCAL_COORD_M(Vect2DMath.WORLD_TO_LOCAL_M(collisionPoint, p.getBodyTransform()).finished(), p.getBodyTransform()).finished();
-       
-
+       //Vect2D worldVelOfCollisionPoint = Vect2DMath.WORLD_VEL_OF_LOCAL_COORD_M(Vect2DMath.WORLD_TO_LOCAL_M(collisionPoint, p.getBodyTransform()).finished(), p.getBodyTransform()).finished();
 
 
         if (Vect2DMath.WORLD_VEL_OF_LOCAL_COORD_M(

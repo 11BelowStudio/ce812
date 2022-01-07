@@ -131,7 +131,6 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
             case DEAD:
                 SoundManager.togglePlayThrusters(false);
                 if (justDied){
-                    SoundManager.playBoom();
                     justDied = false;
                 }
         }
@@ -199,8 +198,7 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
     public void acceptCollidedWithBitmaskAfterAllCollisions(int collidedWithBits) {
         if ((BodyTagEnum.WORLD.bitmask & collidedWithBits) > 0){
             if (stillAlive){
-                debrisGoesHere.addDebris(getPos(), getRot(), getVel(), 2 + (int)(Math.random()*5));
-                SoundManager.playBoom();
+                debrisGoesHere.addDebris(getPos(), getRot(), getVel(), 2 + (int)(Math.random()*5), IRecieveDebris.DebrisSource.SHIP);
                 stillAlive = false;
             }
             body.setMarkForRemoval(true);

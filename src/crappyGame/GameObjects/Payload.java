@@ -7,6 +7,7 @@ import crappy.I_View_CrappyBody;
 import crappy.collisions.CrappyCircle;
 import crappy.math.Rot2D;
 import crappy.math.Vect2D;
+import crappyGame.assets.SoundManager;
 import crappyGame.models.IRecieveDebris;
 
 public class Payload implements CrappyCallbackHandler, Respawnable, GameObject {
@@ -50,7 +51,7 @@ public class Payload implements CrappyCallbackHandler, Respawnable, GameObject {
                 Rot2D.IDENTITY,
                 0,
                 0.1,
-                0,
+                0.8,
                 0,
                 0.00025,
                 CrappyBody.CRAPPY_BODY_TYPE.DYNAMIC,
@@ -73,6 +74,7 @@ public class Payload implements CrappyCallbackHandler, Respawnable, GameObject {
     public void setBeingTowed(final boolean towed){
         if (towed){
             body.setFrozen(false);
+            body.setTangibility(true);
             body.overwriteVelocityAfterCollision(Vect2D.ZERO, 0, CrappyBody.FORCE_SOURCE.MANUAL);
             state = BALL_STATE.BEING_TOWED;
         } else if (state != BALL_STATE.DED){
@@ -134,7 +136,7 @@ public class Payload implements CrappyCallbackHandler, Respawnable, GameObject {
             this.state = BALL_STATE.SUCCESS;
         } else if (BodyTagEnum.WORLD.anyMatchInBitmasks(collidedWithBits)){
             if (state != BALL_STATE.DED) {
-                debrisGoesHere.addDebris(getPos(), getRot(), getVel(), 3 + (int)(Math.random() * 5));
+                debrisGoesHere.addDebris(getPos(), getRot(), getVel(), 3 + (int)(Math.random() * 5), IRecieveDebris.DebrisSource.PAYLOAD);
                 this.state = BALL_STATE.DED;
             }
             body.setMarkForRemoval(true);

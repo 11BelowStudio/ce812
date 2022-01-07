@@ -92,6 +92,15 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
     }
 
     /**
+     * Creates a new AABB describing this circle.
+     * @param mid midpoint of the circle
+     * @param radius radius of the circle
+     */
+    public Crappy_AABB(final I_Vect2D mid, final double radius){
+        this.update_aabb_circle(mid.toVect2D(), radius);
+    }
+
+    /**
      * @return a copy of this AABB.
      */
     @SuppressWarnings("MethodDoesntCallSuperMethod")
@@ -219,8 +228,19 @@ public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
      * @param worldStart start position of this AABB
      * @param worldProj polar vector describing the overall projection of that line in the world
      */
-    public void update_aabb_edge(final Vect2D worldStart, final Vect2D worldProj){
-        this.update_aabb(Vect2DMath.GET_BOUNDS_VARARGS(worldStart, worldStart.add(worldProj)));
+    public void update_aabb_edge(final Vect2D worldStart, final Vect2D worldProj, final Vect2D worldNorm, double depth){
+        if (!Double.isFinite(depth)){
+            depth = 10;
+        }
+        M_Vect2D endPoint = M_Vect2D.GET(worldStart).add(worldProj);
+        this.update_aabb(
+                Vect2DMath.GET_BOUNDS_VARARGS(
+                        worldStart, endPoint.toVect2D(),
+                        worldStart.addScaled(worldNorm, -depth),
+                        endPoint.addScaled(worldNorm, -depth)
+                )
+        );
+        endPoint.discard();
     }
 
     public void enlarge(final double scale){

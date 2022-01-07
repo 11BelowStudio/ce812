@@ -27,6 +27,10 @@ public final class SoundManager {
 
     private static final Clip scoredPoint = getClip("scored point!");
 
+    private static final Clip towNoise = getClip("tow noise");
+
+    private static final Clip towBroke = getClip("tow broke");
+
     /**
      * plays the given clip.
      * @param clip the clip
@@ -72,6 +76,10 @@ public final class SoundManager {
     }
 
     public static void playScored(){play(scoredPoint);}
+
+    public static void playTowNoise(){play(towNoise);}
+
+    public static void playTowBroke(){play(towBroke);}
 
     /**
      * Toggles whether or not the thrusters should be playing

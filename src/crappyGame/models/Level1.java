@@ -17,7 +17,7 @@ public class Level1 extends GameLevel{
                 ctrl,
                 new Vect2D(VISIBLE_WORLD_WIDTH/6,
                         VISIBLE_WORLD_HEIGHT*7/8),
-                new Vect2D(VISIBLE_WORLD_WIDTH/4, VISIBLE_WORLD_HEIGHT*3/16),
+                new Vect2D(VISIBLE_WORLD_WIDTH*5/16, VISIBLE_WORLD_HEIGHT/4),
                 ImageManager.BG1.getOptional()
         );
         LevelGeometry.makeLevel1(super.world, VISIBLE_WORLD_WIDTH, VISIBLE_WORLD_HEIGHT);

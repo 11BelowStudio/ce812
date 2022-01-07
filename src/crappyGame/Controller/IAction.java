@@ -15,6 +15,8 @@ public interface IAction {
 
     boolean pressedAny();
 
+    boolean anyDirectionPressed();
+
     boolean isLeftClick();
 
     Vect2D getClickLocation();

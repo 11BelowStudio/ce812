@@ -40,9 +40,24 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
     final static double TOWING_RANGE = 2;
 
     @Override
-    public void addDebris(Vect2D fromPos, Rot2D fromRot, Vect2D fromVel, int debrisToAdd) {
-        double angleOffset = 360.0/(double)debrisToAdd;
-        double fromDeg = Math.toRadians(fromRot.angle());
+    public void addDebris(final Vect2D fromPos, final Rot2D fromRot, final Vect2D fromVel, int debrisToAdd, final DebrisSource source) {
+        //double angleOffset = 360.0/(double)debrisToAdd;
+        //double fromDeg = Math.toRadians(fromRot.angle());
+        switch (source){
+            case SHIP:
+                if (gamestate==GAMESTATE.WON_LEVEL){
+                    SoundManager.playSolidHit();
+                } else {
+                    SoundManager.playBoom();
+                }
+                break;
+            case PAYLOAD:
+                SoundManager.playSolidHit();
+                break;
+            default:
+                SoundManager.playClap();
+                break;
+        }
         for (int i = 0; i < debrisToAdd; i++) {
             Debris d = new Debris(
                             fromPos.add(Vect2DMath.RANDOM_POLAR_VECTOR(0.1, 0.4)),
@@ -169,6 +184,7 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
         switch (gamestate){
             case AWAITING_INPUT:
                 if (act.pressedAny()){
+                    SoundManager.playClap();
                     gamestate = GAMESTATE.GAMERING;
                 }
                 break;
@@ -181,15 +197,16 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
                     createTowRope();
                 }
                 break;
-            case DEAD:
-                if (act.pressedAny()){
-                    respawn();
-                    gamestate = GAMESTATE.AWAITING_INPUT;
-                }
-                break;
         }
 
         ship.update(controller.getAction());
+
+        if (gamestate==GAMESTATE.DEAD){
+            if (act.pressedAny()){
+                respawn();
+                gamestate = GAMESTATE.AWAITING_INPUT;
+            }
+        }
 
         world.update();
 
@@ -257,6 +274,7 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
         if (mayOrMayNotBeTheTowrope.isPresent()){
             world.removeConnector(mayOrMayNotBeTheTowrope.get());
             mayOrMayNotBeTheTowrope = Optional.empty();
+            SoundManager.playTowBroke();
         }
         if (lives < 0){
             gamestate = GAMESTATE.GAME_OVER_YEAHHHHHHHH;
@@ -279,12 +297,12 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
                 pl.getBody(),
                 Vect2D.ZERO,
                 Vect2DMath.DIST(ship.getPos(), pl.getPos()),
-                50,
-                0.1,
+                5000,
+                100,
                 false,
                 CrappyConnector.TRUNCATION_RULE_FACTORY(
                         CrappyConnector.TruncationEnum.COSINE_TRUNCATION,
-                        0.1
+                        100
                 ),
                 false
         );
@@ -293,14 +311,13 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
 
         ship.setState(Spaceship.SHIP_STATE.TOWING);
         pl.setBeingTowed(true);
-        pl.getBody().setFrozen(false);
+        SoundManager.playTowNoise();
     }
 
     private void won(){
 
         SoundManager.playScored();
         gamestate = GAMESTATE.WON_LEVEL;
-
         mayOrMayNotBeTheTowrope.ifPresent(t->t.setAllowedToExist(false));
 
     }

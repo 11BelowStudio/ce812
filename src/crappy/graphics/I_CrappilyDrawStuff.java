@@ -99,7 +99,25 @@ public interface I_CrappilyDrawStuff {
             final double x, final double y, final double w, final double h, final Color col
     );
 
-    // TODO: methods that accept shapes, calculate appropriate vertices for them, and call these draw methods
+    default boolean RENDERING_BOUNDING_BOXES(){
+        return true;
+    }
+
+    default boolean RENDERING_VELOCITIES(){
+        return true;
+    }
+
+    default boolean RENDERING_ROTATIONS(){
+        return true;
+    }
+
+    default boolean RENDERING_INCIRCLES(){
+        return true;
+    }
+
+    default boolean RENDERING_NORMALS(){
+        return true;
+    }
 
 
     default void acceptAABB(DrawableCrappyShape d){
@@ -120,15 +138,18 @@ public interface I_CrappilyDrawStuff {
 
         final Vect2D screenPos = getGraphicsTransform().TO_SCREEN_COORDS_V(c.getDrawablePos());
 
-        final I_Crappy_AABB b = c.getBody().getAABB();
-
-
-        acceptAABB(c);
+        if (RENDERING_BOUNDING_BOXES()) {
+            acceptAABB(c);
+        }
 
         drawFilledCircle(screenPos, xRad, yRad, SELECT_COLOR_BODY(c.getShapeType(), c.getBody().getBodyType(), true));
         drawCircle(screenPos, xRad, yRad, SELECT_COLOR_BODY(c.getShapeType(), c.getBody().getBodyType(), false));
-        drawLine(screenPos, screenPos.add(getGraphicsTransform().TO_SCREEN_COORDS_V(c.getDrawableRot())), Color.CYAN);
-        drawLine(screenPos, screenPos.add(getGraphicsTransform().TO_SCREEN_COORDS_V(c.getDrawableVel())), Color.RED);
+        if (RENDERING_ROTATIONS()) {
+            drawLine(screenPos, screenPos.add(getGraphicsTransform().TO_SCREEN_COORDS_V(c.getDrawableRot())), Color.CYAN);
+        }
+        if (RENDERING_VELOCITIES()) {
+            drawLine(screenPos, screenPos.add(getGraphicsTransform().TO_SCREEN_COORDS_V(c.getDrawableVel())), Color.RED);
+        }
     }
 
 
@@ -142,27 +163,40 @@ public interface I_CrappilyDrawStuff {
             screenVertices[i] = getGraphicsTransform().TO_SCREEN_COORDS_V(screenVertices[i]);
         }
 
-        acceptAABB(p);
+        if (RENDERING_BOUNDING_BOXES()) {
+            acceptAABB(p);
+        }
 
         drawFilledPolygon(screenPos, screenVertices, SELECT_COLOR_BODY(p.getShapeType(), p.getBody().getBodyType(), true));
 
-        acceptCircle(p.getDrawableIncircle());
+        if (RENDERING_INCIRCLES()) {
+            acceptCircle(p.getDrawableIncircle());
+        }
         drawPolygon(screenPos, screenVertices, SELECT_COLOR_BODY(p.getShapeType(), p.getBody().getBodyType(), false));
-        drawLine(screenPos, screenPos.add(getGraphicsTransform().TO_RAW_SCREEN_SCALE_M(p.getDrawableRot())), Color.CYAN);
-        drawLine(screenPos, screenPos.add(getGraphicsTransform().TO_SCREEN_COORDS_V(p.getDrawableVel())), Color.RED);
+
+        if (RENDERING_ROTATIONS()) {
+            drawLine(screenPos, screenPos.add(getGraphicsTransform().TO_RAW_SCREEN_SCALE_M(p.getDrawableRot())), Color.CYAN);
+        }
+        if (RENDERING_VELOCITIES()) {
+            drawLine(screenPos, screenPos.add(getGraphicsTransform().TO_SCREEN_COORDS_V(p.getDrawableVel())), Color.RED);
+        }
     }
 
 
     default void acceptEdge(DrawableCrappyShape.DrawableEdge e){
 
-        acceptAABB(e);
+        if (RENDERING_BOUNDING_BOXES()) {
+            acceptAABB(e);
+        }
 
         final Vect2D screenStart = getGraphicsTransform().TO_SCREEN_COORDS_V(e.getDrawableStart());
         final Vect2D screenEnd = getGraphicsTransform().TO_SCREEN_COORDS_V(e.getDrawableEnd());
 
-        final Vect2D screenNorm = getGraphicsTransform().TO_SCREEN_COORDS_V(e.getDrawableNorm());
+        if (RENDERING_NORMALS()) {
+            final Vect2D screenNorm = getGraphicsTransform().TO_SCREEN_COORDS_V(e.getDrawableNorm());
+            drawLine(getGraphicsTransform().TO_SCREEN_COORDS_V(e.getDrawableCentroid()), screenNorm, SELECT_COLOR_BODY(e.getShapeType(), e.getBody().getBodyType(), true));
+        }
 
-        drawLine(getGraphicsTransform().TO_SCREEN_COORDS_V(e.getDrawableCentroid()), screenNorm, SELECT_COLOR_BODY(e.getShapeType(), e.getBody().getBodyType(), true));
         acceptCircle(e.getDrawableEndCircle());
         drawLine(screenStart, screenEnd, SELECT_COLOR_BODY(e.getShapeType(), e.getBody().getBodyType(), false));
     }
@@ -170,19 +204,22 @@ public interface I_CrappilyDrawStuff {
 
     default void acceptLine(DrawableCrappyShape.DrawableLine l){
 
-        acceptAABB(l);
+        if (RENDERING_BOUNDING_BOXES()) {
+            acceptAABB(l);
+        }
 
         final Vect2D screenStart = getGraphicsTransform().TO_SCREEN_COORDS_V(l.getDrawableStart());
         final Vect2D screenEnd = getGraphicsTransform().TO_SCREEN_COORDS_V(l.getDrawableEnd());
 
-        final Vect2D screenNormA = getGraphicsTransform().TO_SCREEN_COORDS_V(l.getDrawableNorm());
-        //final Vect2D screenNormB = getGraphicsTransform().TO_SCREEN_COORDS_V(l.getDrawableNormEnd());
-        final Vect2D screenNormB = getGraphicsTransform().TO_SCREEN_COORDS_V(l.getDrawableCentroid());
 
         acceptCircle(l.getDrawableEndCircle());
         acceptCircle(l.getDrawableOtherEndCircle());
 
-        drawLine(screenNormA, screenNormB, SELECT_COLOR_BODY(l.getShapeType(), l.getBody().getBodyType(), true));
+        if (RENDERING_NORMALS()) {
+            final Vect2D screenNormA = getGraphicsTransform().TO_SCREEN_COORDS_V(l.getDrawableNorm());
+            final Vect2D screenNormB = getGraphicsTransform().TO_SCREEN_COORDS_V(l.getDrawableNormEnd());
+            drawLine(screenNormA, screenNormB, SELECT_COLOR_BODY(l.getShapeType(), l.getBody().getBodyType(), true));
+        }
         drawLine(screenStart, screenEnd, SELECT_COLOR_BODY(l.getShapeType(), l.getBody().getBodyType(), false));
     }
 
@@ -211,11 +248,6 @@ public interface I_CrappilyDrawStuff {
                         1f
                 )
         );
-
-        //Vect2D p1 = c.getFirstShape().getDrawablePos();
-
-        //double h = Vect2DMath.DIST_SQUARED(, bodyBWorldPos()) / Vect2DMath.RETURN_1_IF_0(naturalLength);
-
     }
 
 

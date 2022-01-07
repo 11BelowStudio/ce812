@@ -3,10 +3,7 @@ package crappy.collisions;
 import crappy.*;
 import crappy.graphics.DrawableCrappyShape;
 import crappy.graphics.I_CrappilyDrawStuff;
-import crappy.math.I_Vect2D;
-import crappy.math.Rot2D;
-import crappy.math.Vect2D;
-import crappy.math.Vect2DMath;
+import crappy.math.*;
 
 import java.util.Vector;
 
@@ -22,7 +19,7 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge, DrawableC
 
     final double length;
 
-    final EdgePointCircle circle = new EdgePointCircle(this);
+    final EdgePointCircle circle;
 
     Vect2D worldStart;
 
@@ -56,9 +53,9 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge, DrawableC
                 this, Vect2DMath.LINE_START_CENTROID_MOMENT_OF_INERTIA(localStart, getLocalCentroid(), body.getMass())
         );
 
-        this.aabb.update_aabb(Vect2DMath.GET_BOUNDS_VARARGS(worldStart, worldStart.add(worldProj)));
+        this.aabb.update_aabb(updateShape(body));
 
-        this.aabb.enlarge(1.25);
+        this.aabb.enlarge(1.1);
 
         //this.aabb.enlarge(1.1);
     }
@@ -76,8 +73,8 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge, DrawableC
         this.localTang = localProj.mult(1/length); // probably quicker than calling norm when we already know the length
         this.localNorm = localTang.rotate90degreesAnticlockwise();
         this.depth = depth;
-        updateShape(body);
-        this.aabb.update_aabb(Vect2DMath.GET_BOUNDS_VARARGS(worldStart, worldStart.add(worldProj)));
+        this.aabb.update_aabb(updateShape(body));
+        circle = new EdgePointCircle(this);
     }
 
     CrappyEdge(
@@ -104,6 +101,7 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge, DrawableC
         this.localNorm = localTang.rotate90degreesAnticlockwise();
         this.depth = depth;
         updateShape(body);
+        circle = new EdgePointCircle(this);
     }
 
     @Override
@@ -114,8 +112,18 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge, DrawableC
         worldTang = localTang.rotate(rootTransform.getRot());
         worldNorm = localNorm.rotate(rootTransform.getRot());
 
-        thisFrameAABB.update_aabb_edge(worldStart, worldProj);
+        thisFrameAABB.update_aabb_edge(worldStart, worldProj, worldNorm, depth);
+        /*
+        double d = depth;
+        System.out.println(d);
+        if (!Double.isFinite(depth)){
+            d = 10;
+        }
+        this.aabb.add_point(worldStart.addScaled(worldNorm, -d));
+        this.aabb.add_point(M_Vect2D.GET(worldStart).addScaled(worldNorm,-d).add(worldProj).finished());
         this.aabb.enlarge(1.25);
+
+         */
         return thisFrameAABB;
     }
 
@@ -228,22 +236,24 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge, DrawableC
 
         private final Object drawableSyncer = new Object();
 
+        private final static double pointRadius = 0.001;
+
 
         EdgePointCircle(final CrappyEdge e){
             edge = e;
-            point_aabb = new Crappy_AABB(e.worldStart);
+            point_aabb = new Crappy_AABB(e.getWorldStart(), pointRadius);
         }
 
         void startUpdateAABB(){
-            point_aabb.update_aabb(edge.getWorldStart());
+            point_aabb.add_circle(edge.getWorldStart(), pointRadius);
         }
 
         void midUpdateAABB(){
-            point_aabb.add_point(edge.getWorldStart());
+            point_aabb.add_circle(edge.getWorldStart(), pointRadius);
         }
 
         void endUpdateAABB(){
-            point_aabb.add_point(edge.getWorldStart());
+            point_aabb.add_circle(edge.getWorldStart(), pointRadius);
         }
 
         @Override
@@ -289,7 +299,7 @@ public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge, DrawableC
 
         @Override
         public double getRadius() {
-            return 0;
+            return pointRadius;
         }
 
         @Override

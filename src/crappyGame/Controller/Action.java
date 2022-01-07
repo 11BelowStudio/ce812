@@ -18,12 +18,15 @@ public class Action implements IAction{
 
     boolean pressedAny = false;
 
+    boolean pressedAnyDirection = false;
+
     Action(){}
 
     void reset(){
         spacePressed = false;
         clicked = false;
         pressedAny = false;
+        pressedAnyDirection = false;
     }
 
 
@@ -55,6 +58,9 @@ public class Action implements IAction{
     }
 
     @Override
+    public boolean anyDirectionPressed(){ return pressedAnyDirection; }
+
+    @Override
     public boolean isLeftClick() {
         return clicked;
     }
@@ -84,14 +90,17 @@ public class Action implements IAction{
             case UP:
                 upHeld = true;
                 System.out.println("up pressed!");
+                pressedAnyDirection = true;
                 break;
             case RIGHT:
                 rightHeld = true;
                 System.out.println("right pressed!");
+                pressedAnyDirection = true;
                 break;
             case LEFT:
                 leftHeld = true;
                 System.out.println("left pressed!");
+                pressedAnyDirection = true;
                 break;
             case SPACE:
                 spacePressed = true;

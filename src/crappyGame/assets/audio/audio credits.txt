@@ -4,7 +4,7 @@ clap.wav, plac.wav:
 explosion.wav:
     Made by me (Rachel Lowe) in 2020, for 'Muffin Mania' (a terrible game I made because reasons)
 
-thruster-y noise:
+thruster-y noise.wav, scored point!.wav, tow noise.wav:
     Originally made by me (Rachel Lowe) in 2021, for 'Inconvenient Space Rocks 2' (an incredibly terrible game I made for the 'So Bad Its Good' Jam 2021)
 
 solidHit.wav:

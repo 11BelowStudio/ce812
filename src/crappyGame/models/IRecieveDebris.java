@@ -5,5 +5,11 @@ import crappy.math.Vect2D;
 
 public interface IRecieveDebris {
 
-    public void addDebris(Vect2D fromPos, Rot2D fromRot, Vect2D fromVel, int debrisToAdd);
+    enum DebrisSource{
+        SHIP,
+        PAYLOAD,
+        OTHER
+    }
+
+    public void addDebris(Vect2D fromPos, Rot2D fromRot, Vect2D fromVel, int debrisToAdd, DebrisSource source);
 }
