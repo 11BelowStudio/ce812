@@ -93,14 +93,14 @@ public class GameLevel extends A_Model implements IModel, Viewable, CrappyCallba
     );
 
     final StringObject congratsWords = new StringObject(
-            "congartulation u did it",
+            "congartulation u did it (press space to continue)",
             gt.TO_RAW_SCREEN_SCALE_M(new Vect2D(VISIBLE_WORLD_WIDTH/2.0, VISIBLE_WORLD_HEIGHT/2.0)).finished(),
             Rot2D.IDENTITY,
             StringObject.ALIGNMENT_ENUM.MIDDLE
     );
 
     final StringObject youFailedWords = new StringObject(
-            "THAT'S IT, GAME OVER",
+            "THAT'S IT, GAME OVER (press space to go back to the title screen IN SHAME)",
             gt.TO_RAW_SCREEN_SCALE_M(new Vect2D(VISIBLE_WORLD_WIDTH/2.0, VISIBLE_WORLD_HEIGHT/2.0)).finished(),
             Rot2D.IDENTITY,
             StringObject.ALIGNMENT_ENUM.MIDDLE
@@ -237,12 +237,12 @@ public class GameLevel extends A_Model implements IModel, Viewable, CrappyCallba
                 }
                 break;
             case WON_LEVEL:
-                if (act.pressedAny()){
+                if (act.isSpacePressed()){
                     runner.levelWon(fuelUsed, lives);
                 }
                 break;
             case GAME_OVER_YEAHHHHHHHH:
-                if (act.pressedAny()){
+                if (act.isSpacePressed()){
                     runner.levelLost();
                 }
 
@@ -344,6 +344,7 @@ public class GameLevel extends A_Model implements IModel, Viewable, CrappyCallba
         gamestate = GAMESTATE.WON_LEVEL;
         mayOrMayNotBeTheTowrope.ifPresent(t->t.setAllowedToExist(false));
         ship.setState(Spaceship.SHIP_STATE.FREEFALL_OF_SHAME);
+        controller.resetAll();
     }
 
     @Override

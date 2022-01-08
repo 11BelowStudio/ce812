@@ -53,7 +53,7 @@ public final class SoundManager {
         try {
             clip = AudioSystem.getClip();
             //AudioInputStream sample = AudioSystem.getAudioInputStream(new File(path + filename + ".wav"));
-            AudioInputStream sample = AudioSystem.getAudioInputStream(SoundManager.class.getResourceAsStream(path + filename + ".wav"));
+            AudioInputStream sample = AudioSystem.getAudioInputStream(SoundManager.class.getResource(path + filename + ".wav"));
             clip.open(sample);
         } catch (Exception e) {
             e.printStackTrace();

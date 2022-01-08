@@ -17,6 +17,58 @@ public class MyRenderer implements I_CrappilyDrawStuff {
 
     private Graphics2D g;
 
+    /**
+     * Should bounding boxes be drawn?
+     *
+     * @return true if you want to render bounding boxes.
+     */
+    @Override
+    public boolean RENDERING_BOUNDING_BOXES() {
+        return false;
+    }
+
+    /**
+     * Should velocity lines be drawn?
+     *
+     * @return true if you want to render visible velocities.
+     */
+    @Override
+    public boolean RENDERING_VELOCITIES() {
+        return false;
+    }
+
+    /**
+     * Should rotation lines be drawn?
+     *
+     * @return true if you want to render visible rotations.
+     */
+    @Override
+    public boolean RENDERING_ROTATIONS() {
+        return false;
+    }
+
+    /**
+     * Should polygon incircles be drawn?
+     *
+     * @return true if you want to render polygon incircles.
+     */
+    @Override
+    public boolean RENDERING_INCIRCLES() {
+        return false;
+    }
+
+
+    /**
+     * Should line/edge normal vectors be drawn?
+     *
+     * @return true if you want to render line/edge normal vectors
+     */
+    @Override
+    public boolean RENDERING_NORMALS() {
+        return false;
+    }
+
+
     MyRenderer(I_GraphicsTransform gt){
         gTransform = gt;
     }
@@ -124,7 +176,14 @@ public class MyRenderer implements I_CrappilyDrawStuff {
     }
 
 
-
+    /**
+     * Please draw this rectangle
+     * @param x top-left x
+     * @param y top-left y
+     * @param w width
+     * @param h height
+     * @param col colour
+     */
     @Override
     public void drawRectangle(
             final double x, final double y, final double w, final double h, final Color col

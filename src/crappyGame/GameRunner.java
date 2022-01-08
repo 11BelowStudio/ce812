@@ -30,7 +30,7 @@ public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
 
     private LEVELS currentLevel = LEVELS.__END_OF_GAME;
 
-    private static final int DEFAULT_LIVES = 3;
+    private static final int DEFAULT_LIVES = 2;
 
     private A_Model currentModel;
 
@@ -234,6 +234,7 @@ public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
                     JOptionPane.INFORMATION_MESSAGE
             );
             currentLevel = LEVELS.LEVEL1;
+            livesLeft = DEFAULT_LIVES;
         } else {
             livesLeft++;
             currentLevel = currentLevel.nextLevel;
