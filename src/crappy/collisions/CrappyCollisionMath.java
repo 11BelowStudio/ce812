@@ -8,14 +8,16 @@ import java.util.Vector;
 
 import static crappy.math.Vect2DMath.*;
 
+
+/**
+ * handles maths for collision handling
+ */
 public final class CrappyCollisionMath {
 
     /**
      * no constructing >:(
      */
     private CrappyCollisionMath(){}
-
-    private static final double BUFFERING = 1.5;
 
 
     private static double AVG_RESTITUTION(final I_HaveRestitution a, final I_HaveRestitution b){

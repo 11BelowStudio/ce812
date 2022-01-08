@@ -11,6 +11,8 @@ import javax.sound.sampled.Clip;
  */
 public final class SoundManager {
 
+    private SoundManager(){}
+
     private static boolean isThrusting = false;
 
     private static final String path = "/crappyGame/assets/audio/";

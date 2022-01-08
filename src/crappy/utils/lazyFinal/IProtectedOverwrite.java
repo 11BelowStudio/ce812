@@ -4,7 +4,7 @@ package crappy.utils.lazyFinal;
  * Like I_LazyFinal, but this one is more about protected overwriting and such I guess
  * @param <T> type of data to store in this
  */
-public interface I_ProtectedOverwrite<T> extends I_LazyFinal<T> {
+public interface IProtectedOverwrite<T> extends ILazyFinal<T> {
 
     /**
      * Current status of the lock mode for the protected overwriting

@@ -29,10 +29,6 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
 
     final static Vect2D THRUST_FORCE = new Vect2D(0, 7.6);
 
-    static{
-        System.out.println(THRUST_FORCE);
-    }
-
     final static double STEER_RATE = 2 * Math.PI;
 
     boolean stillAlive = true;
@@ -66,7 +62,6 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
 
     public Spaceship(Vect2D startPos, CrappyWorld world, IRecieveDebris d){
 
-        System.out.println(Vect2DMath.AREA_AND_CENTROID_OF_VECT2D_POLYGON(SHIP_SHAPE));
 
         this.startPos = startPos;
         respawn(world);
@@ -201,7 +196,6 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
      */
     @Override
     public void collidedWith(I_View_CrappyBody otherBody) {
-        System.out.println(otherBody.getName());
     }
 
     /**

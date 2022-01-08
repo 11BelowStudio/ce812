@@ -6,7 +6,6 @@ import crappy.collisions.*;
 import crappy.math.I_Vect2D;
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
-import crappy.utils.containers.IPair;
 
 import java.awt.*;
 
@@ -89,32 +88,51 @@ public interface I_CrappilyDrawStuff {
     );
 
 
-    void drawRectangle(
-            final I_Vect2D xy, final I_Vect2D wh,
-            //final double x, final double y, final double w, final double h,
-            final Color col
-    );
 
+    /**
+     * Please draw this rectangle
+     * @param x top-left x
+     * @param y top-left y
+     * @param w width
+     * @param h height
+     * @param col colour
+     */
     void drawRectangle(
             final double x, final double y, final double w, final double h, final Color col
     );
 
+    /**
+     * Should bounding boxes be drawn?
+     * @return true if you want to render bounding boxes.
+     */
     default boolean RENDERING_BOUNDING_BOXES(){
         return true;
     }
-
+    /**
+     * Should velocity lines be drawn?
+     * @return true if you want to render visible velocities.
+     */
     default boolean RENDERING_VELOCITIES(){
         return true;
     }
-
+    /**
+     * Should rotation lines be drawn?
+     * @return true if you want to render visible rotations.
+     */
     default boolean RENDERING_ROTATIONS(){
         return true;
     }
-
+    /**
+     * Should polygon incircles be drawn?
+     * @return true if you want to render polygon incircles.
+     */
     default boolean RENDERING_INCIRCLES(){
         return true;
     }
-
+    /**
+     * Should line/edge normal vectors be drawn?
+     * @return true if you want to render line/edge normal vectors
+     */
     default boolean RENDERING_NORMALS(){
         return true;
     }

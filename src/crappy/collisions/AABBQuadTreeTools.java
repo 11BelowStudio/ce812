@@ -824,12 +824,9 @@ public final class AABBQuadTreeTools {
                     final AABB_Quad_Enum.AABB_Choose_Quadtree_Enum e = AABB_Quad_Enum.AABB_Choose_Quadtree_Enum.get(
                             midpoint, shape
                     );
-                    System.out.println(shape);
-                    System.out.println(e);
                     map.forEach(
                         (k, v) ->{
                             if (k.test(e)){
-                                System.out.println(k);
                                 v.add(shape);
                             }
                         }

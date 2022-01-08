@@ -23,8 +23,6 @@ public class CrappyCircle extends A_CrappyShape implements I_CrappyCircle, Drawa
         );
         updateShape(body);
 
-        System.out.println("CrappyCircle.CrappyCircle: " + body.getName());
-        System.out.println("getPos() = " + getPos());
 
         timestepStartUpdate();
         midTimestepUpdate();

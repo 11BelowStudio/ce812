@@ -52,19 +52,19 @@ public class CrappyWorld {
     /**
      * AABB holding static geometry
      */
-    final I_LazyFinal<AABBQuadTreeTools.I_StaticGeometryQuadTreeRootNode> staticGeometry =
+    final ILazyFinal<AABBQuadTreeTools.I_StaticGeometryQuadTreeRootNode> staticGeometry =
             new LazyFinalDefault<>(AABBQuadTreeTools.DEFAULT_STATIC_GEOMETRY_TREE());
 
 
     /**
      * AABB for dynamic/kinematic bodies
      */
-    final I_ProtectedOverwriter<AABBQuadTreeTools.I_DynamicKinematicAABBQuadTreeRootNode> dynKineGeometry =
+    final IProtectedOverwriter<AABBQuadTreeTools.I_DynamicKinematicAABBQuadTreeRootNode> dynKineGeometry =
             new ProtectedOverwrite<>(
                     AABBQuadTreeTools.DYN_KIN_AABB_FACTORY(
                             Vect2D.ZERO, Vect2D.ZERO, 1, new HashSet<>(0)
                     ),
-                    I_ProtectedOverwrite.ProtectedOverwriteLockMode.PRIVATE_WRITEABLE
+                    IProtectedOverwrite.ProtectedOverwriteLockMode.PRIVATE_WRITEABLE
             );
 
     final Set<CrappyConnector> connectors = new LinkedHashSet<>();

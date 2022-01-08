@@ -7,7 +7,7 @@ import java.util.Optional;
  * harder to mess around with
  * @param <T>
  */
-public final class ProtectedOverwrite<T> implements I_ProtectedOverwrite<T>, I_ProtectedOverwriter<T> {
+public final class ProtectedOverwrite<T> implements IProtectedOverwrite<T>, IProtectedOverwriter<T> {
 
     /**
      * The actual data held inside
@@ -17,14 +17,14 @@ public final class ProtectedOverwrite<T> implements I_ProtectedOverwrite<T>, I_P
     /**
      * Current lock mode
      */
-    private I_ProtectedOverwrite.ProtectedOverwriteLockMode lock;
+    private IProtectedOverwrite.ProtectedOverwriteLockMode lock;
 
     /**
      * Constructor with specified default data and a lock mode
      * @param data the data to store
      * @param lock lock mode
      */
-    public ProtectedOverwrite(final T data, final I_ProtectedOverwrite.ProtectedOverwriteLockMode lock){
+    public ProtectedOverwrite(final T data, final IProtectedOverwrite.ProtectedOverwriteLockMode lock){
         this.data = new LazyData<>(data);
         this.lock = lock;
     }

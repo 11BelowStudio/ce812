@@ -2,7 +2,7 @@ package crappy.internals;
 
 /**
  * A runtime exception for internal stuff within Crappy, which an end-user/end-programmer (hopefully) won't encounter.
- * Mostly here so I can kick myself in the back on your behalf.
+ * Mostly here so I can kick myself in the arse on your behalf.
  */
 public class CrappyInternalException extends RuntimeException{
 

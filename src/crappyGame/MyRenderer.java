@@ -123,16 +123,7 @@ public class MyRenderer implements I_CrappilyDrawStuff {
         );
     }
 
-    @Override
-    public void drawRectangle(I_Vect2D lb, I_Vect2D wh, Color col) {
-        System.out.println("MyRenderer.drawRectangle");
-        System.out.println("lb = " + lb + ", wh = " + wh + ", col = " + col);
 
-        g.setColor(col);
-        g.draw(
-                new Rectangle2D.Double(lb.getX(), lb.getY(), wh.getX(), wh.getY())
-        );
-    }
 
     @Override
     public void drawRectangle(

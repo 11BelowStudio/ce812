@@ -1,17 +1,13 @@
 package crappyGame.assets;
 
+import crappy.utils.lazyFinal.ILazyFinal;
 import crappy.utils.lazyFinal.LazyFinal;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-
 /**
  * Loosely based on the ImageManager code provided by Dr. Dimitri Ognibene
  * for CE218 Computer Game Programming (back in 2019),
@@ -19,15 +15,17 @@ import java.util.Optional;
  */
 public final class ImageManager {
 
+    private ImageManager(){}
+
     private static final String path = "/crappyGame/assets/images/";
 
-    public static final LazyFinal<BufferedImage> BG1 = new LazyFinal<>();
-    public static final LazyFinal<BufferedImage> BG2 = new LazyFinal<>();
-    public static final LazyFinal<BufferedImage> BG3 = new LazyFinal<>();
-    public static final LazyFinal<BufferedImage> BG4 = new LazyFinal<>();
-    public static final LazyFinal<BufferedImage> BG5 = new LazyFinal<>();
-    public static final LazyFinal<BufferedImage> BG6 = new LazyFinal<>();
-    public static final LazyFinal<BufferedImage> TITLE=new LazyFinal<>();
+    public static final ILazyFinal<BufferedImage> BG1 = new LazyFinal<BufferedImage>();
+    public static final ILazyFinal<BufferedImage> BG2 = new LazyFinal<BufferedImage>();
+    public static final ILazyFinal<BufferedImage> BG3 = new LazyFinal<BufferedImage>();
+    public static final ILazyFinal<BufferedImage> BG4 = new LazyFinal<BufferedImage>();
+    public static final ILazyFinal<BufferedImage> BG5 = new LazyFinal<BufferedImage>();
+    public static final ILazyFinal<BufferedImage> BG6 = new LazyFinal<BufferedImage>();
+    public static final ILazyFinal<BufferedImage> TITLE=new LazyFinal<BufferedImage>();
 
     public static BufferedImage loadImage(final String fname) throws IOException {
         BufferedImage img = ImageIO.read(ImageManager.class.getResourceAsStream(path + fname + ".png"));

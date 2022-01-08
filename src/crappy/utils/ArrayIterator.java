@@ -4,7 +4,7 @@ import java.util.Iterator;
 
 /**
  * An iterator that iterates over a primitive array.
- * @param <T> type parameter.
+ * @param <T> datatype held in aforementioned array
  */
 public class ArrayIterator<T> implements Iterator<T> {
 

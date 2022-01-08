@@ -90,7 +90,7 @@ public interface I_GraphicsTransform {
                 .mult(getScreenScale());
     }
 
-    default M_Vect2D TO_CLEAN_WORLD_COORDS_M(final IPair<Double, Double> v){
+    default M_Vect2D TO_WORLD_COORDS_M(final IPair<Double, Double> v){
         return TO_WORLD_COORDS_BUT_VIEWPORT_OFFSET_M(v)
                 .add(getViewportOrigin());
     }
@@ -98,10 +98,7 @@ public interface I_GraphicsTransform {
     default Vect2D TO_WORLD_COORDS_V(final IPair<Double, Double> screenCoord){
         return TO_WORLD_COORDS_M(screenCoord).finished();
     }
-
-    default M_Vect2D TO_WORLD_COORDS_M(final IPair<Double, Double> screenCoord){
-        return TO_CLEAN_WORLD_COORDS_M(screenCoord);
-    }
+    
 
 
 }

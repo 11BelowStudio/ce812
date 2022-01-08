@@ -7,7 +7,7 @@ import java.util.Optional;
  * The class that actually holds the data within LazyFinal
  * @param <T> type of the data
  */
-final class LazyData<T> implements I_LazyData<T>{
+final class LazyData<T> implements ILazyData<T> {
 
     /**
      * The main event

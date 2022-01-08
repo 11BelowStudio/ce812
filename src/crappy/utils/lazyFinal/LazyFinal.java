@@ -10,12 +10,12 @@ import java.util.Optional;
  *
  * @see <a href="https://stackoverflow.com/a/38290652">https://stackoverflow.com/a/38290652</a>
  */
-public final class LazyFinal<T> {
+public final class LazyFinal<T> implements ILazyFinal<T> {
 
     /**
      * This thing will actually hold our data (when it arrives)
      */
-    private I_LazyData<T> data;
+    private ILazyData<T> data;
 
     /**
      * No-arg constructor, feel free to set the lazyData later.

@@ -1,18 +1,17 @@
 package crappy.utils.lazyFinal;
 
-import java.util.Objects;
 import java.util.Optional;
 
 /**
  * Like LazyFinal, but supports a non-null default value.
  * @param <T>
  */
-public final class LazyFinalDefault<T> implements I_LazyFinal<T> {
+public final class LazyFinalDefault<T> implements ILazyFinal<T> {
 
     /**
      * This thing will actually hold our data (when it arrives)
      */
-    private I_LazyData<T> finalData = null;
+    private ILazyData<T> finalData = null;
 
     /**
      * This is the default value to return when finalData hasn't been given.

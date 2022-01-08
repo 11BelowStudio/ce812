@@ -90,27 +90,22 @@ public class Action implements IAction{
 
 
     void pressed(final ACTION_ENUM a){
-        System.out.println("pressed a thing!");
         pressedAny = true;
         switch (a){
             case UP:
                 upHeld = true;
-                System.out.println("up pressed!");
                 pressedAnyDirection = true;
                 break;
             case RIGHT:
                 rightHeld = true;
-                System.out.println("right pressed!");
                 pressedAnyDirection = true;
                 break;
             case LEFT:
                 leftHeld = true;
-                System.out.println("left pressed!");
                 pressedAnyDirection = true;
                 break;
             case SPACE:
                 spacePressed = true;
-                System.out.println("space pressed!");
                 break;
         }
     }

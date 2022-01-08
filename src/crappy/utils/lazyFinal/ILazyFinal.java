@@ -6,7 +6,7 @@ import java.util.Optional;
  * An interface for the LazyFinal write-once-read-many data structure.
  * @param <T>
  */
-public interface I_LazyFinal<T> {
+public interface ILazyFinal<T> {
 
     /**
      * A less nullpointer-y exception-y method for external stuff to check whether or not this has data

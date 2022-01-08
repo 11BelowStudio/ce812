@@ -70,7 +70,6 @@ public final class LevelGeometry {
         bodies.add(edgeMaker(WIDTH*3/4, HEIGHT*3/4, WIDTH/2, HEIGHT));
         //bodies.add(edgeMaker(0, 0, WIDTH, 0));
 
-        System.out.println(bodies.size());
 
         CrappyBody finishLineBody = new CrappyBody(
                 new Vect2D(WIDTH/2, HEIGHT),
@@ -99,9 +98,6 @@ public final class LevelGeometry {
         );
         finishLineEdge.renderable = false;
 
-
-
-        System.out.println(bodies.size());
 
         return IQuadruplet.of(
                 SHIP_POS,

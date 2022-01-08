@@ -5,7 +5,7 @@ package crappy.utils.lazyFinal;
  * overwrite the data when it's normally locked for editing, and change the lock settings.
  * @param <T>
  */
-public interface I_ProtectedOverwriter<T> extends I_ProtectedOverwrite<T>{
+public interface IProtectedOverwriter<T> extends IProtectedOverwrite<T> {
 
     /**
      * Private override for lock mode
@@ -17,6 +17,6 @@ public interface I_ProtectedOverwriter<T> extends I_ProtectedOverwrite<T>{
      * Allows the lock mode to be set.
      * @param mode the lock mode
      */
-    void setLockMode(final I_ProtectedOverwrite.ProtectedOverwriteLockMode mode);
+    void setLockMode(final IProtectedOverwrite.ProtectedOverwriteLockMode mode);
 
 }
