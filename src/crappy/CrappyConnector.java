@@ -157,18 +157,18 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector
      */
     public void applyForcesToBodies(){
         final double tension = calculateTension();
-        System.out.println("tension = " + tension);
+        //System.out.println("tension = " + tension);
         final Vect2D normDist = normalizedVectorFromAToB();
-        System.out.println("normDist = " + normDist);
+        //System.out.println("normDist = " + normDist);
 
-        System.out.println("normDist.mult(-tension) = " + normDist.mult(-tension));
-        System.out.println("normDist.mult(tension) = " + normDist.mult(tension));
+        //System.out.println("normDist.mult(-tension) = " + normDist.mult(-tension));
+        //System.out.println("normDist.mult(tension) = " + normDist.mult(tension));
 
         //System.out.println("tension = " + tension);
         //System.out.println("normDist = " + normDist);
 
-        bodyA.applyForce(normDist.mult(tension), bodyALocalPos, CrappyBody.FORCE_SOURCE.ENGINE);
-        bodyB.applyForce(normDist.mult(-tension),  bodyBLocalPos, CrappyBody.FORCE_SOURCE.ENGINE);
+        bodyA.applyMidTimestepForce(normDist.mult(tension), bodyALocalPos, CrappyBody.FORCE_SOURCE.ENGINE);
+        bodyB.applyMidTimestepForce(normDist.mult(-tension),  bodyBLocalPos, CrappyBody.FORCE_SOURCE.ENGINE);
 
     }
 
@@ -185,16 +185,16 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector
 
         
         final double extensionRatio = (dist-naturalLength)/naturalLength;
-        System.out.println("extensionRatio = " + extensionRatio);
+        //System.out.println("extensionRatio = " + extensionRatio);
 
         final double hookeTension = truncationRule.applyAsDouble(extensionRatio) * springConstant;
 
-        System.out.println("truncationRule.applyAsDouble(extensionRatio) = " + truncationRule.applyAsDouble(extensionRatio));
-        System.out.println("hookeTension = " + hookeTension);
+        //System.out.println("truncationRule.applyAsDouble(extensionRatio) = " + truncationRule.applyAsDouble(extensionRatio));
+        //System.out.println("hookeTension = " + hookeTension);
         
         final double dampingTension = motionDampingConstant * rateOfChangeOfExtension();
-        System.out.println("rateOfChangeOfExtension() = " + rateOfChangeOfExtension());
-        System.out.println("dampingTension = " + dampingTension);
+        //System.out.println("rateOfChangeOfExtension() = " + rateOfChangeOfExtension());
+        //System.out.println("dampingTension = " + dampingTension);
 
         return hookeTension + dampingTension;
     }

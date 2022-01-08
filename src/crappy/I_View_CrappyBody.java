@@ -119,6 +119,13 @@ public interface I_View_CrappyBody extends I_Transform, IHaveBitmask, IHaveIdent
      */
     boolean allowedToCollideWith(final I_View_CrappyBody other);
 
+    /**
+     * Whether or not this body has been discarded.
+     * DISCARDED BODIES SHOULD NEVER BE USED AGAIN!
+     * @return whether or not you should run away from this body ASAP.
+     */
+    boolean isDiscarded();
+
 
 
     class I_CrappyBody_Temp_Transform implements I_Transform{

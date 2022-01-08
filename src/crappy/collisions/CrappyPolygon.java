@@ -373,7 +373,7 @@ public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdg
         super.updateDrawables();
         synchronized (drawableSyncer){
             System.arraycopy(worldVertices, 0, drawableVertices, 0, vertexCount);
-            drawableRot = M_Vect2D.GET(body.getRot()).mult(3).finished();
+            drawableRot = M_Vect2D.GET(body.getRot()).finished();
             circle.updateDrawables();
         }
     }

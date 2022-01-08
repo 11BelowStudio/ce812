@@ -3,7 +3,8 @@ package crappyGame;
 import crappyGame.Controller.Controller;
 import crappyGame.UI.DisplayFrame;
 import crappyGame.UI.View;
-import crappyGame.models.Level1;
+import crappyGame.models.LEVELS;
+import crappyGame.models.TitleModel;
 
 import javax.swing.*;
 
@@ -27,6 +28,14 @@ public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
 
     private final Controller ctrl;
 
+    private LEVELS currentLevel = LEVELS.__END_OF_GAME;
+
+    private static final int DEFAULT_LIVES = 3;
+
+    private A_Model currentModel;
+
+    private boolean modelChanged = false;
+
 
     public GameRunner(){
 
@@ -35,7 +44,7 @@ public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
 
         ctrl = new Controller(theView);
 
-        display = new DisplayFrame(theView, "placeholder", this);
+        display = new DisplayFrame(theView, "A Scientific Interpretation Of Daily Life In The Space Towing Industry Circa 3052 CE", this);
 
         display.addKeyListener(ctrl);
         display.addMouseListener(ctrl);
@@ -50,20 +59,24 @@ public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
     public void runIt(){
 
         try{
-            placeholderLoop();
+            gameLoop();
         } catch (InterruptedException e){
             System.out.println("oh no.");
         }
     }
 
 
-    private void placeholderLoop() throws InterruptedException{
+    private void gameLoop() throws InterruptedException{
 
         //SampleCrappyModel m = new SampleCrappyModel();
 
-        A_Model m = new Level1(ctrl);
 
-        theView.setViewable(m);
+        //A_Model m = LEVELS.LEVEL1.generateThisLevel(ctrl, 3, 0, this);
+
+        currentModel = new TitleModel(ctrl, this);
+                //LEVELS.LEVEL3.generateThisLevel(ctrl, 3, 0, this);
+
+        theView.setViewable(currentModel);
 
         display.getTheFrame().pack();
 
@@ -78,7 +91,12 @@ public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
             startTime = System.currentTimeMillis();
             if (!isPaused) {
                 //WILL ONLY UPDATE THE MODEL IF NOT PAUSED!
-                m.update();
+                currentModel.update();
+            }
+            if (modelChanged){
+                theView.setViewable(currentModel);
+                currentModel.update();
+                modelChanged = false;
             }
             endTime = System.currentTimeMillis();
             timeout = DEFAULT_DELAY - (endTime - startTime);
@@ -183,14 +201,64 @@ public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
             return;
         }
         isPaused = newPause; // and now we overwrite the 'isPaused' value
-
         theView.notifyAboutPause(isPaused);
         if(isPaused){
+            ctrl.resetAll();
             repaintTimer.stop();
         } else {
             repaintTimer.restart();
         }
 
 
+    }
+
+    @Override
+    public void levelWon(double fuelUsed, int livesLeft) {
+        modelChanged = true;
+        ctrl.resetAll();
+        if (currentLevel == LEVELS.__END_OF_GAME){
+            JOptionPane.showMessageDialog(
+                    theView,
+                    "<html><p><b>INSTRUCTIONS</b><br>" +
+                            "Fly into the cave, pick up the mythical Ball Of Being Towed In Space, and tow it back!<br>" +
+                            "Also don't fly into the walls of the cave and don't allow the ball to hit the walls either</p><br>" +
+                            "<br>" +
+                            "<p><b>CONTROLS</b><br>" +
+                            "* Up arrow key or W to thrust your ship in the direction it's facing!<br>" +
+                            "* Left/A to rotate anticlockwise, Right/D to rotate clockwise!<br>" +
+                            "* Space (when close enough) to start towing the mythical Ball of Being Towed In Space!</p><br>" +
+                            "<br>" +
+                            "<p>Also see how much fuel it takes you to complete the game, maybe try to minimize it I guess</p>" +
+                            "</html>",
+                    "instructions I guess",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            currentLevel = LEVELS.LEVEL1;
+        } else {
+            livesLeft++;
+            currentLevel = currentLevel.nextLevel;
+        }
+        try{
+            currentModel = currentLevel.generateThisLevel(ctrl, livesLeft, fuelUsed, this);
+        } catch (LEVELS.EndOfGameException e){
+            currentModel = new TitleModel(ctrl, this);
+        }
+        ctrl.resetAll();
+
+
+    }
+
+    @Override
+    public void levelLost() {
+        ctrl.resetAll();
+        modelChanged = true;
+        currentLevel = LEVELS.__END_OF_GAME;
+        currentModel = new TitleModel(ctrl, this);
+        ctrl.resetAll();
+    }
+
+    @Override
+    public JComponent getViewComponent() {
+        return theView;
     }
 }

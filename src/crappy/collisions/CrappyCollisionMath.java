@@ -6,7 +6,7 @@ import crappy.math.*;
 import java.util.Scanner;
 import java.util.Vector;
 
-import static crappy.math.Vect2DMath.RETURN_1_IF_0;
+import static crappy.math.Vect2DMath.*;
 
 public final class CrappyCollisionMath {
 
@@ -36,37 +36,25 @@ public final class CrappyCollisionMath {
             final I_CrappyShape s, final I_Vect2D rotatedLocalPos,  final I_Vect2D cNorm
     ){
 
+        final double massBit = (s.getMass() <= 0)? 0 : (1.0/s.getMass());
 
+        /*
         double massBit = 0;
 
         if (s.getMass() > 0){
             massBit = 1/ s.getMass();
         }
 
+         */
 
-        double angleBit = 0;
 
+        final double angleBit = (s.getMInertia() <= 0) ? 0 : M_Vect2D.GET(rotatedLocalPos)
+                .cross(
+                        M_Vect2D.GET(rotatedLocalPos).cross_discard(cNorm), false
+                ).divide(s.getMInertia())
+                .dot_discard(cNorm); ;
+        /*
         if (s.getMInertia() > 0){
-
-            /*
-            System.out.println("s.getMInertia() = " + s.getMInertia());
-            
-            System.out.println("rotatedLocalPos = " + rotatedLocalPos);
-            System.out.println("rotatedLocalPos.cross(cNorm) = " + rotatedLocalPos.cross(cNorm));
-            System.out.println("rotatedLocalPos.cross(rotatedLocalPos.cross(cNorm), false) = " +
-                    rotatedLocalPos.toVect2D().cross(rotatedLocalPos.cross(cNorm), false)
-            );
-            System.out.println("rotatedLocalPos = " +
-                    rotatedLocalPos.toVect2D().cross(rotatedLocalPos.cross(cNorm), false).divide(s.getMInertia())
-            );
-            System.out.println("rotatedLocalPos = " +
-                    rotatedLocalPos.toVect2D().cross(rotatedLocalPos.cross(cNorm), false)
-                            .divide(s.getMInertia()).dot(cNorm)
-            );
-
-             */
-
-
             angleBit = M_Vect2D.GET(rotatedLocalPos)
                     .cross(
                             M_Vect2D.GET(rotatedLocalPos).cross_discard(cNorm), false
@@ -76,12 +64,7 @@ public final class CrappyCollisionMath {
 
         }
 
-        /*
-        System.out.println("angleBit = " + angleBit);
-        System.out.println("angleBit+massBit = " + angleBit+massBit);
-
-         */
-
+        */
         return massBit + angleBit;
     }
 
@@ -155,27 +138,13 @@ public final class CrappyCollisionMath {
         );
 
         if (!Double.isFinite(jb)){
+            bLocalWorldVel.discard();
+            aLocalWorldVel.discard();
             return;
         }
 
 
-
-
-
-
         // vb = ub + norm*(jb/mb)
-
-        // HOWEVER, the division by mb happens within the applyForce method, so we don't do it here.
-        // (also the applyForce method applies the appropriate force amount to hopefully cause the appropriate change
-        // to the centre of mass' velocity)
-
-        /*
-        b.getBody().applyForce(
-                //Vect2DMath.MULTIPLY(norm, jb),
-                Vect2DMath.ADD_SCALED(b.getVel(), norm, jb),
-                CrappyBody.FORCE_SOURCE.ENGINE
-        );
-        */
 
         b.getBody().overwriteVelocityAfterCollision(
                 Vect2DMath.ADD_SCALED(b.getVel(), norm, jb/b.getMass()),
@@ -188,44 +157,6 @@ public final class CrappyCollisionMath {
                 aLocalPos.cross(norm) * -jb/a.getMInertia(),
                 CrappyBody.FORCE_SOURCE.ENGINE
         );
-
-        /*
-        b.getBody().applyTorque(
-                bLocalPos.cross(norm) * jb,
-                CrappyBody.FORCE_SOURCE.ENGINE
-        );
-
-         */
-
-
-
-        // va = ua + norm * (-jb/ma)
-        //a.setVel(a.getVel().addScaled(norm, -jb/a.getMass()));
-
-
-        /*
-        a.getBody().applyForce(
-                Vect2DMath.MULTIPLY(norm, -jb),
-                aLocalPos,
-                CrappyBody.FORCE_SOURCE.ENGINE
-        );
-
-        /*
-        a.getBody().applyForce(
-                Vect2DMath.MULTIPLY(norm, -jb),
-                //Vect2DMath.ADD_SCALED(a.getVel(), norm, -jb * a.getMass()),
-                //Vect2D.ZERO.lerp(norm, aRadiusRatio),
-                aLocalPos,
-                CrappyBody.FORCE_SOURCE.ENGINE
-        );
-
-        a.getBody().applyTorque(
-                aLocalPos.cross(norm) * -jb,
-                CrappyBody.FORCE_SOURCE.ENGINE
-        );
-
-         */
-
 
 
         bLocalWorldVel.discard();
@@ -373,7 +304,7 @@ public final class CrappyCollisionMath {
         // (-b +- sqrt(b^2 - 4ac))/2a
 
 
-        final Vect2D c = Vect2DMath.VECTOR_BETWEEN(a.getPos(), b.getPos());
+        final Vect2D c = Vect2DMath.MINUS(b.getPos(), a.getPos());
         final Vect2D v = Vect2DMath.MINUS(b.getVel(), a.getVel());
         final double d = a.getRadius() + b.getRadius();
 
@@ -424,8 +355,8 @@ public final class CrappyCollisionMath {
 
         Vect2D endToNowPos = Vect2DMath.VECTOR_BETWEEN(e.getWorldStart(), c.getPos());
         //System.out.println("\tendToNowPos = " + endToNowPos);
-        Vect2D tang = e.getWorldTang();
-        double thisFrameDistAlongBarrier = e.getWorldTang().dot(endToNowPos);
+        final Vect2D tang = e.getWorldTang();
+        final double thisFrameDistAlongBarrier = tang.dot(endToNowPos);
         //System.out.println("\tthisFrameDistAlongBarrier = " + thisFrameDistAlongBarrier);
 
         if (thisFrameDistAlongBarrier < 0 || thisFrameDistAlongBarrier > e.getLength()){
@@ -433,7 +364,7 @@ public final class CrappyCollisionMath {
             return false;
         }
 
-        double velDotNorm = c.getVel().dot(e.getWorldNorm());
+        //double velDotNorm = c.getVel().dot(e.getWorldNorm());
 
         if (c.getVel().dot(e.getWorldNorm()) >= 0){
             return false;
@@ -443,7 +374,7 @@ public final class CrappyCollisionMath {
             return true;
         }
 
-        Vect2D collisionPos = e.getWorldStart().addScaled(tang, thisFrameDistAlongBarrier);
+        final Vect2D collisionPos = e.getWorldStart().addScaled(tang, thisFrameDistAlongBarrier);
 
         if (c.getBody().getBodyType() == CrappyBody.CRAPPY_BODY_TYPE.DYNAMIC && e.getBody().getBodyType() != CrappyBody.CRAPPY_BODY_TYPE.DYNAMIC){
 
@@ -935,21 +866,63 @@ public final class CrappyCollisionMath {
             return true;
         }
 
-        Vect2D endToNowPos = Vect2DMath.VECTOR_BETWEEN(e.getWorldStart(), p.getPos());
+        final Vect2D endToNowPos = Vect2DMath.VECTOR_BETWEEN(e.getWorldStart(), p.getPos());
         //System.out.println("\tendToNowPos = " + endToNowPos);
-        Vect2D tang = e.getWorldTang();
-        double thisFrameDistAlongBarrier = tang.dot(endToNowPos);
-        //System.out.println("\tthisFrameDistAlongBarrier = " + thisFrameDistAlongBarrier);
 
-        Vect2D collisionPoint = e.getWorldStart().addScaled(tang, thisFrameDistAlongBarrier);
 
+
+
+        //Vect2D tang = e.getWorldTang();
+        //final double thisFrameDistAlongBarrier = tang.dot(endToNowPos);
+        //Vect2D collisionPoint = e.getWorldStart().addScaled(tang, thisFrameDistAlongBarrier);
+        //Vect2D collisionPoint = e.getWorldStart().addScaled(e.getWorldTang(), e.getWorldTang().dot(endToNowPos));
+
+        Vect2D collisionPoint = Vect2DMath.MULT_DOT_OTHER(e.getWorldTang(), endToNowPos).add(e.getWorldStart()).finished();
+
+        // we see if the point on the line itself is within the bounds of the polygon
         if (!p.isWorldPointInPolyBounds(collisionPoint)) {
-            return false;
+
+            //final double distBetweenPolygonAndBarrier = endToNowPos.dot(e.getWorldNorm());
+
+
+            // if depth is NaN (therefore infinite), we treat depth as being as deep as we need it to be.
+            // WE USE -e.getDepth() AND POSITIVE distBetweenPolygonAndBarrier TO REMOVE ANY FALSE POSITIVES
+            // FROM CASES WHERE THE POLYGON IS NOT WITHIN THE BARRIER'S DEPTH!
+            final double depthLimit = RETURN_X_IF_NOT_FINITE(
+                    -e.getDepth(),
+                    Math.min(
+                            0,
+                            endToNowPos.dot(e.getWorldNorm())
+                            //distBetweenPolygonAndBarrier
+                    )
+            );
+
+            // then we find the vector between the collision point on the line and the position of the polygon
+            //final Vect2D depthBetweenPos = VECTOR_BETWEEN(collisionPoint, p.getPos());
+
+            // find the dot of the norm vector and the depthBetweenPos vector.
+            // THIS WILL BE NEGATIVE IF THE POLYGON IS INSIDE THE BARRIER, POSITIVE IF THE POLYGON IS OUTSIDE THE BARRIER!
+            final double actualDepth = e.getWorldNorm().dot(
+                    VECTOR_BETWEEN(collisionPoint, p.getPos())
+                    //depthBetweenPos
+            );
+
+            if (actualDepth >= 0 || actualDepth < depthLimit){
+                // if the polygon isn't deep enough, or if the polygon is too deep, we give up and move on.
+                return false;
+            } else{
+                // we find the actual collision point at the given depth
+                collisionPoint = collisionPoint.addScaled(
+                        e.getWorldNorm(),
+                        actualDepth
+                );
+                // and we make sure that it's actually valid ofc
+                if (!p.isWorldPointInPolyBounds(collisionPoint)){
+                    return false;
+                }
+            }
+
         }
-
-
-
-       //Vect2D worldVelOfCollisionPoint = Vect2DMath.WORLD_VEL_OF_LOCAL_COORD_M(Vect2DMath.WORLD_TO_LOCAL_M(collisionPoint, p.getBodyTransform()).finished(), p.getBodyTransform()).finished();
 
 
         if (Vect2DMath.WORLD_VEL_OF_LOCAL_COORD_M(
@@ -1052,9 +1025,7 @@ public final class CrappyCollisionMath {
                 )
         );
 
-        if (COLLIDE_CIRCLE_POLYGON(c1, p2, deltaT) || COLLIDE_CIRCLE_POLYGON(c2, p1, deltaT) || COLLIDE_CIRCLE_CIRCLE(c1, c2, deltaT)){
-            return true;
-        }
+        return COLLIDE_CIRCLE_POLYGON(c1, p2, deltaT) || COLLIDE_CIRCLE_POLYGON(c2, p1, deltaT) || COLLIDE_CIRCLE_CIRCLE(c1, c2, deltaT);
 
         /*
         return COLLIDE_CIRCLE_CIRCLE(
@@ -1088,7 +1059,6 @@ public final class CrappyCollisionMath {
         );
 
          */
-        return false;
         /*
         return TEST_POLYGON_A_ON_POLYGON_B(p1, p2, deltaT, norm_p1_to_p2) ||
                 TEST_POLYGON_A_ON_POLYGON_B(p2, p1, deltaT, norm_p1_to_p2.invert());
@@ -1096,53 +1066,5 @@ public final class CrappyCollisionMath {
          */
     }
 
-    /**
-     * Attempts to collide polygon A onto polygon B.
-     * This method treats polygon A as a complete polygon, and attempts to collide it against the components of polygon B.
-     * Easier than having to write out these tests in full in both directions in POLYGON_POLYGON_COLLISIONS.
-     * @param a the polygon we are testing
-     * @param b the polygon we are testing against.
-     * @param deltaT timestep
-     * @param knownAToBNorm known normalized vector of A to B
-     * @return true if we found a collision of A against B, false otherwise
-     */
-    private static boolean TEST_POLYGON_A_ON_POLYGON_B(
-            final I_CrappyPolygon a, final I_CrappyPolygon b, final double deltaT, final Vect2D knownAToBNorm
-    ){
 
-
-        // keeps track of which 'whiskers' from A could potentially collide with an edge in B.
-        final boolean[] whichWhiskersMightWork = new boolean[a.getVertexCount()];
-
-        for (int i = a.getVertexCount()-1; i>=0; i--) {
-            whichWhiskersMightWork[i] = a.getWorldNormalWhisker(i).dot(knownAToBNorm) > 0;
-            // only bothering with whiskers that point roughly from A to B.
-        }
-
-        for (final I_CrappyEdge e: b) {
-            // skip
-            if (e.getWorldNorm().dot(knownAToBNorm) > 0){
-                continue; // if the edge of polygon b is pointing away from polygon a, we skip it
-            }
-            if (COLLIDE_CIRCLE_EDGE(a.getIncircle(), e, deltaT)){
-                return true;
-            }
-            // we then try looking at A's whiskers, specifically,
-            // the ones that can potentially intersect with an edge of the polygon
-            for (int i = a.getVertexCount()-1; i >= 0; i--) {
-                // if the current whisker is noted as being potential intersect
-                if (whichWhiskersMightWork[i] &&
-                        // and if it actually does intersect
-                        COLLIDE_EDGE_VECTOR(
-                                e, a.getCentroid(), a.getWorldWhisker(i), a.getWorldNormalWhisker(i), a
-                        )
-                ){
-                    // well, it's collided, so we return true.
-                    return true;
-                }
-            }
-        }
-        // if nothing collided, we return false.
-        return false;
-    }
 }

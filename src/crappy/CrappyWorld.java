@@ -161,6 +161,7 @@ public class CrappyWorld {
 
 
                 for (int steps = 1; steps < eulerSubsteps; steps++) {
+                    for (conIter = connectors.iterator(); conIter.hasNext(); conIter.next().applyForcesToBodies()) ;
                     for (iter = dynamicBodies.iterator(); iter.hasNext(); iter.next().euler_substep(subDelta)) ;
                     for (iter = kinematicBodies.iterator(); iter.hasNext(); iter.next().euler_substep(subDelta)) ;
                 }
@@ -278,6 +279,7 @@ public class CrappyWorld {
             I_CrappyBody_CrappyWorld_Interface b = iter.next();
 
             if (b.resolveRemovalChange()){
+                b.$_$_$__discard_INTERNAL_USE_ONLY_DO_NOT_USE_YOURSELF_EVER_SERIOUSLY_DONT_GRRR();
                 iter.remove();
             } else {
                 b.resolveActiveChange();

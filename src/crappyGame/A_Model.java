@@ -31,10 +31,14 @@ public abstract class A_Model implements IModel{
 
     protected final List<CrappyBody> pendingBodiesToAdd = new ArrayList<>();
 
+    protected final IGameRunner runner;
 
+    protected static final Color spaceColour = new Color(11, 25, 45);
 
-    protected A_Model(final IController ctrl){
+    protected A_Model(final IController ctrl, IGameRunner runner){
+
         controller = ctrl;
+        this.runner = runner;
     }
 
 

@@ -4,7 +4,7 @@ import crappy.*;
 import crappy.collisions.*;
 import crappy.math.Rot2D;
 import crappy.math.Vect2D;
-import crappyGame.GameObjects.LevelGeometry;
+import crappyGame.models.LevelGeometry;
 import crappyGame.UI.Viewable;
 import crappyGame.assets.ImageManager;
 
@@ -57,16 +57,14 @@ public class SampleCrappyModel implements Viewable {
         //new CrappyLine(c, new Vect2D(0, 1), new Vect2D(10, 2));
 
         //new CrappyEdge(c, new Vect2D(0, 1), new Vect2D(10, 1), 0.0);
-        /*
-        statics.add(c);
+
 
         world.setStaticGeometry(
-                AABBQuadTreeTools.STATIC_GEOMETRY_AABB_QUADTREE_FACTORY(statics)
+                LevelGeometry.makeLevel1(10, 10).getThird()
+                //AABBQuadTreeTools.STATIC_GEOMETRY_AABB_QUADTREE_FACTORY(statics)
         );
 
-         */
 
-        LevelGeometry.makeLevel1(world, 10, 10);
 
         CrappyBody c2 = new CrappyBody(
                 new Vect2D(2.5, 5),

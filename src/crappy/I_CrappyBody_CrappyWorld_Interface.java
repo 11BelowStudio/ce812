@@ -67,4 +67,11 @@ public interface I_CrappyBody_CrappyWorld_Interface extends I_CrappyBody, I_View
     void handleStuffBeforeFirstEulerUpdate();
 
     void resolveStuffAfterLastEulerUpdate();
+
+    /**
+     * DO NOT CALL THIS YOURSELF EVER.
+     *
+     * this is here so CRAPPY can tell a body that it's getting rid of it.
+     */
+    void $_$_$__discard_INTERNAL_USE_ONLY_DO_NOT_USE_YOURSELF_EVER_SERIOUSLY_DONT_GRRR();
 }

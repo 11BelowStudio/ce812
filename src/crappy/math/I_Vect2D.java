@@ -170,6 +170,14 @@ public interface I_Vect2D extends IPair<Double, Double>, Comparable<I_Vect2D> {
     }
 
 
+    /**
+     * Checks if both parts of this are finite
+     * @return true if x and y are finite.
+     */
+    default boolean isFinite(){
+        return Double.isFinite(getX()) && Double.isFinite(getY());
+    }
+
 
 }
 

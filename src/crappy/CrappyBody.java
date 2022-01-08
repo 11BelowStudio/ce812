@@ -270,6 +270,9 @@ public class CrappyBody implements
      */
     private final Set<IHaveIdentifier> idsICannotCollideWith = new HashSet<>();
 
+
+    private boolean discarded = false;
+
     /**
      * Constructs a new CrappyBody
      * @param pos initial world position
@@ -398,6 +401,11 @@ public class CrappyBody implements
             return anyMatchInBitmasks(other);
         }
 
+    }
+
+    @Override
+    public boolean isDiscarded() {
+        return discarded;
     }
 
     /**
@@ -1222,6 +1230,11 @@ public class CrappyBody implements
         pending_external_torque = 0;
     }
 
+    @Override
+    public void $_$_$__discard_INTERNAL_USE_ONLY_DO_NOT_USE_YOURSELF_EVER_SERIOUSLY_DONT_GRRR() {
+        discarded = true;
+    }
+
 
     public void clearAllPendingForces(){
 
@@ -1276,10 +1289,6 @@ public class CrappyBody implements
         shape.getAssert().timestepEndUpdate();
 
 
-
-        assert true;
-
-        return;
     }
 
     @Override

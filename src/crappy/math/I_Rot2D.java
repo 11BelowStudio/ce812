@@ -30,4 +30,8 @@ public interface I_Rot2D extends IPair<Double, Double> {
     }
 
     default double angle(){ return Math.atan2(get_sin(), get_cos()); }
+
+    public static double RANDOM_RADIANS_ANGLE(){
+        return ((Math.random() * 2.0)-1.0) * Math.PI;
+    }
 }

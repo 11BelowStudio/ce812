@@ -46,6 +46,15 @@ public final class Rot2D implements Serializable, I_Rot2D {
         cos = rot.get_cos();
     }
 
+    public static Rot2D RANDOM_ROTATION(){
+        return new Rot2D(I_Rot2D.RANDOM_RADIANS_ANGLE());
+    }
+
+
+    public Rot2D rotateBy(final double rotateByThisAngle){
+        return new Rot2D(this.angle() + rotateByThisAngle);
+    }
+
     public M_Vect2D getXAxis(final M_Vect2D xAxis){
         return xAxis.set(cos, sin);
     }

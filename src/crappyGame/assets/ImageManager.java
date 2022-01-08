@@ -27,6 +27,7 @@ public final class ImageManager {
     public static final LazyFinal<BufferedImage> BG4 = new LazyFinal<>();
     public static final LazyFinal<BufferedImage> BG5 = new LazyFinal<>();
     public static final LazyFinal<BufferedImage> BG6 = new LazyFinal<>();
+    public static final LazyFinal<BufferedImage> TITLE=new LazyFinal<>();
 
     public static BufferedImage loadImage(final String fname) throws IOException {
         BufferedImage img = ImageIO.read(ImageManager.class.getResourceAsStream(path + fname + ".png"));
@@ -49,6 +50,7 @@ public final class ImageManager {
             BG4.set(loadImage("bg4"));
             BG5.set(loadImage("bg5"));
             BG6.set(loadImage("bg6"));
+            TITLE.set(loadImage("title"));
         } catch (IOException e){
             System.out.println("oh no!");
         }

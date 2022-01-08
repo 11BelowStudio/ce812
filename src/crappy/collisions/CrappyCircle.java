@@ -88,7 +88,7 @@ public class CrappyCircle extends A_CrappyShape implements I_CrappyCircle, Drawa
     public void updateDrawables() {
         super.updateDrawables();
         synchronized (drawableSyncer) {
-            drawableRot = M_Vect2D.GET(getBodyTransform().getRot()).mult(3).finished();
+            drawableRot = M_Vect2D.GET(getBodyTransform().getRot()).finished();
         }
     }
 

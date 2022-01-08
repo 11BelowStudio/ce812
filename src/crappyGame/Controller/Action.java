@@ -29,7 +29,12 @@ public class Action implements IAction{
         pressedAnyDirection = false;
     }
 
-
+    void resetAll(){
+        reset();
+        upHeld = false;
+        leftHeld = false;
+        rightHeld = false;
+    }
 
     @Override
     public boolean isLeftHeld() {
@@ -85,6 +90,7 @@ public class Action implements IAction{
 
 
     void pressed(final ACTION_ENUM a){
+        System.out.println("pressed a thing!");
         pressedAny = true;
         switch (a){
             case UP:
@@ -124,5 +130,19 @@ public class Action implements IAction{
                 spacePressed = false;
                 break;
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Action{" +
+                "leftHeld=" + leftHeld +
+                ", rightHeld=" + rightHeld +
+                ", upHeld=" + upHeld +
+                ", spacePressed=" + spacePressed +
+                ", clicked=" + clicked +
+                ", clickPos=" + clickPos +
+                ", pressedAny=" + pressedAny +
+                ", pressedAnyDirection=" + pressedAnyDirection +
+                '}';
     }
 }

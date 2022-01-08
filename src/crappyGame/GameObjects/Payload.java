@@ -7,8 +7,10 @@ import crappy.I_View_CrappyBody;
 import crappy.collisions.CrappyCircle;
 import crappy.math.Rot2D;
 import crappy.math.Vect2D;
-import crappyGame.assets.SoundManager;
 import crappyGame.models.IRecieveDebris;
+
+import static crappyGame.GameObjects.Payload.BALL_STATE.BEING_TOWED;
+import static crappyGame.GameObjects.Payload.BALL_STATE.DED;
 
 public class Payload implements CrappyCallbackHandler, Respawnable, GameObject {
 
@@ -28,18 +30,21 @@ public class Payload implements CrappyCallbackHandler, Respawnable, GameObject {
 
     private final Vect2D startPos;
 
-    private static final int collidesWithBits = BodyTagEnum.COMBINE_BITMASKS(BodyTagEnum.WORLD, BodyTagEnum.FINISH_LINE);
+    private Vect2D dedPos;
+
+    private static final int collidesWithBits = BodyTagEnum.COMBINE_BITMASKS(BodyTagEnum.WORLD, BodyTagEnum.FINISH_LINE, BodyTagEnum.SHIP);
 
     final IRecieveDebris debrisGoesHere;
 
     public Payload(Vect2D startPos, CrappyWorld w, IRecieveDebris d){
         this.startPos = startPos;
+        dedPos = startPos;
         respawn(w);
         debrisGoesHere = d;
     }
 
     @Override
-    public void respawn(CrappyWorld w) {
+    public boolean respawn(CrappyWorld w) {
 
         if (state != BALL_STATE.DED){
             body.setMarkForRemoval(true);
@@ -68,16 +73,20 @@ public class Payload implements CrappyCallbackHandler, Respawnable, GameObject {
 
         w.addBody(body);
         state = BALL_STATE.WAITING;
+        return true;
 
     }
 
     public void setBeingTowed(final boolean towed){
-        if (towed){
+        if (state == BALL_STATE.DED){
+            return;
+            // can't do shit when this is already dead
+        } else if (towed){
             body.setFrozen(false);
             body.setTangibility(true);
             body.overwriteVelocityAfterCollision(Vect2D.ZERO, 0, CrappyBody.FORCE_SOURCE.MANUAL);
-            state = BALL_STATE.BEING_TOWED;
-        } else if (state != BALL_STATE.DED){
+            state = BEING_TOWED;
+        } else if (state == BEING_TOWED) {
             state = BALL_STATE.DROPPED;
         }
     }
@@ -109,6 +118,29 @@ public class Payload implements CrappyCallbackHandler, Respawnable, GameObject {
         state = s;
     }
 
+    public boolean isAlive(){
+        return state != BALL_STATE.DED;
+    }
+
+    public boolean canBeLerpedTo(){
+        switch (state){
+            case SUCCESS:
+            case DROPPED:
+            case BEING_TOWED:
+            case DED:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    public Vect2D getLerpPos(){
+        if (state == DED){
+            return dedPos;
+        }
+        return getPos();
+    }
+
     /**
      * The crappybody will call this with info about the other body when it notices that the other body has been
      * collided with.
@@ -138,6 +170,7 @@ public class Payload implements CrappyCallbackHandler, Respawnable, GameObject {
             if (state != BALL_STATE.DED) {
                 debrisGoesHere.addDebris(getPos(), getRot(), getVel(), 3 + (int)(Math.random() * 5), IRecieveDebris.DebrisSource.PAYLOAD);
                 this.state = BALL_STATE.DED;
+                this.dedPos = getPos();
             }
             body.setMarkForRemoval(true);
         }

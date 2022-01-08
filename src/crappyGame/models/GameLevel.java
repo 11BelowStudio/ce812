@@ -5,10 +5,9 @@ import crappy.CrappyCallbackHandler;
 import crappy.CrappyConnector;
 import crappy.I_View_CrappyBody;
 import crappy.collisions.AABBQuadTreeTools;
-import crappy.math.M_Vect2D;
-import crappy.math.Rot2D;
-import crappy.math.Vect2D;
-import crappy.math.Vect2DMath;
+import crappy.math.*;
+import crappy.utils.containers.IQuadruplet;
+import crappy.utils.containers.ITriplet;
 import crappyGame.A_Model;
 import crappyGame.Controller.Controller;
 import crappyGame.Controller.IAction;
@@ -17,6 +16,8 @@ import crappyGame.GameObjects.Debris;
 import crappyGame.GameObjects.Payload;
 import crappyGame.GameObjects.Spaceship;
 import crappyGame.GameObjects.StringObject;
+import crappyGame.GraphicsTransform;
+import crappyGame.IGameRunner;
 import crappyGame.IModel;
 import crappyGame.UI.Viewable;
 import crappyGame.assets.SoundManager;
@@ -26,53 +27,24 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
-import java.util.Optional;
+import java.util.function.BiFunction;
 
-public abstract class GameLevel extends A_Model implements IModel, Viewable, CrappyCallbackHandler, IRecieveDebris {
+public class GameLevel extends A_Model implements IModel, Viewable, CrappyCallbackHandler, IRecieveDebris {
 
     Spaceship ship;
 
     Payload pl;
 
-    final static double TOWING_RANGE = 2;
+    final static double TOWING_RANGE = 1.5;
 
-    @Override
-    public void addDebris(final Vect2D fromPos, final Rot2D fromRot, final Vect2D fromVel, int debrisToAdd, final DebrisSource source) {
-        //double angleOffset = 360.0/(double)debrisToAdd;
-        //double fromDeg = Math.toRadians(fromRot.angle());
-        switch (source){
-            case SHIP:
-                if (gamestate==GAMESTATE.WON_LEVEL){
-                    SoundManager.playSolidHit();
-                } else {
-                    SoundManager.playBoom();
-                }
-                break;
-            case PAYLOAD:
-                SoundManager.playSolidHit();
-                break;
-            default:
-                SoundManager.playClap();
-                break;
-        }
-        for (int i = 0; i < debrisToAdd; i++) {
-            Debris d = new Debris(
-                            fromPos.add(Vect2DMath.RANDOM_POLAR_VECTOR(0.1, 0.4)),
-                            fromVel.add(Vect2DMath.RANDOM_POLAR_VECTOR(0.2, 0.5)),
-                            fromRot,
-                            fromRot.angle()
-                    );
-            debris.add(d);
-            pendingBodiesToAdd.add(d.getBody());
-        }
-    }
 
+
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     Optional<CrappyConnector> mayOrMayNotBeTheTowrope = Optional.empty();
 
-    enum GAMESTATE{
+    public enum GAMESTATE{
         AWAITING_INPUT,
         GAMERING,
         DEAD,
@@ -83,7 +55,7 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
     GAMESTATE gamestate = GAMESTATE.AWAITING_INPUT;
 
 
-    final int max_lives = 3;
+    final int max_lives = 5;
 
     int lives = max_lives;
 
@@ -99,9 +71,9 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
 
     double fuelUsed = 0.0;
 
-    final StringObject.AttributeStringObject<Double> fuelUsedHUD = new StringObject.AttributeStringObject<Double>(
+    final StringObject.AttributeStringObject<Double> fuelUsedHUD = new StringObject.AttributeStringObject<>(
             new AttributeString<>(0.0, "FUEL USED: ", "", d -> String.format("%.2f",d)),
-            gt.TO_RAW_SCREEN_SCALE_M(new Vect2D(31 * VISIBLE_WORLD_WIDTH/32.0, 7 * VISIBLE_WORLD_HEIGHT/8.0)).finished(),
+            gt.TO_RAW_SCREEN_SCALE_M(new Vect2D(15 * VISIBLE_WORLD_WIDTH/16, 7 * VISIBLE_WORLD_HEIGHT/8.0)).finished(),
             Rot2D.IDENTITY,
             StringObject.ALIGNMENT_ENUM.RIGHT
     );
@@ -110,7 +82,7 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
             "PRESS THE ANY BUTTON TO START!",
             gt.TO_RAW_SCREEN_SCALE_M(new Vect2D(VISIBLE_WORLD_WIDTH/2.0, VISIBLE_WORLD_HEIGHT/2.0)).finished(),
             Rot2D.IDENTITY,
-            StringObject.ALIGNMENT_ENUM.LEFT
+            StringObject.ALIGNMENT_ENUM.MIDDLE
     );
 
     final StringObject pressTheAnyButtonToRespawnWords = new StringObject(
@@ -135,42 +107,68 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
     );
 
 
-    final Vect2D cameraOffset = new Vect2D(-VISIBLE_WORLD_WIDTH/4.0, -VISIBLE_WORLD_HEIGHT/4.0);
+    final static Vect2D safeCameraOffset = new Vect2D(VISIBLE_WORLD_WIDTH/16, VISIBLE_WORLD_HEIGHT/16);
 
-    final Vect2D safeCameraOffset = new Vect2D(-VISIBLE_WORLD_WIDTH/3.0, -VISIBLE_WORLD_HEIGHT/3.0);
+    final static double safeCamDist = safeCameraOffset.mag();
+    final static double safeCamDistSquared = safeCameraOffset.magSquared();
 
-    final double lerpSpeed = 0.1;
+    final static Vect2D halfVisibleWorld = new Vect2D(VISIBLE_WORLD_WIDTH/2, VISIBLE_WORLD_HEIGHT/2);
 
-    final Vect2D screenMid = new Vect2D(dims.getWidth()/2,  dims.getHeight()/2);
-
-    final double dimsRadius = new Vect2D(VISIBLE_WORLD_WIDTH/3.0, VISIBLE_WORLD_HEIGHT/3.0).mag();
-
-    final double squaredDimsRadius = Math.pow(dimsRadius, 2);
-
-    // TODO: if ship within middle third, keep camera as-is. Lerp camera when it gets to outer quarters/half
+    final static double lerpSpeed = 0.1;
 
 
-    // TODO: add debris when stuff gets destroyed
     final List<Debris> debris = new ArrayList<>();
 
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+
+
+    /**
+     * Creates this level.
+     * @param ctrl the controller
+     * @param levelGeomMaker the bifunction responsible for giving us the ship/payload positions, static world geometry, and background image.
+     * @param myLives lives that the player still has
+     * @param myUsedFuel how much fuel the player has used so far.
+     */
+    public GameLevel(
+            IController ctrl,
+            BiFunction<Double, Double, IQuadruplet<Vect2D, Vect2D, AABBQuadTreeTools.I_StaticGeometryQuadTreeRootNode, Optional<BufferedImage>>> levelGeomMaker,
+            final int myLives,
+            final double myUsedFuel,
+            final IGameRunner runner
+    ){
+        this(
+                ctrl,
+                levelGeomMaker.apply(VISIBLE_WORLD_WIDTH, VISIBLE_WORLD_HEIGHT),
+                myLives,
+                myUsedFuel,
+                runner
+        );
+    }
+
     GameLevel(
             IController ctrl,
-            Vect2D shipStartPos,
-            Vect2D payloadStartPos,
-            Optional<BufferedImage> bg
+            IQuadruplet<Vect2D, Vect2D, AABBQuadTreeTools.I_StaticGeometryQuadTreeRootNode, Optional<BufferedImage>> levelGeom,
+            final int myLives,
+            final double myUsedFuel,
+            final IGameRunner runner
     ){
-        super(ctrl);
+        super(ctrl, runner);
 
-        ship = new Spaceship(shipStartPos, world, this);
-        pl = new Payload(payloadStartPos, world, this);
+        ship = new Spaceship(levelGeom.getFirst(), world, this);
+        pl = new Payload(levelGeom.getSecond(), world, this);
 
-        background = bg;
+        world.setStaticGeometry(levelGeom.getThird());
 
+        background = levelGeom.getFourth();
+        lives = myLives;
+        fuelUsed = myUsedFuel;
+        lifeCounterHUD.setData(lives);
+        fuelUsedHUD.setData(fuelUsed);
     }
+
 
     @Override
     public void update() {
+
 
         if (!pendingBodiesToAdd.isEmpty()){
             for (final Iterator<CrappyBody> citer = pendingBodiesToAdd.iterator(); citer.hasNext();){
@@ -183,7 +181,7 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
 
         switch (gamestate){
             case AWAITING_INPUT:
-                if (act.pressedAny()){
+                if (act.anyDirectionPressed()){
                     SoundManager.playClap();
                     gamestate = GAMESTATE.GAMERING;
                 }
@@ -203,8 +201,11 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
 
         if (gamestate==GAMESTATE.DEAD){
             if (act.pressedAny()){
-                respawn();
-                gamestate = GAMESTATE.AWAITING_INPUT;
+                if (respawn()){
+                    gamestate = GAMESTATE.AWAITING_INPUT;
+                } else {
+                    ship.destroy();
+                }
             }
         }
 
@@ -231,41 +232,61 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
                     // WIN!
                     won();
                 } else if (act.isUpHeld() || act.isRightHeld() || act.isLeftHeld()){
-                    fuelUsed += 0.1;
+                    fuelUsed += 0.01;
                     fuelUsedHUD.setData(fuelUsed);
                 }
                 break;
+            case WON_LEVEL:
+                if (act.pressedAny()){
+                    runner.levelWon(fuelUsed, lives);
+                }
+                break;
+            case GAME_OVER_YEAHHHHHHHH:
+                if (act.pressedAny()){
+                    runner.levelLost();
+                }
 
 
         }
 
-        if (ship.isStillAlive()){
+
+        Vect2D midToLerpPos = M_Vect2D.GET(viewportCorner)
+                .add(halfVisibleWorld)
+                .mult(-1)
+                .add(lerpTarget()) // .add(ship.getPos())
+                .finished();
 
 
-            Vect2D worldMid = gt.TO_WORLD_COORDS_V(new Vect2D(dims.getWidth()/2.0, dims.getHeight()/2.0));
 
-            Vect2D shipScreenPos = gt.TO_SCREEN_COORDS_V(ship.getPos());
+        if (midToLerpPos.isFinite() && midToLerpPos.magSquared() > safeCamDistSquared){
+            viewportCorner =
+                    Vect2DMath.VECTOR_BETWEEN_M(
+                            midToLerpPos,
+                            midToLerpPos.divide(
+                                    Vect2DMath.RETURN_X_IF_NOT_FINITE(safeCamDist/midToLerpPos.mag(), 1)
+                            )
+                    ).mult(lerpSpeed)
+                    .add(viewportCorner)
+                    .finished();
+        }
 
-            Vect2D midToShip = Vect2DMath.VECTOR_BETWEEN(screenMid, shipScreenPos);
-
-            if (midToShip.magSquared() > squaredDimsRadius){
-                System.out.println("midToShip = " + midToShip);
-                double currentDist = midToShip.mag();
-
-                double scaleMidToShipBy = dimsRadius/currentDist;
-                //Vect2D finalPos = midToShip.mult(scaleMidToShipBy);
-
-                double nextDist = (1-lerpSpeed) * currentDist + (lerpSpeed * dimsRadius);
-                //viewportCorner = viewportCorner.add(midToShip.divide(currentDist/nextDist));
-
-                //viewportCorner = M_Vect2D.GET(viewportCorner).mult(1-lerpSpeed).addScaled(finalPos, lerpSpeed).finished();
-            }
-
-
+        if (!viewportCorner.isFinite()){
+            viewportCorner = ship.getStartPos();
         }
 
         controller.timestepEndReset();
 
+    }
+
+    private Vect2D lerpTarget(){
+
+        if (ship.isStillAlive()){
+            return ship.getPos_safe();
+        } else if (pl.canBeLerpedTo()){
+            return pl.getLerpPos();
+        } else{
+            return ship.getDedPos();
+        }
     }
 
     private void lostLife(){
@@ -284,13 +305,16 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
         }
     }
 
-    private void respawn(){
-        ship.respawn(world);
-        pl.respawn(world);
-        SoundManager.playPlac();
+    private boolean respawn(){
+        if (ship.respawn(world)) {
+            pl.respawn(world);
+            SoundManager.playPlac();
+            return true;
+        }
+        return false;
     }
 
-    private void createTowRope(){
+    void createTowRope(){
         final CrappyConnector rope = new CrappyConnector(
                 ship.getBody(),
                 Vect2D.ZERO,
@@ -319,7 +343,7 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
         SoundManager.playScored();
         gamestate = GAMESTATE.WON_LEVEL;
         mayOrMayNotBeTheTowrope.ifPresent(t->t.setAllowedToExist(false));
-
+        ship.setState(Spaceship.SHIP_STATE.FREEFALL_OF_SHAME);
     }
 
     @Override
@@ -335,13 +359,21 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
     @Override
     public void draw(Graphics2D g) {
 
-        g.setColor(new Color(40, 43, 47));
+        g.setColor(spaceColour);
+
+
+        gt.updateViewport(viewportCorner);
+
+
+        Vect2D bgVP = gt.TO_SCREEN_COORDS_V(gt.TO_WORLD_COORDS_M(Vect2D.ZERO).sub(viewportCorner).finished());
+
+
         background.ifPresent(img -> g.setPaint(
                 new TexturePaint(
                         img,
                         new Rectangle2D.Double(
-                                viewportCorner.getX(),
-                                viewportCorner.getY(),
+                                bgVP.getX(),
+                                bgVP.getY(),
                                 img.getWidth(),
                                 img.getHeight()
                         )
@@ -349,7 +381,6 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
         ));
         g.fillRect(0, 0, dims.width, dims.height);
 
-        gt.updateViewport(viewportCorner);
 
         AffineTransform at = g.getTransform();
         super.draw(g);
@@ -373,6 +404,37 @@ public abstract class GameLevel extends A_Model implements IModel, Viewable, Cra
         lifeCounterHUD.draw(g);
         fuelUsedHUD.draw(g);
 
+    }
+
+    @Override
+    public void addDebris(final Vect2D fromPos, final Rot2D fromRot, final Vect2D fromVel, int debrisToAdd, final DebrisSource source) {
+        //double angleOffset = 360.0/(double)debrisToAdd;
+        //double fromDeg = Math.toRadians(fromRot.angle());
+        switch (source){
+            case SHIP:
+                if (gamestate==GAMESTATE.WON_LEVEL){
+                    SoundManager.playSolidHit();
+                } else {
+                    SoundManager.playBoom();
+                }
+                break;
+            case PAYLOAD:
+                SoundManager.playSolidHit();
+                break;
+            default:
+                SoundManager.playClap();
+                break;
+        }
+        for (int i = 0; i < debrisToAdd; i++) {
+            Debris d = new Debris(
+                    fromPos.add(Vect2DMath.RANDOM_POLAR_VECTOR(-0.1, 0.1)),
+                    fromVel.add(Vect2DMath.RANDOM_POLAR_VECTOR(0.2, 0.5)),
+                    fromRot.rotateBy(I_Rot2D.RANDOM_RADIANS_ANGLE()),
+                    I_Rot2D.RANDOM_RADIANS_ANGLE() * 2
+            );
+            debris.add(d);
+            pendingBodiesToAdd.add(d.getBody());
+        }
     }
 
     // TODO:

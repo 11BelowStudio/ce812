@@ -2,6 +2,7 @@ package crappyGame.GameObjects;
 
 import crappy.CrappyBody;
 import crappy.collisions.CrappyPolygon;
+import crappy.math.I_Rot2D;
 import crappy.math.Rot2D;
 import crappy.math.Vect2D;
 
@@ -15,13 +16,13 @@ public class Debris implements GameObject, Updatable {
 
     boolean stillExists = true;
 
-    public Debris(Vect2D pos, Vect2D vel, Rot2D rot, double angVel){
+    public Debris(Vect2D pos, Vect2D vel, I_Rot2D rot, double angVel){
 
         stillExists = true;
         body = new CrappyBody(
                 pos,
                 vel,
-                rot,
+                rot.toRot2D(),
                 angVel,
                 0.15 + (Math.random() * 0.5),
                 0.95,

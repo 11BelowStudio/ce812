@@ -8,7 +8,6 @@ import crappy.collisions.CrappyPolygon;
 import crappy.math.Rot2D;
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
-import crappyGame.A_Model;
 import crappyGame.Controller.IAction;
 import crappyGame.assets.SoundManager;
 import crappyGame.models.IRecieveDebris;
@@ -20,9 +19,13 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
 
     final Vect2D startPos;
 
+    Vect2D dedPos;
+
+    Vect2D safePos;
+
     final IRecieveDebris debrisGoesHere;
 
-    final static int SPACESHIP_CAN_COLLIDE_WITH = BodyTagEnum.COMBINE_BITMASKS(BodyTagEnum.WORLD, BodyTagEnum.FINISH_LINE);
+    final static int SPACESHIP_CAN_COLLIDE_WITH = BodyTagEnum.COMBINE_BITMASKS(BodyTagEnum.WORLD, BodyTagEnum.PAYLOAD);
 
     final static Vect2D THRUST_FORCE = new Vect2D(0, 7.6);
 
@@ -63,9 +66,13 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
 
     public Spaceship(Vect2D startPos, CrappyWorld world, IRecieveDebris d){
 
+        System.out.println(Vect2DMath.AREA_AND_CENTROID_OF_VECT2D_POLYGON(SHIP_SHAPE));
+
         this.startPos = startPos;
         respawn(world);
         debrisGoesHere = d;
+        dedPos = startPos;
+        safePos = startPos;
     }
 
     public SHIP_STATE getState(){
@@ -77,6 +84,7 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
     }
 
     public Vect2D getPos(){
+
         return body.getPos();
     }
 
@@ -98,11 +106,23 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
         return stillAlive;
     }
 
+    public Vect2D getStartPos(){
+        return startPos;
+    }
+
+    public Vect2D getPos_safe(){
+        return body.getDrawableShape().getDrawablePos();
+    }
+
+    public Vect2D getDedPos(){
+        return dedPos;
+    }
+
     public void update(IAction act){
 
         switch (state){
             case JUST_RESPAWNED:
-                if (act.pressedAny()){
+                if (act.anyDirectionPressed()){
                     state = SHIP_STATE.GOING_IN;
                     body.setFrozen(false);
                 }
@@ -139,13 +159,10 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
 
     }
 
-    public void respawn(final CrappyWorld w){
+    public boolean respawn(final CrappyWorld w){
 
-        if (state == SHIP_STATE.FREEFALL_OF_SHAME){
-            body.setMarkForRemoval(true);
-            w.removeBody(body);
-        } else if (state != SHIP_STATE.DEAD){
-            return;
+        if (state != SHIP_STATE.DEAD || (body != null && !body.isDiscarded())){
+            return false;
         }
         body = new CrappyBody(
                 startPos,
@@ -171,6 +188,7 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
         w.addBody(body);
         state = SHIP_STATE.JUST_RESPAWNED;
         stillAlive = true;
+        return true;
     }
 
     /**
@@ -196,13 +214,22 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
      */
     @Override
     public void acceptCollidedWithBitmaskAfterAllCollisions(int collidedWithBits) {
-        if ((BodyTagEnum.WORLD.bitmask & collidedWithBits) > 0){
+        if ((BodyTagEnum.WORLD.bitmask & collidedWithBits) > 0 || (BodyTagEnum.PAYLOAD.bitmask & collidedWithBits) > 0){
             if (stillAlive){
                 debrisGoesHere.addDebris(getPos(), getRot(), getVel(), 2 + (int)(Math.random()*5), IRecieveDebris.DebrisSource.SHIP);
+                dedPos = getPos();
                 stillAlive = false;
+                state = SHIP_STATE.DEAD;
             }
             body.setMarkForRemoval(true);
             stillAlive = false;
+        }
+    }
+
+    public final void destroy(){
+        if (body != null && !body.isDiscarded()) {
+            body.setMarkForRemoval(true);
+            body = null;
         }
     }
 
@@ -212,5 +239,6 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
     @Override
     public void bodyNoLongerExists() {
         stillAlive = false;
+        state = SHIP_STATE.DEAD;
     }
 }

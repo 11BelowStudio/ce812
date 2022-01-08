@@ -26,8 +26,6 @@ public interface I_CrappyBody extends I_View_CrappyBody, IHaveAndConsumeBitmask 
 
     void applyMidTimestepTorque(final double torque);
 
-    // TODO!!!!!
-    //  a 'I have collided with a static thing so I need to flip my velocity and torque ASAP' method!
     void applyHitSomethingStatic(final I_Vect2D localCollidePos, final I_Vect2D norm, final double jImpulse);
 
     /**

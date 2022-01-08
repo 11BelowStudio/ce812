@@ -165,6 +165,16 @@ public final class Vect2DMath {
     }
 
     /**
+     * Returns the MUTABLE result of v.mult(self.v(other)), for ease of use.
+     * @param v the vector we're scaling
+     * @param other the other vector being used in the dot product
+     * @return MUTABLE result of (v * v.other)
+     */
+    public static M_Vect2D MULT_DOT_OTHER(final I_Vect2D v, final I_Vect2D other){
+        return M_Vect2D.GET(v).mult(v.dot(other));
+    }
+
+    /**
      * Adds v1 to v2, returns mutable
      * @param v1 vector
      * @param v2 other vector
@@ -1110,17 +1120,16 @@ public final class Vect2DMath {
         double sDotE = s.dot(proj);
         double dist = sDotE/toEndSquared;
 
-        if (dist < 0) {
+        if (dist <= 0) {
             return lineStart.toVect2D();
-        } if (dist > 1){
+        } if (dist >= 1){
             return lineEnd.toVect2D();
         } else{
             return ADD_SCALED(lineStart, proj, dist);
         }
-
-
-
     }
+
+
 
     /**
      * Obtains the radius of the incircle from the centroid,
@@ -1155,7 +1164,7 @@ public final class Vect2DMath {
             }
 
             double thisClosestDist = DIST(
-                    CLOSEST_POINT_ON_LINE_SEGMENT(last, current, centroid), centroid
+                    CLOSEST_POINT_ON_LINE_SEGMENT(last, current, Vect2D.ZERO), Vect2D.ZERO
             );
 
 
@@ -1656,6 +1665,13 @@ public final class Vect2DMath {
         );
     }
 
+    public static Vect2D INVERT_X(final I_Vect2D v){
+        return new Vect2D(
+                -v.getX(),
+                v.getY()
+        );
+    }
+
     /**
      * Invert x axis of vector relative to iX
      * @param v the vector we're inverting
@@ -1668,6 +1684,14 @@ public final class Vect2DMath {
                 v.getY()
         );
     }
+
+    public static Vect2D INVERT_Y(final I_Vect2D v){
+        return new Vect2D(
+                v.getX(),
+                -v.getY()
+        );
+    }
+
 
     /**
      * Returns a vector that's a copy of the current one but with X and Y inverted in relation to invertAround
@@ -1965,7 +1989,7 @@ public final class Vect2DMath {
     }
 
     public static Vect2D[] OFFSET_VECTORS_SO_CENTROID_IS_AT_ZERO_INTO_NEW_LIST(final Vect2D... vects){
-        return OFFSET_VECTORS_INTO_NEW_LIST(AREA_AND_CENTROID_OF_VECT2D_POLYGON(vects).getSecond(), vects);
+        return OFFSET_VECTORS_INTO_NEW_LIST(AREA_AND_CENTROID_OF_VECT2D_POLYGON(vects).getSecond().invert(), vects);
     }
 
     public static void OFFSET_VECTORS_TO_OUT(final Vect2D offset, final Vect2D[] in, final Vect2D[] out){

@@ -11,4 +11,6 @@ public interface IController extends KeyListener, MouseListener {
 
     void timestepEndReset();
 
+    void resetAll();
+
 }

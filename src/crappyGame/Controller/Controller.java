@@ -25,6 +25,11 @@ public class Controller implements IController{
         act.reset();
     }
 
+    @Override
+    public void resetAll() {
+        act.resetAll();
+    }
+
     /**
      * Invoked when a key has been typed. See the class description for {@link KeyEvent} for a definition of a key typed
      * event.
@@ -46,15 +51,18 @@ public class Controller implements IController{
     public void keyPressed(KeyEvent e) {
         switch (e.getKeyCode()){
             case KeyEvent.VK_LEFT:
+            case KeyEvent.VK_A:
                 act.pressed(Action.ACTION_ENUM.LEFT);
                 break;
             case KeyEvent.VK_RIGHT:
+            case KeyEvent.VK_D:
                 act.pressed(Action.ACTION_ENUM.RIGHT);
                 break;
             case KeyEvent.VK_SPACE:
                 act.pressed(Action.ACTION_ENUM.SPACE);
                 break;
             case KeyEvent.VK_UP:
+            case KeyEvent.VK_W:
                 act.pressed(Action.ACTION_ENUM.UP);
                 break;
         }
@@ -70,15 +78,18 @@ public class Controller implements IController{
     public void keyReleased(KeyEvent e) {
         switch (e.getKeyCode()){
             case KeyEvent.VK_LEFT:
+            case KeyEvent.VK_A:
                 act.released(Action.ACTION_ENUM.LEFT);
                 break;
             case KeyEvent.VK_RIGHT:
+            case KeyEvent.VK_D:
                 act.released(Action.ACTION_ENUM.RIGHT);
                 break;
             case KeyEvent.VK_SPACE:
                 act.released(Action.ACTION_ENUM.SPACE);
                 break;
             case KeyEvent.VK_UP:
+            case KeyEvent.VK_W:
                 act.released(Action.ACTION_ENUM.UP);
                 break;
         }

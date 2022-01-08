@@ -18,6 +18,8 @@ public class StringObject implements Drawable {
 
     ALIGNMENT_ENUM alignment;
 
+    private static final Font theFont = new Font(Font.SANS_SERIF, Font.BOLD,16);
+
     public enum ALIGNMENT_ENUM{
         LEFT,
         RIGHT,
@@ -70,8 +72,6 @@ public class StringObject implements Drawable {
         final int w = fm.stringWidth(words);
         final int h = fm.getHeight();
 
-        System.out.println(position);
-
         int x = (int) position.getX();
         int y = (int) position.getY();
 
@@ -84,14 +84,16 @@ public class StringObject implements Drawable {
                 x -= w;
                 break;
             case MIDDLE:
-                x -= (w/2.0);
+                x -= (w/2);
                 break;
         }
 
-        AffineTransform at = g.getTransform();
+        final AffineTransform at = g.getTransform();
+        final Font f = g.getFont();
 
+        g.setFont(theFont);
+        g.rotate(rotation.angle(), (int)position.x, (int)position.y);
 
-        //g.rotate(rotation.angle());
 
 
         g.setColor(Color.BLACK);
@@ -102,7 +104,7 @@ public class StringObject implements Drawable {
 
         g.setColor(Color.WHITE);
         g.drawString(words, x, y);
-
+        g.setFont(f);
         g.setTransform(at);
     }
 
@@ -124,26 +126,32 @@ public class StringObject implements Drawable {
 
         public void updatePos(final Vect2D newPos){
             s.updatePos(newPos);
+            s.updateWords(as.toString());
         }
 
         public void updateRotation(final Rot2D newRot){
             s.updateRotation(newRot);
+            s.updateWords(as.toString());
         }
 
         public void updateAlignment(final ALIGNMENT_ENUM newAlignment){
             s.updateAlignment(newAlignment);
+            s.updateWords(as.toString());
         }
 
         public void setPrefix(String newPrefix){
             as.setPrefix(newPrefix);
+            s.updateWords(as.toString());
         }
 
         public void setSuffix(String newSuffix){
             as.setSuffix(newSuffix);
+            s.updateWords(as.toString());
         }
 
         public void setData(T newData){
             as.setData(newData);
+            s.updateWords(as.toString());
         }
 
         public String getPrefix(){

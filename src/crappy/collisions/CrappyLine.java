@@ -15,7 +15,6 @@ import java.util.NoSuchElementException;
 
 public class CrappyLine extends A_CrappyShape implements Iterable<I_CrappyEdge>, I_CrappyLine, DrawableCrappyShape.DrawableLine {
 
-    // TODO: refactor so it's functionally just two CrappyEdges that are the reverse of each other
 
     final CrappyEdge edgeA;
 

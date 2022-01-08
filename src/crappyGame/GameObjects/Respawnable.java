@@ -4,5 +4,5 @@ import crappy.CrappyWorld;
 
 public interface Respawnable {
 
-    public void respawn(final CrappyWorld w);
+    public boolean respawn(final CrappyWorld w);
 }

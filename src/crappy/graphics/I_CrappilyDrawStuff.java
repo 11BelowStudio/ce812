@@ -145,10 +145,10 @@ public interface I_CrappilyDrawStuff {
         drawFilledCircle(screenPos, xRad, yRad, SELECT_COLOR_BODY(c.getShapeType(), c.getBody().getBodyType(), true));
         drawCircle(screenPos, xRad, yRad, SELECT_COLOR_BODY(c.getShapeType(), c.getBody().getBodyType(), false));
         if (RENDERING_ROTATIONS()) {
-            drawLine(screenPos, screenPos.add(getGraphicsTransform().TO_SCREEN_COORDS_V(c.getDrawableRot())), Color.CYAN);
+            drawLine(screenPos, getGraphicsTransform().TO_SCREEN_COORDS_V(c.getDrawablePos().add(Vect2DMath.INVERT_X(c.getDrawableRot()))), Color.CYAN);
         }
         if (RENDERING_VELOCITIES()) {
-            drawLine(screenPos, screenPos.add(getGraphicsTransform().TO_SCREEN_COORDS_V(c.getDrawableVel())), Color.RED);
+            drawLine(screenPos, getGraphicsTransform().TO_SCREEN_COORDS_V(c.getDrawablePos().add(c.getDrawableVel())), Color.RED);
         }
     }
 
@@ -175,10 +175,10 @@ public interface I_CrappilyDrawStuff {
         drawPolygon(screenPos, screenVertices, SELECT_COLOR_BODY(p.getShapeType(), p.getBody().getBodyType(), false));
 
         if (RENDERING_ROTATIONS()) {
-            drawLine(screenPos, screenPos.add(getGraphicsTransform().TO_RAW_SCREEN_SCALE_M(p.getDrawableRot())), Color.CYAN);
+            drawLine(screenPos, getGraphicsTransform().TO_SCREEN_COORDS_V(p.getDrawablePos().add(Vect2DMath.INVERT_X(p.getDrawableRot()))), Color.CYAN);
         }
         if (RENDERING_VELOCITIES()) {
-            drawLine(screenPos, screenPos.add(getGraphicsTransform().TO_SCREEN_COORDS_V(p.getDrawableVel())), Color.RED);
+            drawLine(screenPos, getGraphicsTransform().TO_SCREEN_COORDS_V(p.getDrawablePos().add(p.getDrawableVel())), Color.RED);
         }
     }
 
