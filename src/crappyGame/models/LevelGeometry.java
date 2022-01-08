@@ -1,7 +1,6 @@
 package crappyGame.models;
 
 import crappy.CrappyBody;
-import crappy.CrappyWorld;
 import crappy.collisions.AABBQuadTreeTools;
 import crappy.collisions.CrappyEdge;
 import crappy.math.Rot2D;
@@ -9,8 +8,6 @@ import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
 import crappy.utils.bitmasks.IHaveBitmask;
 import crappy.utils.containers.IQuadruplet;
-import crappy.utils.containers.ITriplet;
-import crappy.utils.containers.Quadruplet;
 import crappyGame.GameObjects.BodyTagEnum;
 import crappyGame.assets.ImageManager;
 

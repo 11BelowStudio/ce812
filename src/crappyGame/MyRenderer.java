@@ -11,10 +11,20 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 
+/**
+ * The implementation of I_CrappilyDrawStuff being used for
+ * A Scientific Interpretation of Daily Life in the Space Towing Industry circa 3052 CE.
+ */
 public class MyRenderer implements I_CrappilyDrawStuff {
 
+    /**
+     * The transformation being used for the graphics
+     */
     private final I_GraphicsTransform gTransform;
 
+    /**
+     * The graphics2D object that this will be drawing stuff to.
+     */
     private Graphics2D g;
 
     /**
@@ -69,12 +79,20 @@ public class MyRenderer implements I_CrappilyDrawStuff {
     }
 
 
-    MyRenderer(I_GraphicsTransform gt){
+    /**
+     * Constructs this, with the given GraphicsTransform
+     * @param gt the GraphicsTransform we're using.
+     */
+    public MyRenderer(final I_GraphicsTransform gt){
         gTransform = gt;
     }
 
 
-    void prepareToRender(Graphics2D g0){
+    /**
+     * Gives this the Graphics2D object that this will need to draw stuff to
+     * @param g0 the Graphics2D object being used.
+     */
+    void prepareToRender(final Graphics2D g0){
         g = g0;
     }
 

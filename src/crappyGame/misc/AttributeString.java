@@ -10,30 +10,57 @@ import java.util.function.Function;
  */
 public class AttributeString<T> {
 
+    /**
+     * The data held in (to be shown by) the AttributeString
+     */
     private T attribute;
 
+    /**
+     * The words that are before the data
+     */
     private String prefix;
 
+    /**
+     * The words that are after the data
+     */
     private String suffix;
 
-    private final Function<T, String> formatter;
+    /**
+     * The formatting rule being used to render the data as a string.
+     * If not specified, this will be set to 'Object::toString'
+     */
+    private Function<T, String> formatter;
 
-    public AttributeString(T data, String prefix, String suffix){
+    /**
+     * A constructor (which will render the data via its toString() method)
+     * @param data the data being held in this
+     * @param prefix words that go before the data
+     * @param suffix words that go after the data
+     */
+    public AttributeString(final T data, final String prefix, final String suffix){
         this(data, prefix, suffix, Object::toString);
     }
 
-    public AttributeString(T data, String prefix, String suffix, Function<T, String> dataFormatter){
+    /**
+     * A constructor allowing a specified formatting method for the data held in this string
+     * @param data the data itself
+     * @param prefix words that go before the formatted data
+     * @param suffix words that go after the formatted data
+     * @param dataFormatter a function that produces your favoured variety
+     *                      of string representation for the data held in this AttributeString.
+     */
+    public AttributeString(final T data, final String prefix, final String suffix, final Function<T, String> dataFormatter){
         attribute = data;
         this.prefix = prefix;
         this.suffix = suffix;
         this.formatter = dataFormatter;
     }
 
-    public AttributeString(T data, String prefix){
+    public AttributeString(final T data, final String prefix){
         this(data, prefix, "");
     }
 
-    public AttributeString(T data){
+    public AttributeString(final T data){
         this(data, "", "");
     }
 
@@ -45,8 +72,12 @@ public class AttributeString<T> {
         suffix = newSuffix;
     }
 
-    public void setData(T newData){
+    public void setData(final T newData){
         attribute = newData;
+    }
+
+    public void setFormatter(final Function<T, String> newFormatter){
+        formatter = newFormatter;
     }
 
     public T getData(){

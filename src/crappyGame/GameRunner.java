@@ -8,6 +8,8 @@ import crappyGame.models.TitleModel;
 
 import javax.swing.*;
 
+import java.awt.Component;
+
 import static crappy.CrappyWorld.DEFAULT_DELAY;
 
 public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
@@ -111,44 +113,6 @@ public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
     }
 
 
-    /*
-    private void mainLoop() throws InterruptedException {
-        Model currentModel; //the model which currently is active
-        boolean gameActive = true;//whether or not the game is the active model.
-        // true by default so it swaps to the title screen on startup
-
-        long startTime; //when it started the current update() call
-        long endTime; //when it finished the current update() call
-        long timeout; //time it has to wait until it can next perform an update() call
-
-        while (true) { //the loop for swapping and replacing the game stuff
-
-            currentModel = modelSwapper(gameActive); //obtains the model which is to be displayed by view
-            gameActive = !gameActive; //if the game was active, it now isn't (and vice versa)
-            view.showModel(currentModel); //gets the view to display the appropriate model
-            frame.pack(); //repacks the frame
-            repaintTimer.start(); //starts the repaintTimer
-
-            //AND NOW THE MODEL UPDATE LOOP
-            while (currentModel.keepGoing()){ //keeps updating the model until the endGame variable of it is true
-                //basically updates the model once every 'DELAY' milliseconds (
-                startTime = System.currentTimeMillis();
-                if (!paused) {
-                    //WILL ONLY UPDATE THE MODEL IF NOT PAUSED!
-                    currentModel.update();
-                }
-                endTime = System.currentTimeMillis();
-                timeout = DELAY - (endTime - startTime);
-                if (timeout > 0){
-                    Thread.sleep(timeout);
-                }
-            }
-
-            repaintTimer.stop();
-        }
-    }
-
-     */
 
 
 
@@ -158,10 +122,11 @@ public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
         notifyAboutPause(true);
 
         switch (JOptionPane.showConfirmDialog(
-                display.getTheFrame(),
+                display.getTheFrame().getContentPane(),
                 "Do you want to quit?\nAll progress will be lost!\n(select yes to quit)",
                 "you sure about that?",
-                JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
         )){
             case JOptionPane.YES_OPTION:
                 /*
@@ -218,7 +183,7 @@ public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
         ctrl.resetAll();
         if (currentLevel == LEVELS.__END_OF_GAME){
             JOptionPane.showMessageDialog(
-                    theView,
+                    display.getTheFrame().getContentPane(),
                     "<html><p><b>INSTRUCTIONS</b><br>" +
                             "Fly into the cave, pick up the mythical Ball Of Being Towed In Space, and tow it back!<br>" +
                             "Also don't fly into the walls of the cave and don't allow the ball to hit the walls either</p><br>" +
@@ -259,7 +224,7 @@ public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
     }
 
     @Override
-    public JComponent getViewComponent() {
-        return theView;
+    public Component getViewComponent() {
+        return display.getTheFrame().getContentPane();
     }
 }

@@ -9,6 +9,10 @@ import java.awt.*;
 
 import static javax.swing.JOptionPane.*;
 
+/**
+ * Level 3 is a subclass of the main GameLevel, because it has the Funny Ergodic Literature(tm)
+ * which can only be delivered by subclassing GameLevel basically
+ */
 public class Level3 extends GameLevel{
 
 
@@ -25,6 +29,7 @@ public class Level3 extends GameLevel{
                 fuel,
                 runner
         );
+        congratsWords.updateWords("Congratulations! You have survived the Space Towing Industry!");
     }
 
 
@@ -40,11 +45,13 @@ public class Level3 extends GameLevel{
         controller.resetAll();
         final Component p = runner.getViewComponent();
         SoundManager.togglePlayThrusters(false);
+        SoundManager.playBackgroundMusic(SoundManager.MUSIC_THEMES.CONVERSATIONAL_INTERLUDE);
         runner.notifyAboutPause(true);
         do{
             talkinBout = talkinBout.talk(p);
         } while (talkinBout != letsTalkAboutThis.__END__);
         runner.notifyAboutPause(false);
+        SoundManager.playBackgroundMusic(SoundManager.MUSIC_THEMES.MAIN_THEME);
 
     }
 }

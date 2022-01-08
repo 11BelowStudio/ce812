@@ -125,17 +125,18 @@ public class CrappyWorld {
             resolveChangesToBodies(dynamicBodies);
             resolveChangesToBodies(kinematicBodies);
 
-            // and doing any other prep stuff we need to resolve before the first euler update
-            for(iter = dynamicBodies.iterator(); iter.hasNext(); iter.next().handleStuffBeforeFirstEulerUpdate());
-            for(iter = kinematicBodies.iterator(); iter.hasNext(); iter.next().handleStuffBeforeFirstEulerUpdate());
-
-
             // same for the connectors.
             for (conIter = connectors.iterator(); conIter.hasNext(); ) {
                 if (conIter.next().startingDisposal()) {
                     conIter.remove();
                 }
             }
+
+            // and doing any other prep stuff we need to resolve before the first euler update
+            for(iter = dynamicBodies.iterator(); iter.hasNext(); iter.next().handleStuffBeforeFirstEulerUpdate());
+            for(iter = kinematicBodies.iterator(); iter.hasNext(); iter.next().handleStuffBeforeFirstEulerUpdate());
+
+
 
             final AABBQuadTreeTools.I_DynamicKinematicAABBQuadTreeRootNode newObjectTree =
                     AABBQuadTreeTools.DYN_KYN_AABB_FACTORY_BOUNDS_FINDER(dynamicBodies, kinematicBodies);
@@ -274,9 +275,15 @@ public class CrappyWorld {
 
     }
 
-    private void resolveChangesToBodies(final Iterable<CrappyBody> bodies) {
-        for (Iterator<? extends I_CrappyBody_CrappyWorld_Interface> iter = bodies.iterator(); iter.hasNext();) {
-            I_CrappyBody_CrappyWorld_Interface b = iter.next();
+    /**
+     * Attempts to handle state changes within bodies (such as removals, position locks/unlocks, being active or not, etc).
+     * ONLY USED FOR DYNAMIC AND KINEMATIC BODIES!
+     * Called before and after each update loop.
+     * @param bodies the iterable of all the bodies that are being dealt with.
+     */
+    private void resolveChangesToBodies(final Iterable<? extends I_CrappyBody_CrappyWorld_Interface> bodies) {
+        for (final Iterator<? extends I_CrappyBody_CrappyWorld_Interface> iter = bodies.iterator(); iter.hasNext();) {
+            final I_CrappyBody_CrappyWorld_Interface b = iter.next();
 
             if (b.resolveRemovalChange()){
                 b.$_$_$__discard_INTERNAL_USE_ONLY_DO_NOT_USE_YOURSELF_EVER_SERIOUSLY_DONT_GRRR();

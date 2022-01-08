@@ -6,15 +6,12 @@ import crappyGame.A_Model;
 import crappyGame.Controller.IController;
 import crappyGame.GameObjects.StringObject;
 import crappyGame.IGameRunner;
-import crappyGame.IModel;
 import crappyGame.assets.ImageManager;
 import crappyGame.assets.SoundManager;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 public class TitleModel extends A_Model {
@@ -60,6 +57,7 @@ public class TitleModel extends A_Model {
     public TitleModel(IController ctrl, IGameRunner runner) {
         super(ctrl, runner);
         done = false;
+        SoundManager.playBackgroundMusic(SoundManager.MUSIC_THEMES.MAIN_THEME);
     }
 
     @Override
@@ -71,10 +69,6 @@ public class TitleModel extends A_Model {
         }
     }
 
-    @Override
-    public void reset() {
-
-    }
 
     @Override
     public boolean isFinished() {

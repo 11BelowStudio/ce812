@@ -240,8 +240,9 @@ public class CrappyBody implements
      */
     public final int tagsICanCollideWithBitmask;
 
-    // TODO: basically call this after done with euler updates, give collidedWithBitmask,
-    //  intended for external objects to see what this collided with this timestep, and to handle it appropriately.
+    /**
+     * intended for external objects to see what this collided with this timestep, and to handle it appropriately.
+     */
     public final CrappyCallbackHandler callbackHandler;
 
     /**
@@ -289,9 +290,9 @@ public class CrappyBody implements
      * @param callback A callback handler to call when this body gets collided with
      * @param userData an object of arbitrary user data, use at your own risk!
      * @param id a name for this body.
-     * @param tangible
-     * @param canMoveLinearly
-     * @param canRotate
+     * @param tangible is it tangible?
+     * @param canMoveLinearly can it move x y position?
+     * @param canRotate can it rotate?
      */
     public CrappyBody(
             final Vect2D pos,
@@ -502,8 +503,6 @@ public class CrappyBody implements
         final PendingStateChange psc = pendingActive;
         this.active = psc.performStateChange(this.active);
         pendingActive = PendingStateChange.SAME_AS_IT_EVER_WAS;
-        // TODO: finish the resolve methods,
-        //  and add the loops in the CrappyWorld to perform post collision callbacks + perform resolutions.
         return psc;
     }
 
@@ -1368,10 +1367,6 @@ public class CrappyBody implements
     public static CrappyBodyCreator GET_CREATOR(){
         return new CrappyBodyCreator();
     }
-
-    // TODO:
-    //   Might have to just cut my losses and make a function that just directly modifies the velocity, as-is,
-    //   for the collision handling code, as I'm getting pretty fucking demoralized from how nothing's working.
 
 
     public void overwriteVelocityAfterCollision(final I_Vect2D newVel, final double newAngVel, final FORCE_SOURCE overwriteSource){

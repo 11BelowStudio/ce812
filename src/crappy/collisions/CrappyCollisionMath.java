@@ -571,15 +571,20 @@ public final class CrappyCollisionMath {
 
 
 
-        // TODO:
-        //  work out which side the circle is on.
-        //  (see where centroid is in relation to the line?)
-        //  basically try to prevent the centroid from crossing the line in the first place.
         //return COLLIDE_CIRCLE_EDGE(c, l.getEdgeA(), deltaT) || COLLIDE_CIRCLE_EDGE(c, l.getEdgeB(), deltaT);
 
     }
 
-    private static void ShapeAgainstImmovableEdge(final I_CrappyShape c, final I_CrappyShape r, final Vect2D worldCollisionPos, final Vect2D norm){
+    /**
+     * Attempts to collide a dynamic shape against a non-dynamic edge
+     * @param c the shape
+     * @param r the edge
+     * @param worldCollisionPos where the shape collides with the edge (in world coordinates)
+     * @param norm normal vector for the edge.
+     */
+    private static void ShapeAgainstImmovableEdge(
+            final I_CrappyShape c, final I_CrappyShape r, final I_Vect2D worldCollisionPos, final Vect2D norm
+    ){
 
         assert (r.getShapeType() == I_CrappyShape.CRAPPY_SHAPE_TYPE.LINE || r.getShapeType() == I_CrappyShape.CRAPPY_SHAPE_TYPE.EDGE);
         assert (r.getBody().getBodyType() != CrappyBody.CRAPPY_BODY_TYPE.DYNAMIC);
@@ -636,7 +641,11 @@ public final class CrappyCollisionMath {
             return true;
         }
 
-        final Vect2D polyToCircleNorm = Vect2DMath.VECTOR_BETWEEN_M(polygon.getCentroid(), circle.getCentroid()).norm().finished();
+        final Vect2D polyToCircleNorm = Vect2DMath.VECTOR_BETWEEN_M(
+                polygon.getCentroid(), circle.getCentroid()
+        ).norm().finished();
+
+
 
         // if the inner circles didn't collide, we see if each edge of the polygon collided with the circle.
         for (final I_CrappyEdge crappyEdge : polygon) {
@@ -861,8 +870,7 @@ public final class CrappyCollisionMath {
         if (polygonToEdgeCentroid.dot(e.getWorldNorm()) >= 0 || p.getVel().dot(e.getWorldNorm()) > 0){
             return false;
         }
-        
-        
+
         // we attempt to collide this polygon's incircle with the edge (returning true if it works)
         if (COLLIDE_CIRCLE_EDGE(p.getIncircle(), e, deltaT)){
             return true;

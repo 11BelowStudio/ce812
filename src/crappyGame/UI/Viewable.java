@@ -1,8 +1,13 @@
 package crappyGame.UI;
 
+import crappyGame.Drawable;
+
 import java.awt.Dimension;
 
-public interface Viewable extends Drawable{
+/**
+ * Interface for things that the view can view.
+ */
+public interface Viewable extends Drawable {
 
     Dimension getSize();
 

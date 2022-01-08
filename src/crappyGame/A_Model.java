@@ -6,11 +6,12 @@ import crappy.math.Vect2D;
 import crappyGame.Controller.IController;
 
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Optional;
 import java.util.List;
 
+/**
+ * A generic 'model' for the overall MVC-based architecture used by this game.
+ */
 public abstract class A_Model implements IModel{
 
     protected final Dimension dims = new Dimension(880,660 );

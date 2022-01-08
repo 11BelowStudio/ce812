@@ -64,7 +64,7 @@ public class GameLevel extends A_Model implements IModel, Viewable, CrappyCallba
 
     final StringObject.AttributeStringObject<Integer> lifeCounterHUD = new StringObject.AttributeStringObject<>(
             new AttributeString<>(max_lives, "LIVES: ", ""),
-            gt.TO_RAW_SCREEN_SCALE_M(new Vect2D(31 * VISIBLE_WORLD_WIDTH/32.0, 30 * VISIBLE_WORLD_HEIGHT/32.0)).finished(),
+            gt.TO_RAW_SCREEN_SCALE_M(new Vect2D(15 * VISIBLE_WORLD_WIDTH/16.0, 30 * VISIBLE_WORLD_HEIGHT/32.0)).finished(),
             Rot2D.IDENTITY,
             StringObject.ALIGNMENT_ENUM.RIGHT
     );
@@ -299,6 +299,7 @@ public class GameLevel extends A_Model implements IModel, Viewable, CrappyCallba
         }
         if (lives < 0){
             gamestate = GAMESTATE.GAME_OVER_YEAHHHHHHHH;
+            SoundManager.playBackgroundMusic(SoundManager.MUSIC_THEMES.GAME_OVER);
         } else {
             lifeCounterHUD.setData(lives);
             gamestate = GAMESTATE.DEAD;
@@ -347,10 +348,6 @@ public class GameLevel extends A_Model implements IModel, Viewable, CrappyCallba
         controller.resetAll();
     }
 
-    @Override
-    public void reset() {
-
-    }
 
     @Override
     public boolean isFinished() {

@@ -46,8 +46,9 @@ public class Payload implements CrappyCallbackHandler, Respawnable, GameObject {
     @Override
     public boolean respawn(CrappyWorld w) {
 
-        if (state != BALL_STATE.DED){
+        if (state != BALL_STATE.DED || (body != null && !body.isDiscarded())){
             body.setMarkForRemoval(true);
+            body.setActive(false);
             w.removeBody(body);
         }
         body = new CrappyBody(
@@ -166,13 +167,16 @@ public class Payload implements CrappyCallbackHandler, Respawnable, GameObject {
     public void acceptCollidedWithBitmaskAfterAllCollisions(int collidedWithBits) {
         if (BodyTagEnum.FINISH_LINE.anyMatchInBitmasks(collidedWithBits)){
             this.state = BALL_STATE.SUCCESS;
-        } else if (BodyTagEnum.WORLD.anyMatchInBitmasks(collidedWithBits)){
-            if (state != BALL_STATE.DED) {
-                debrisGoesHere.addDebris(getPos(), getRot(), getVel(), 3 + (int)(Math.random() * 5), IRecieveDebris.DebrisSource.PAYLOAD);
-                this.state = BALL_STATE.DED;
-                this.dedPos = getPos();
-            }
+        } else if (state != BALL_STATE.DED && state != BALL_STATE.SUCCESS && BodyTagEnum.WORLD.anyMatchInBitmasks(collidedWithBits)){
+            debrisGoesHere.addDebris(getPos(), getRot(), getVel(), 3 + (int)(Math.random() * 5), IRecieveDebris.DebrisSource.PAYLOAD);
+            this.state = BALL_STATE.DED;
+            this.dedPos = getPos();
             body.setMarkForRemoval(true);
+        } else if (state == BALL_STATE.WAITING && BodyTagEnum.SHIP.anyMatchInBitmasks(collidedWithBits)){
+            state = BALL_STATE.DROPPED;
+            body.setFrozen(false);
+            body.setTangibility(true);
+            body.overwriteVelocityAfterCollision(Vect2D.ZERO, 0, CrappyBody.FORCE_SOURCE.MANUAL);
         }
     }
 

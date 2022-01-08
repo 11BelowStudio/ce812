@@ -33,13 +33,40 @@ public final class SoundManager {
 
     private static final Clip towBroke = getClip("tow broke");
 
+    private static final Clip mainTheme = getClip("Space Towin'");
+
+    private static final Clip gameOverTheme = getClip("An ending");
+
+    private static final Clip interludeTheme = getClip("conversational");
+
     /**
-     * plays the given clip.
-     * @param clip the clip
+     * An enumeration of values for the background soundtracks that may (or may not) currently be playing
+     */
+    public static enum MUSIC_THEMES{
+        MAIN_THEME,
+        GAME_OVER,
+        CONVERSATIONAL_INTERLUDE,
+        NO_MUSIC;
+    }
+
+    private static MUSIC_THEMES currentTheme = MUSIC_THEMES.NO_MUSIC;
+
+    /**
+     * Helper method to play the given clip from the start
+     * @param clip the clip to play
      */
     private static void play(final Clip clip) {
         clip.setFramePosition(0);
         clip.start();
+    }
+
+    /**
+     * Helper method to play the given clip when it needs to be infinitely looping
+     * @param clip the clip to play looped.
+     */
+    private static void playLooped(final Clip clip){
+        clip.loop(Clip.LOOP_CONTINUOUSLY);
+        play(clip);
     }
 
 
@@ -92,12 +119,50 @@ public final class SoundManager {
 
         if (thrusting ^ isThrusting){
             if (thrusting){
-                thruster.loop(Clip.LOOP_CONTINUOUSLY);
-                play(thruster);
+                playLooped(thruster);
             } else {
                 thruster.stop();
             }
             isThrusting = thrusting;
         }
     }
+
+    /**
+     * Attempts to start playing the appropriate bit of background music.
+     * If some different background music is currently playing, it will stop that music, before playing the newly
+     * given music. If the music to play is already playing, it allows it to keep playing
+     * @param playThis the MUSIC_THEMES value for the piece of background music which is needed.
+     */
+    public static void playBackgroundMusic(final MUSIC_THEMES playThis){
+
+        MUSIC_THEMES current = currentTheme;
+        if (playThis == current){
+            return;
+        }
+        switch (current){
+            case GAME_OVER:
+                gameOverTheme.stop();
+                break;
+            case MAIN_THEME:
+                mainTheme.stop();
+                break;
+            case CONVERSATIONAL_INTERLUDE:
+                interludeTheme.stop();
+                break;
+        }
+        switch (playThis){
+            case CONVERSATIONAL_INTERLUDE:
+                playLooped(interludeTheme);
+                break;
+            case MAIN_THEME:
+                playLooped(mainTheme);
+                break;
+            case GAME_OVER:
+                playLooped(gameOverTheme);
+                break;
+        }
+        currentTheme = playThis;
+    }
+
+
 }

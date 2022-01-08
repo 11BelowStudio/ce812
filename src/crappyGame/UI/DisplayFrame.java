@@ -2,12 +2,16 @@ package crappyGame.UI;
 
 import crappyGame.IGameRunner;
 import crappyGame.IQuit;
+import crappyGame.assets.ImageManager;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.geom.Dimension2D;
 
+
+/**
+ * A class that manages the JFrame that is used to show the game
+ */
 public class DisplayFrame implements I_DisplayFrame {
 
     private final JFrame theFrame;
@@ -32,6 +36,8 @@ public class DisplayFrame implements I_DisplayFrame {
     public DisplayFrame(final View v, final String frameName, final IGameRunner runner){
 
         theFrame = new JFrame(frameName);
+
+        theFrame.setIconImages(ImageManager.GET_ICON_IMAGES());
 
         view = v;
 

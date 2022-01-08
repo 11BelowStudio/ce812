@@ -2,21 +2,22 @@ package crappyGame.GameObjects;
 
 import crappy.math.Rot2D;
 import crappy.math.Vect2D;
-import crappyGame.UI.Drawable;
+import crappyGame.Drawable;
 import crappyGame.misc.AttributeString;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.util.function.Function;
 
 public class StringObject implements Drawable {
 
-    String words = "";
+    private String words = "";
 
-    Vect2D position;
+    private Vect2D position;
 
-    Rot2D rotation = Rot2D.IDENTITY;
+    private Rot2D rotation = Rot2D.IDENTITY;
 
-    ALIGNMENT_ENUM alignment;
+    private ALIGNMENT_ENUM alignment;
 
     private static final Font theFont = new Font(Font.SANS_SERIF, Font.BOLD,16);
 
@@ -67,7 +68,12 @@ public class StringObject implements Drawable {
 
     @Override
     public void draw(Graphics2D g) {
+        final Font f = g.getFont();
+        g.setFont(theFont);
         final FontMetrics fm = g.getFontMetrics(g.getFont());
+
+
+        //final Rectangle2D bounds = g.getFontRenderContext().
 
         final int w = fm.stringWidth(words);
         final int h = fm.getHeight();
@@ -89,9 +95,7 @@ public class StringObject implements Drawable {
         }
 
         final AffineTransform at = g.getTransform();
-        final Font f = g.getFont();
 
-        g.setFont(theFont);
         g.rotate(rotation.angle(), (int)position.x, (int)position.y);
 
 
@@ -112,16 +116,49 @@ public class StringObject implements Drawable {
     public static class AttributeStringObject<T> implements Drawable{
 
 
-        final AttributeString<T> as;
+        private final AttributeString<T> as;
 
-        final StringObject s;
+        private final StringObject s;
+
+        /**
+         * Whether the StringObject should be updated to reflect the current state of the data in the
+         * AttributeString every single time this is rendered.
+         */
+        private boolean refreshConstantly = false;
 
 
-        public AttributeStringObject(final AttributeString<T> as, final Vect2D pos,
-                                     final Rot2D rot, final ALIGNMENT_ENUM alignment
+        /**
+         * Constructor
+         * @param as the AttributeString this will show
+         * @param pos position of the stringobject
+         * @param rot rotation of the stringobject
+         * @param alignment alignment of the stringobject
+         */
+        public AttributeStringObject(
+                final AttributeString<T> as, final Vect2D pos,
+                final Rot2D rot, final ALIGNMENT_ENUM alignment
         ){
             this.as = as;
             this.s = new StringObject(as.toString(), pos, rot, alignment);
+            refreshConstantly = false;
+        }
+
+        /**
+         * Constructor
+         * @param as the AttributeString this will show
+         * @param pos position of the stringobject
+         * @param rot rotation of the stringobject
+         * @param alignment alignment of the stringobject
+         * @param refreshConstantly should the words shown by the stringObject be updated every frame?
+         */
+        @SuppressWarnings("BooleanParameter")
+        public AttributeStringObject(
+                final AttributeString<T> as, final Vect2D pos,
+                final Rot2D rot, final ALIGNMENT_ENUM alignment,
+                final boolean refreshConstantly
+        ){
+            this(as, pos, rot, alignment);
+            this.refreshConstantly = refreshConstantly;
         }
 
         public void updatePos(final Vect2D newPos){
@@ -154,6 +191,15 @@ public class StringObject implements Drawable {
             s.updateWords(as.toString());
         }
 
+        public void setFormatter(Function<T, String> newFormatter){
+            as.setFormatter(newFormatter);
+            s.updateWords(as.toString());
+        }
+
+        public void setRefreshConstantly(boolean refreshConstantly){
+            this.refreshConstantly = refreshConstantly;
+        }
+
         public String getPrefix(){
             return as.getPrefix();
         }
@@ -180,7 +226,9 @@ public class StringObject implements Drawable {
 
         @Override
         public void draw(Graphics2D g) {
-            s.updateWords(as.toString());
+            if (refreshConstantly) {
+                s.updateWords(as.toString());
+            }
             s.draw(g);
         }
     }
