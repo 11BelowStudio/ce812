@@ -16,6 +16,7 @@ import java.util.*;
 
 /**
  * A rigidbody class used by Crappy
+ * @author Rachel Lowe
  */
 public class CrappyBody implements
         I_CrappyBody,
@@ -26,6 +27,11 @@ public class CrappyBody implements
         I_CrappyBody_CrappyWorld_Interface,
         DrawableBody,
         CrappyBody_ShapeSetter_Interface {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
 
     /**
@@ -616,12 +622,6 @@ public class CrappyBody implements
     private EULER_UPDATE_STATE eus = EULER_UPDATE_STATE.NOTHING;
 
 
-
-    @Override
-    @Deprecated
-    public void setMomentOfInertia(final double moment) {
-        this.inertia = moment;
-    }
 
     /**
      * Called to notify the CrappyBody that it has, in fact, collided with something.

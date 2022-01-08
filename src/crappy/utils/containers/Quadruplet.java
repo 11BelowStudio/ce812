@@ -1,6 +1,19 @@
 package crappy.utils.containers;
 
+/**
+ * 4 items of generic types in one object!
+ * @param <T1>
+ * @param <T2>
+ * @param <T3>
+ * @param <T4>
+ * @author Rachel Lowe
+ */
 public class Quadruplet<T1, T2, T3, T4> implements IQuadruplet<T1, T2, T3, T4>{
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     /**
      * First item

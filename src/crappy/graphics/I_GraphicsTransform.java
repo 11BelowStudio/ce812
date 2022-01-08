@@ -9,8 +9,14 @@ import java.awt.geom.Point2D;
 
 /**
  * An interface representing a transformation between world coordinates and screen coordinates.
+ * @author Rachel Lowe
  */
 public interface I_GraphicsTransform {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     public static IPair<Double, Double> ORIGIN_TOP_LEFT_CORRECTION = IPair.of((double)1,(double) -1);
 
@@ -98,7 +104,7 @@ public interface I_GraphicsTransform {
     default Vect2D TO_WORLD_COORDS_V(final IPair<Double, Double> screenCoord){
         return TO_WORLD_COORDS_M(screenCoord).finished();
     }
-    
+
 
 
 }

@@ -3,8 +3,14 @@ package crappy.utils;
 
 /**
  * Enum for whether or not the state of something that needs to be changed has to be changed
+ * @author Rachel Lowe
  */
 public enum PendingStateChange {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     /**
      * If it's supposed to become true

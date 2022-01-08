@@ -12,8 +12,16 @@ import java.awt.*;
 
 /**
  * Loosely inspired by Box2D's debug draw method, because I'm lazy.
+ * This particular implementation of it, however, is completely my own work.
+ *
+ * @author Rachel Lowe
  */
 public interface I_CrappilyDrawStuff {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
 
     /**

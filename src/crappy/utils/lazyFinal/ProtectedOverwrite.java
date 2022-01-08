@@ -5,9 +5,15 @@ import java.util.Optional;
 /**
  * A class that provides a way for data to be stored and overwritten but in a way that somewhat makes it
  * harder to mess around with
- * @param <T>
+ * @param <T> type of data it holds
+ * @author Rachel Lowe
  */
 public final class ProtectedOverwrite<T> implements IProtectedOverwrite<T>, IProtectedOverwriter<T> {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     /**
      * The actual data held inside

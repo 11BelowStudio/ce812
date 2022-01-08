@@ -10,9 +10,15 @@ import static crappy.math.Vect2DMath.*;
 
 
 /**
- * handles maths for collision handling
+ * utilty class with all the maths for collision handling
+ * @author Rachel Lowe
  */
 public final class CrappyCollisionMath {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     /**
      * no constructing >:(

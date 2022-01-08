@@ -12,9 +12,16 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-
+/**
+ * A line shape (two-way wall)
+ * @author Rachel Lowe
+ */
 public class CrappyLine extends A_CrappyShape implements Iterable<I_CrappyEdge>, I_CrappyLine, DrawableCrappyShape.DrawableLine {
-
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     final CrappyEdge edgeA;
 

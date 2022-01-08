@@ -4,8 +4,15 @@ package crappy;
  * Implement this interface to let your CrappyBodies notify you about any collisions they've done!
  * Both methods have a default implementation that does nothing, please override whichever you'd prefer
  * to use.
+ *
+ * @author Rachel Lowe
  */
 public interface CrappyCallbackHandler {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     /**
      * The crappybody will call this with info about the other body when it notices that the

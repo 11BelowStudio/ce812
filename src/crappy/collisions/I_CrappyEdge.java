@@ -4,7 +4,16 @@ import crappy.math.I_Vect2D;
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
 
+/**
+ * Interface for the CrappyEdges
+ * @author Rachel Lowe
+ */
 public interface I_CrappyEdge extends I_CrappyShape {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     Vect2D getLocalStart();
 

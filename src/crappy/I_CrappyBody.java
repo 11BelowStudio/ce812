@@ -6,9 +6,14 @@ import crappy.utils.bitmasks.IHaveAndConsumeBitmask;
 /**
  * An interface for the CrappyBody,
  * offering methods to apply forces to it.
+ * @author Rachel Lowe
  */
 public interface I_CrappyBody extends I_View_CrappyBody, IHaveAndConsumeBitmask {
-
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     void applyForce(final I_Vect2D force, final I_Vect2D localForcePos, final CrappyBody.FORCE_SOURCE source);
 

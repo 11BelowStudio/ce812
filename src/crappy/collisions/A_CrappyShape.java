@@ -1,14 +1,11 @@
 package crappy.collisions;
 
 
-import crappy.CrappyBody_ShapeSetter_Interface;
 import crappy.CrappyBody_Shape_Interface;
 import crappy.I_Transform;
-import crappy.graphics.DrawableBody;
 import crappy.graphics.DrawableCrappyShape;
 import crappy.graphics.I_CrappilyDrawStuff;
 import crappy.internals.CrappyInternalException;
-import crappy.math.I_Vect2D;
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
 
@@ -18,8 +15,15 @@ import static crappy.math.Vect2DMath.MINUS_M;
 
 /**
  * A shape class
+ *
+ * @author Rachel Lowe
  */
 public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I_CrappyShape, DrawableCrappyShape {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     public final CRAPPY_SHAPE_TYPE shapeType;
 

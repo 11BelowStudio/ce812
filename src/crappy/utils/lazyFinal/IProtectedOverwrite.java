@@ -1,10 +1,18 @@
 package crappy.utils.lazyFinal;
 
+import java.io.Serializable;
+
 /**
  * Like I_LazyFinal, but this one is more about protected overwriting and such I guess
  * @param <T> type of data to store in this
+ * @author Rachel Lowe
  */
-public interface IProtectedOverwrite<T> extends ILazyFinal<T> {
+public interface IProtectedOverwrite<T> extends ILazyFinal<T>, Serializable {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     /**
      * Current status of the lock mode for the protected overwriting

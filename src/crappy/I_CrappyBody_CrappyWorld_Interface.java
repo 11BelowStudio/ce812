@@ -4,7 +4,16 @@ import crappy.graphics.I_CrappilyDrawStuff;
 import crappy.math.I_Vect2D;
 import crappy.utils.PendingStateChange;
 
+/**
+ * CrappyBody interface for the CrappyWorld
+ * @author Rachel Lowe
+ */
 public interface I_CrappyBody_CrappyWorld_Interface extends I_CrappyBody, I_View_CrappyBody, I_ManipulateCrappyBody, CrappyBody_Shape_Interface{
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     /**
      * Call this to tell this I_CrappyBody to call the {@link CrappyCallbackHandler#acceptCollidedWithBitmaskAfterAllCollisions(int)} method

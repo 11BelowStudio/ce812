@@ -8,9 +8,16 @@ import java.util.function.IntSupplier;
  * but merely overrides getAsInt with a default method that returns getBitmask, so,
  * if you need to use this for a subclass that needs an int that isn't a bitmask as well for some reason,
  * you can still do that.
+ *
+ * @author Rachel Lowe
  */
 @FunctionalInterface
 public interface IHaveBitmask extends IntSupplier {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     /**
      * Obtains the bitmask of the object of the implementing class

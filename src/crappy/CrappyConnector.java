@@ -8,9 +8,18 @@ import crappy.utils.containers.IPair;
 
 import java.util.function.DoubleUnaryOperator;
 
+/**
+ * A connector (usable as an elastic joint) for use within Crappy
+ *
+ * @author Rachel Lowe
+ */
 @SuppressWarnings("BooleanParameter")
 public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector {
-
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
 
     private final CrappyBody_Connector_Interface bodyA;

@@ -7,7 +7,17 @@ import crappy.math.*;
 
 import java.util.Vector;
 
+/**
+ * An edge shape (one-way wall)
+ * @author Rachel Lowe
+ */
 public class CrappyEdge extends A_CrappyShape implements I_CrappyEdge, DrawableCrappyShape.DrawableEdge {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
+
 
     final Vect2D localStart;
 

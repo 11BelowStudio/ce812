@@ -18,8 +18,16 @@ import java.util.stream.Collectors;
 
 /**
  * A utility class with a buttload of inner classes for axis-aligned bounding boxes
+ *
+ * @author Rachel Lowe
  */
 public final class AABBQuadTreeTools {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
+
 
     /**
      * An interface for each 'node' of a given AABB QuadTree

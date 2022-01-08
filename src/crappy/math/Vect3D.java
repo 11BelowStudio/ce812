@@ -2,7 +2,15 @@ package crappy.math;
 
 import crappy.utils.containers.ITriplet;
 
+/**
+ * A barebones class for 3d vectors
+ */
 public final class Vect3D implements ITriplet<Double, Double, Double> {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     public final double x;
 

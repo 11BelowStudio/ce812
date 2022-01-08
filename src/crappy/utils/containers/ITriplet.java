@@ -1,12 +1,20 @@
 package crappy.utils.containers;
 
+import java.io.Serializable;
+
 /**
  * A class representing a triplet of 3 items
  * @param <T1> first item type
  * @param <T2> second item type
  * @param <T3> third item type
+ * @author Rachel Lowe
  */
-public interface ITriplet <T1, T2, T3> extends IPair<T1, T2>{
+public interface ITriplet <T1, T2, T3> extends IPair<T1, T2>, Serializable {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     /**
      * Obtains the third item from the triplet

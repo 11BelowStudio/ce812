@@ -9,8 +9,16 @@ import java.util.Optional;
  * Based on https://stackoverflow.com/a/38290652
  *
  * @see <a href="https://stackoverflow.com/a/38290652">https://stackoverflow.com/a/38290652</a>
+ * @param <T> datatype held
+ *
+ * @author Rachel Lowe
  */
 public final class LazyFinal<T> implements ILazyFinal<T> {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     /**
      * This thing will actually hold our data (when it arrives)

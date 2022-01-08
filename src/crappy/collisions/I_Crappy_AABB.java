@@ -3,11 +3,21 @@ package crappy.collisions;
 import crappy.math.I_Vect2D;
 import crappy.math.Vect2D;
 import crappy.utils.containers.IPair;
-import org.junit.Test;
+
 
 import java.util.function.Predicate;
 
+/**
+ * interface for a Crappy_AABB
+ *
+ * @author Rachel Lowe
+ */
 public interface I_Crappy_AABB extends IPair<Vect2D, Vect2D>, Cloneable, Predicate<I_Crappy_AABB> {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     /**
      * Obtain the max corner
@@ -36,12 +46,6 @@ public interface I_Crappy_AABB extends IPair<Vect2D, Vect2D>, Cloneable, Predica
         return v.isGreaterThanOrEqualTo(getMin()) && v.isLessThanOrEqualTo(getMax());
     }
 
-    /**
-     * Checks if this bounding box intersects with the other bounding box
-     * @param other the other bounding box
-     * @return true if the other AABB intersects with this AABB, false otherwise
-     */
-
 
     /**
      * Evaluates this predicate on the given argument.
@@ -56,10 +60,12 @@ public interface I_Crappy_AABB extends IPair<Vect2D, Vect2D>, Cloneable, Predica
         return I_Crappy_AABB.DO_THESE_BOUNDING_BOXES_OVERLAP(this, otherAABB);
     }
 
+    /**
+     * Obtains a pair holding (width, height) of this AABB
+     * @return width, height
+     */
     default IPair<Double, Double> getWidthHeight(){
-
         return getMax().addScaled(getMin(), -1);
-
     }
 
     /**
@@ -70,10 +76,7 @@ public interface I_Crappy_AABB extends IPair<Vect2D, Vect2D>, Cloneable, Predica
      */
     static boolean DO_THESE_BOUNDING_BOXES_OVERLAP(final I_Crappy_AABB a, final I_Crappy_AABB b){
 
-        // TODO TODO TODO TODO!!!
-
         return a.__innerBBOverlapCheck(b) || b.__innerBBOverlapCheck(a);
-
     }
 
     default boolean __innerBBOverlapCheck(final I_Crappy_AABB other){

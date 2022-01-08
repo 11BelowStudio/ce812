@@ -11,6 +11,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * And here's a mutable version, for purposes of intermediate calculations.
  */
 public final class M_Rot2D implements Serializable, I_Rot2D{
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     double sin;
 

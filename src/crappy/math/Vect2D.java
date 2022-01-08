@@ -13,6 +13,11 @@ import java.util.Objects;
  * with extra utility methods added later on.
  */
 public final class Vect2D implements Serializable, I_Vect2D {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     /**
      * Immutable X component

@@ -4,11 +4,14 @@ package crappy.math;
  * Fuck it, I've just realized that I'm probably going to be able to abuse this
  * to simplify the whole 'getting an N log N collision handling data structure' stuff.
  * So I'm enshrining these funny numbers in an enum so I don't forget to abuse this further.
+ *
+ * update: ok so basically I didn't get around to abusing this one further.
+ * BUT I did abuse this concept in {@link crappy.collisions.AABBQuadTreeTools.AABB_Quad_Enum.AABB_Choose_Quadtree_Enum}!
+ *
+ * @see crappy.collisions.AABBQuadTreeTools.AABB_Quad_Enum.AABB_Choose_Quadtree_Enum
  */
 public enum I_Vect2D_Comp_Enum {
 
-    // TODO: abuse the shit out of this to get quadtrees/other things to divide the physics objects
-    //  up into smaller groups for easier collision handling
 
     // +5 +2 -1
     // +3  0 -3

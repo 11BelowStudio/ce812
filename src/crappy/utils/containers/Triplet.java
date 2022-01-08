@@ -5,9 +5,14 @@ package crappy.utils.containers;
  * @param <T1>
  * @param <T2>
  * @param <T3>
+ * @author Rachel Lowe
  */
 public class Triplet<T1, T2, T3> implements ITriplet<T1, T2, T3> {
-
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     public final T1 first;
 

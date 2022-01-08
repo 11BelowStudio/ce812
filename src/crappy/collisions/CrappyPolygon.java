@@ -13,9 +13,16 @@ import crappy.utils.containers.IPair;
 import java.util.Arrays;
 import java.util.Iterator;
 
-
+/**
+ * A polygon shape (vertexes and such)
+ * @author Rachel Lowe
+ */
 public class CrappyPolygon extends A_CrappyShape implements Iterable<I_CrappyEdge>, I_CrappyPolygon, DrawableCrappyShape.DrawablePolygon {
-
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     final int vertexCount;
 

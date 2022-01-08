@@ -12,6 +12,11 @@ import java.util.Arrays;
  * Can statically import any necessary methods from here on a per-method basis.
  */
 public final class Vect2DMath {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     /**
      * No constructing.

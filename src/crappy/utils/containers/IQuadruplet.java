@@ -1,13 +1,21 @@
 package crappy.utils.containers;
 
+import java.io.Serializable;
+
 /**
  * An interface for quadruplets of 4 items (supporting distinct types!)
  * @param <T1> first item type
  * @param <T2> second item type
  * @param <T3> third item type
  * @param <T4> fourth item type
+ * @author Rachel Lowe
  */
-public interface IQuadruplet <T1, T2, T3, T4> extends ITriplet<T1, T2, T3>{
+public interface IQuadruplet <T1, T2, T3, T4> extends ITriplet<T1, T2, T3>, Serializable {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     /**
      * Obtains the 4th item from the IQuadruplet

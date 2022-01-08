@@ -9,11 +9,25 @@ import crappy.math.M_Vect2D;
 import crappy.math.Vect2DMath;
 import crappy.math.Vect2D;
 
+/**
+ * A circle shape.
+ *
+ * @author Rachel Lowe
+ */
 public class CrappyCircle extends A_CrappyShape implements I_CrappyCircle, DrawableCrappyShape.DrawableCircle {
-
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     private Vect2D drawableRot;
 
+    /**
+     * Creates the circle, centered around point (0,0) in body's local coords, with given radius
+     * @param body body that this circle is attached to
+     * @param radius radius of this circle
+     */
     public CrappyCircle(final CrappyBody_ShapeSetter_Interface body, final double radius) {
         super(CRAPPY_SHAPE_TYPE.CIRCLE, Vect2D.ZERO, body, radius);
 

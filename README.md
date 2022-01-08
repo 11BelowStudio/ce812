@@ -4,7 +4,7 @@ Hello!
 
 This is a readme file that I haven't put anything of importance in yet.
 
-This is (probably) the assignment branch of the repository.
+This is the assignment branch of the repository.
 
 I'm planning on putting every lab (and the assignment) into their own branches in the
 repository, so, if you want to find each lab's stuff, please go to the branch for that

@@ -2,6 +2,7 @@ package crappy.utils.containers;
 
 import crappy.internals.CrappyWarning;
 
+import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -9,8 +10,14 @@ import java.util.Iterator;
 /**
  * Some sort of terrible implementation of a data class that effectively holds an unmodifiable list
  * @param <T> type of the object held in that list
+ * @author Rachel Lowe
  */
-public class Tuple<T> implements Iterable<T> {
+public class Tuple<T> implements Iterable<T>, Serializable {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     /**
      * The tuple itself

@@ -4,6 +4,11 @@ package crappy.math;
 
 /**
  * Comparison enum for I_Vect2D but for a quadtree instead
+ *
+ * ULTIMATELY UNUSED
+ *
+ * but I used this concept in {@link crappy.collisions.AABBQuadTreeTools.AABB_Quad_Enum} instead.
+ * @see crappy.collisions.AABBQuadTreeTools.AABB_Quad_Enum
  */
 public enum I_Vect2D_Quad_Enum {
 

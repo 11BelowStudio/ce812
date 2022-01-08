@@ -6,7 +6,16 @@ import crappy.math.I_Vect2D;
 import crappy.math.Rot2D;
 import crappy.math.Vect2D;
 
+/**
+ * An interface which the CrappyConnectors can use to look at the CrappyBodies.
+ * @author Rachel Lowe
+ */
 public interface CrappyBody_Connector_Interface extends I_Transform, IHaveIdentifier{
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     Vect2D getPos();
 

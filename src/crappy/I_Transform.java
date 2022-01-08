@@ -7,8 +7,14 @@ import crappy.math.Vect2D;
 
 /**
  * An interface that just has a getter for world position, world rotation, world velocity, and world angular velocity.
+ * @author Rachel Lowe
  */
 public interface I_Transform {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     /**
      * Get world position of centre of mass

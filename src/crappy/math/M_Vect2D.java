@@ -11,10 +11,15 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 /**
  * A mutable Vect2D.
  *
- * Intended for the sole purpose of internal calculations, so it's not public,
- * instead being kept far away from anyone else who may misuse it.
+ * Intended for the sole purpose of internal calculations, and saving the garbage collector from having to deal
+ * with buttloads of Vect2Ds getting disposed of 24/7
  */
 public final class M_Vect2D implements I_Vect2D {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     /**
      * X component of this vector.

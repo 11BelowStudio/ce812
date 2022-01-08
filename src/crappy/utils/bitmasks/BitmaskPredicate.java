@@ -2,7 +2,17 @@ package crappy.utils.bitmasks;
 
 import java.util.function.Predicate;
 
+/**
+ * Wrapper for a thing with a bitmask that is also a predicate on other things that have bitmasks.
+ *
+ * @author Rachel Lowe
+ */
 public interface BitmaskPredicate extends IHaveBitmask, Predicate<IHaveBitmask> {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     /**
      * Evaluates this predicate on the given argument, by seeing if this.getBitmask & other.getBitmask

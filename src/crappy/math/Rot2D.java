@@ -15,6 +15,11 @@ import java.lang.Math;
  *
  */
 public final class Rot2D implements Serializable, I_Rot2D {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     public final double sin;
 

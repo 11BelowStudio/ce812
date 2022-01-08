@@ -1,12 +1,19 @@
 package crappy.utils.lazyFinal;
 
+import java.io.Serializable;
 import java.util.Optional;
 
 /**
  * An interface for the LazyFinal write-once-read-many data structure.
- * @param <T>
+ * @param <T> datatype held
+ * @author Rachel Lowe
  */
-public interface ILazyFinal<T> {
+public interface ILazyFinal<T> extends Serializable {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     /**
      * A less nullpointer-y exception-y method for external stuff to check whether or not this has data

@@ -4,8 +4,15 @@ import java.util.UUID;
 
 /**
  * For objects that have a UUID identifying them.
+ * @author Rachel Lowe
  */
+@FunctionalInterface
 public interface IHaveIdentifier {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     /**
      * Obtains unique identifier for object

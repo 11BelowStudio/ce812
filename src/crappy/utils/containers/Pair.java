@@ -4,8 +4,14 @@ package crappy.utils.containers;
  * An equally crappy implementation of the IPair interface
  * @param <T1> type of 'first' object
  * @param <T2> type of 'second' object
+ * @author Rachel Lowe
  */
 public class Pair<T1, T2> implements IPair<T1, T2> {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     /**
      * The first item in the pair

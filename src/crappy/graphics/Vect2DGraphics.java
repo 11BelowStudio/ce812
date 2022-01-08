@@ -15,8 +15,14 @@ import java.awt.geom.*;
  * Class holding some graphics-related utility methods,
  * regarding the conversion between a Path2D.Double and an array of I_Vect2D objects.
  *
+ * @author Rachel Lowe
  */
 public final class Vect2DGraphics {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     /**
      * no constructing. only static.

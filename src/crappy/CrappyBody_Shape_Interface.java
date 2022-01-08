@@ -5,14 +5,18 @@ import crappy.math.I_Vect2D;
 
 /**
  * An interface for the CrappyShapes to access the CrappyBody with.
+ *
+ * @author Rachel Lowe
  */
 public interface CrappyBody_Shape_Interface extends I_View_CrappyBody, I_Transform, I_CrappyBody, DrawableBody {
-
-    /**
-     * Called to set the moment of inertia after the shape is made.
-     * @param moment the moment of inertia.
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
      */
-    void setMomentOfInertia(final double moment);
+
+
+
 
     /**
      * Called to notify the CrappyBody that it has, in fact, collided with something.

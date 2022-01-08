@@ -9,8 +9,14 @@ import crappy.math.Vect2DMath;
 
 /**
  * A view-only interface for collision shapes
+ * @author Rachel Lowe
  */
 public interface I_CrappyShape extends I_HaveRestitution, I_HaveMass {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     /**
      * Obtain body this is attached to

@@ -7,6 +7,12 @@ import java.awt.geom.Point2D;
  * A read-only interface for 2D vectors.
  */
 public interface I_Vect2D extends IPair<Double, Double>, Comparable<I_Vect2D> {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
+
 
     /**
      * Obtains the X component of this vector
@@ -117,20 +123,6 @@ public interface I_Vect2D extends IPair<Double, Double>, Comparable<I_Vect2D> {
         );
     }
 
-    default I_Vect2D_Quad_Enum relative_pos_quad(final I_Vect2D o){
-        if (getX() >= o.getX()){
-            if (getY() >= o.getY()){
-                return I_Vect2D_Quad_Enum.X_GREATER_Y_GREATER;
-            } else{
-                return I_Vect2D_Quad_Enum.X_GREATER_Y_SMALLER;
-            }
-        } else if (getY() >= o.getY()){
-            return I_Vect2D_Quad_Enum.X_SMALLER_Y_GREATER;
-        } else {
-            return I_Vect2D_Quad_Enum.X_SMALLER_Y_SMALLER;
-        }
-
-    }
 
     /**
      * Is this I_Vect2D greater than the other one? (this.x > o.x && this.y > o.y)

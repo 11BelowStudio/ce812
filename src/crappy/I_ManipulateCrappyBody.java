@@ -2,9 +2,15 @@ package crappy;
 
 /**
  * This interface can be used by a callback handler to manipulate certain aspects of a CrappyBody.
+ * @author Rachel Lowe
  */
 public interface I_ManipulateCrappyBody extends
         I_View_CrappyBody, I_CrappyBody, CrappyBody_Shape_Interface, CrappyBody_Connector_Interface {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
     /**
      * Do you want this body to be 'active' or not? Inactive bodies don't have collision and don't recieve forces.

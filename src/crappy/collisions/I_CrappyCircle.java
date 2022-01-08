@@ -8,9 +8,15 @@ import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
 
 /**
- * An interface for a CrappyCircle. This just provides a default implementation for isPointInBounds.
+ * An interface for a CrappyCircle. This just provides a default implementation for isPointInShape.
+ * @author Rachel Lowe
  */
 public interface I_CrappyCircle extends I_CrappyShape {
+    /*
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     */
 
 
     /**
