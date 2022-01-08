@@ -56,7 +56,9 @@ public class Level3 extends GameLevel{
     }
 }
 
-
+/**
+ * Time for some ergodic literature.
+ */
 enum letsTalkAboutThis{
 
     __END__,
@@ -71,7 +73,12 @@ enum letsTalkAboutThis{
     AD_HOMININ;
 
 
-    letsTalkAboutThis talk(Component parent){
+    /**
+     * Yes, this is literally just a hypertext game, delivered via the medium of JOptionPanes
+     * @param parent parent component for the JOptionPane
+     * @return the appropriate next state given the choice made by the player at the current state.
+     */
+    letsTalkAboutThis talk(final Component parent){
 
         switch (this){
 

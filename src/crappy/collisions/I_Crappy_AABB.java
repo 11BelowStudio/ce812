@@ -1,3 +1,8 @@
+/***
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 package crappy.collisions;
 
 import crappy.math.I_Vect2D;
@@ -13,11 +18,6 @@ import java.util.function.Predicate;
  * @author Rachel Lowe
  */
 public interface I_Crappy_AABB extends IPair<Vect2D, Vect2D>, Cloneable, Predicate<I_Crappy_AABB> {
-    /*
-     * This Source Code Form is subject to the terms of the Mozilla Public
-     * License, v. 2.0. If a copy of the MPL was not distributed with this
-     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
-     */
 
     /**
      * Obtain the max corner

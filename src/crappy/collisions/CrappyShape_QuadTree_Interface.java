@@ -1,8 +1,9 @@
+/***
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 package crappy.collisions;
-
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 /**
  * An interface for the crappyshape within the axis-aligned bounding box quadtree
@@ -10,11 +11,6 @@ import java.util.function.Supplier;
  * @author Rachel Lowe
  */
 public interface CrappyShape_QuadTree_Interface {
-    /*
-     * This Source Code Form is subject to the terms of the Mozilla Public
-     * License, v. 2.0. If a copy of the MPL was not distributed with this
-     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
-     */
 
     I_Crappy_AABB getBoundingBox();
 

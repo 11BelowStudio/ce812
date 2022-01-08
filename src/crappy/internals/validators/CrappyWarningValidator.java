@@ -1,3 +1,8 @@
+/***
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 package crappy.internals.validators;
 
 import crappy.internals.CrappyWarning;
@@ -14,11 +19,6 @@ import java.util.Set;
  * An attempt at making a validator to check for CrappyWarning annotations, probably doesn't even work.
  */
 public class CrappyWarningValidator extends AbstractProcessor {
-    /*
-     * This Source Code Form is subject to the terms of the Mozilla Public
-     * License, v. 2.0. If a copy of the MPL was not distributed with this
-     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
-     */
 
     @Override
     public Set<String> getSupportedAnnotationTypes(){

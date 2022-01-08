@@ -1,3 +1,8 @@
+/***
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 package crappy.graphics;
 
 import crappy.CrappyBody;
@@ -5,19 +10,12 @@ import crappy.CrappyBody_Shape_Interface;
 import crappy.collisions.I_CrappyShape;
 import crappy.math.Vect2D;
 
-import java.util.Vector;
-
 /**
  * A (group of) read-only interface(s) that only expose copies of certain parts of the shape,
  * which are synchronized and usable mostly risk-free in the rendering loop
  * @author Rachel Lowe
  */
 public interface DrawableCrappyShape {
-    /*
-     * This Source Code Form is subject to the terms of the Mozilla Public
-     * License, v. 2.0. If a copy of the MPL was not distributed with this
-     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
-     */
 
 
     Vect2D getDrawablePos();

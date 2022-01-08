@@ -1,3 +1,8 @@
+/***
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 package crappy.collisions;
 
 import crappy.math.I_Vect2D;
@@ -9,11 +14,6 @@ import crappy.math.Vect2DMath;
  * @author Rachel Lowe
  */
 public interface I_CrappyLine extends I_CrappyShape, Iterable<I_CrappyEdge>{
-    /*
-     * This Source Code Form is subject to the terms of the Mozilla Public
-     * License, v. 2.0. If a copy of the MPL was not distributed with this
-     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
-     */
 
     /**
      * Returns the first crappyedge

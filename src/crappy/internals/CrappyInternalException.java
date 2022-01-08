@@ -1,3 +1,8 @@
+/***
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 package crappy.internals;
 
 /**
@@ -5,11 +10,6 @@ package crappy.internals;
  * Mostly here so I can kick myself in the arse on your behalf.
  */
 public class CrappyInternalException extends RuntimeException{
-    /*
-     * This Source Code Form is subject to the terms of the Mozilla Public
-     * License, v. 2.0. If a copy of the MPL was not distributed with this
-     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
-     */
 
     /**
      * no-arg version, message is just 'CRAPPY EXCEPTION!'

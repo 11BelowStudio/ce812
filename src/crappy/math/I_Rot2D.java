@@ -1,3 +1,8 @@
+/***
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 package crappy.math;
 
 import crappy.utils.containers.IPair;
@@ -6,11 +11,6 @@ import crappy.utils.containers.IPair;
  * An interface for the mutable/immutable Rot2D objects.
  */
 public interface I_Rot2D extends IPair<Double, Double> {
-    /*
-     * This Source Code Form is subject to the terms of the Mozilla Public
-     * License, v. 2.0. If a copy of the MPL was not distributed with this
-     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
-     */
 
 
     double get_sin();

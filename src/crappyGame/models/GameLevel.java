@@ -31,6 +31,9 @@ import java.util.*;
 import java.util.List;
 import java.util.function.BiFunction;
 
+/**
+ * A class which works as a level in the game.
+ */
 public class GameLevel extends A_Model implements IModel, Viewable, CrappyCallbackHandler, IRecieveDebris {
 
     Spaceship ship;

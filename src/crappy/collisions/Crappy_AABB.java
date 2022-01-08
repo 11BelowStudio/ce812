@@ -1,3 +1,8 @@
+/***
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 package crappy.collisions;
 
 import crappy.math.I_Vect2D;
@@ -5,9 +10,6 @@ import crappy.math.M_Vect2D;
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
 import crappy.utils.containers.IPair;
-import crappy.utils.containers.Quadruplet;
-
-import java.util.Arrays;
 
 
 /**
@@ -15,11 +17,6 @@ import java.util.Arrays;
  * @author Rachel Lowe
  */
 public class Crappy_AABB implements I_Crappy_AABB, Cloneable {
-    /*
-     * This Source Code Form is subject to the terms of the Mozilla Public
-     * License, v. 2.0. If a copy of the MPL was not distributed with this
-     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
-     */
 
     /**
      * Min corner of the box (lowest x, y)

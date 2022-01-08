@@ -6,7 +6,8 @@ import java.util.function.Function;
  * A utility class, originally created by me for 'Epic Gamer Moment: The Game' (back in 2019),
  * and has since been bastardized several times over by me. This is the newest iteration, and hopefully
  * most of the code bloat has been removed from it.
- * @param <T>
+ * @param <T> type of the data held in this
+ * @author Rachel Lowe
  */
 public class AttributeString<T> {
 
