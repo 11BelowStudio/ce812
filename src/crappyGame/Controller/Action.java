@@ -88,9 +88,12 @@ public class Action implements IAction{
         SPACE
     }
 
+    void justPressedAny(){
+        pressedAny = true;
+    }
+
 
     void pressed(final ACTION_ENUM a){
-        pressedAny = true;
         switch (a){
             case UP:
                 upHeld = true;

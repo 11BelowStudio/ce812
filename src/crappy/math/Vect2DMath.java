@@ -757,6 +757,32 @@ public final class Vect2DMath {
         return M_Vect2D.GET(worldPos).sub(bodyWorldPos).rotate_opposite(bodyWorldRot);
     }
 
+    /**
+     * Finds the world velocity of a local coordinate when we already know that aforementioned local coordinate has been rotated.
+     * @param rotatedPos the rotated local coordinate
+     * @param trans the transform it's attached to
+     * @return the world velocity of that local coordinate which was already rotated when we got it.
+     */
+    public static M_Vect2D WORLD_VEL_OF_ROTATED_LOCAL_COORD_M(
+            final I_Vect2D rotatedPos, final I_Transform trans
+    ){
+        return WORLD_VEL_OF_ROTATED_LOCAL_COORD_M(rotatedPos, trans.getVel(), trans.getAngVel());
+    }
+
+    /**
+     * Finds the world velocity of a local coordinate when we already know that aforementioned local coordinate has been rotated.
+     * @param rotatedPos the rotated local coordinate
+     * @param velCOM the linear velocity of the body it is attached to
+     * @param angVel the angular velocity of the body it is attached to
+     * @return the world velocity of that local coordinate which was already rotated when we got it.
+     */
+    public static M_Vect2D WORLD_VEL_OF_ROTATED_LOCAL_COORD_M(
+            final I_Vect2D rotatedPos, final IPair<Double, Double> velCOM, final double angVel
+    ){
+        return M_Vect2D.GET(rotatedPos)
+                .cross(angVel, false)
+                .add(velCOM);
+    }
 
     /**
      * Obtains the world velocity of local coordinate localPos on a body with transform trans
@@ -765,8 +791,10 @@ public final class Vect2DMath {
      * @return world velocity of that local coordinate
      */
     public static M_Vect2D WORLD_VEL_OF_LOCAL_COORD_M(final I_Vect2D localPos, final I_Transform trans){
-        return WORLD_VEL_OF_LOCAL_COORD_M(localPos, trans.getAngVel(), trans.getVel());
+        return WORLD_VEL_OF_LOCAL_COORD_M(localPos, trans.getVel(), trans.getAngVel(), trans.getRot());
     }
+
+
 
     /**
      * Obtains the world velocity of local coordinate localPos on a body described by all the other arguments here
@@ -774,14 +802,21 @@ public final class Vect2DMath {
      * vCOM + angVel x r
      *
      * @param localPos local pos of coord on body
+     * @param velCOM linear velocity of body's centre of mass
      * @param angVel angular velocity of body
-     * @param vel linear velocity of body
+     * @param worldRot rotation of the body
      * @return the velocity, in world scale, of the local position on that body
      */
-    public static M_Vect2D WORLD_VEL_OF_LOCAL_COORD_M(final I_Vect2D localPos, final double angVel, final I_Vect2D vel){
+    public static M_Vect2D WORLD_VEL_OF_LOCAL_COORD_M(
+            final I_Vect2D localPos,
+            final IPair<Double, Double> velCOM,
+            final double angVel,
+            final I_Rot2D worldRot
+    ){
         return M_Vect2D.GET(localPos)
+                .rotate(worldRot)
                 .cross(angVel, false) // angVel X r
-                .add(vel); // adding main body vel
+                .add(velCOM); // adding main body vel
     }
 
     /**
@@ -2013,7 +2048,7 @@ public final class Vect2DMath {
      * Returns n only if it's finite and also a number
      * @param n default value
      * @param x backup value if n is infinite/not a number
-     * @return n, or x if n is infinite/not a number.
+     * @return n, or x if n is infinite/not a number
      */
     public static double RETURN_X_IF_NOT_FINITE(final double n, final double x){
         if (Double.isFinite(n)){
@@ -2021,6 +2056,19 @@ public final class Vect2DMath {
         } else {
             return x;
         }
+    }
+
+    /**
+     * Returns n only if a finite number which isn't zero.
+     * @param n default value
+     * @param x backup value if n is infinite/not a number/zero
+     * @return n, or x if n is infinite/not a number/zero
+     */
+    public static double RETURN_X_IF_NOT_FINITE_OR_IF_ZERO(final double n, final double x){
+        if (Double.isFinite(n) && Double.compare(n, 0) != 0){
+            return n;
+        }
+        return x;
     }
 
 

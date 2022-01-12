@@ -18,7 +18,12 @@ import java.awt.geom.Point2D;
  */
 public interface I_GraphicsTransform {
 
-    public static IPair<Double, Double> ORIGIN_TOP_LEFT_CORRECTION = IPair.of((double)1,(double) -1);
+    /**
+     * Because Java draws stuff from the top-left corner, not the bottom-left,
+     * we need to invert Y. We can easily do that when performing the world-screen transformations,
+     * by multiplying the part of the equation where Y needs to be inverted by this pair of doubles.
+     */
+    public static final IPair<Double, Double> ORIGIN_TOP_LEFT_CORRECTION = IPair.of((double)1,(double) -1);
 
     /**
      * Obtain the raw scale for 'world length to screen length'/'world height to screen height'.
@@ -69,7 +74,7 @@ public interface I_GraphicsTransform {
         return TO_VIEWPORT_CORRECTED_SCREEN_COORDS_M(worldCoord).finished();
     }
 
-    public default M_Vect2D TO_RAW_SCREEN_SCALE_M(final IPair<Double, Double> worldCoord){
+    default M_Vect2D TO_RAW_SCREEN_SCALE_M(final IPair<Double, Double> worldCoord){
         return M_Vect2D.GET(worldCoord).divide(getScreenScale());
     }
 

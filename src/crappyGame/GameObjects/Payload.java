@@ -9,8 +9,7 @@ import crappy.math.Rot2D;
 import crappy.math.Vect2D;
 import crappyGame.models.IRecieveDebris;
 
-import static crappyGame.GameObjects.Payload.BALL_STATE.BEING_TOWED;
-import static crappyGame.GameObjects.Payload.BALL_STATE.DED;
+import static crappyGame.GameObjects.Payload.BALL_STATE.*;
 
 public class Payload implements CrappyCallbackHandler, Respawnable, GameObject {
 
@@ -56,8 +55,8 @@ public class Payload implements CrappyCallbackHandler, Respawnable, GameObject {
                 Vect2D.ZERO,
                 Rot2D.IDENTITY,
                 0,
-                0.1,
-                0.8,
+                0.25,
+                1,
                 0,
                 0.00025,
                 CrappyBody.CRAPPY_BODY_TYPE.DYNAMIC,
@@ -66,7 +65,7 @@ public class Payload implements CrappyCallbackHandler, Respawnable, GameObject {
                 this,
                 new Object(),
                 "payload",
-                false,
+                true,
                 false,
                 false
         );
@@ -152,7 +151,9 @@ public class Payload implements CrappyCallbackHandler, Respawnable, GameObject {
      */
     @Override
     public void collidedWith(I_View_CrappyBody otherBody) {
-        CrappyCallbackHandler.super.collidedWith(otherBody);
+
+        System.out.println(otherBody.getName());
+        System.out.println("");
     }
 
     /**
@@ -164,10 +165,42 @@ public class Payload implements CrappyCallbackHandler, Respawnable, GameObject {
      * @implNote default implementation does nothing
      */
     @Override
-    public void acceptCollidedWithBitmaskAfterAllCollisions(int collidedWithBits) {
-        if (BodyTagEnum.FINISH_LINE.anyMatchInBitmasks(collidedWithBits)){
+    public void acceptCollidedWithBitmaskAfterAllCollisions(final int collidedWithBits) {
+
+        if (BodyTagEnum.FINISH_LINE.anyMatchInBitmasks(collidedWithBits)) {
             this.state = BALL_STATE.SUCCESS;
-        } else if (state != BALL_STATE.DED && state != BALL_STATE.SUCCESS && BodyTagEnum.WORLD.anyMatchInBitmasks(collidedWithBits)){
+        } else{
+
+            switch (state){
+                case WAITING:
+                    if (BodyTagEnum.SHIP.anyMatchInBitmasks(collidedWithBits)){
+                        state = DROPPED;
+                        body.setFrozen(false);
+                    }
+                    break;
+                case BEING_TOWED:
+                case DROPPED:
+                    if (BodyTagEnum.WORLD.anyMatchInBitmasks(collidedWithBits)){
+                        debrisGoesHere.addDebris(getPos(), getRot(), getVel(), 3 + (int)(Math.random() * 5), IRecieveDebris.DebrisSource.PAYLOAD);
+                        this.state = BALL_STATE.DED;
+                        this.dedPos = getPos();
+                        body.setMarkForRemoval(true);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        /*
+        if (state == BALL_STATE.WAITING && BodyTagEnum.SHIP.anyMatchInBitmasks(collidedWithBits)){
+            state = BALL_STATE.DROPPED;
+            body.setFrozen(false);
+
+            //body.overwriteVelocityAfterCollision(Vect2D.ZERO, 0, CrappyBody.FORCE_SOURCE.MANUAL);
+        } else if (state != BALL_STATE.DED && state != BALL_STATE.SUCCESS && (
+                BodyTagEnum.WORLD.anyMatchInBitmasks(collidedWithBits) || BodyTagEnum.SHIP.anyMatchInBitmasks(collidedWithBits))
+        ){
             debrisGoesHere.addDebris(getPos(), getRot(), getVel(), 3 + (int)(Math.random() * 5), IRecieveDebris.DebrisSource.PAYLOAD);
             this.state = BALL_STATE.DED;
             this.dedPos = getPos();
@@ -178,6 +211,8 @@ public class Payload implements CrappyCallbackHandler, Respawnable, GameObject {
             body.setTangibility(true);
             body.overwriteVelocityAfterCollision(Vect2D.ZERO, 0, CrappyBody.FORCE_SOURCE.MANUAL);
         }
+
+         */
     }
 
 }

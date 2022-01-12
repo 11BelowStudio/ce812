@@ -25,7 +25,7 @@ public class MyRenderer implements I_CrappilyDrawStuff {
     /**
      * The graphics2D object that this will be drawing stuff to.
      */
-    private Graphics2D g;
+    private transient Graphics2D g;
 
     /**
      * Should bounding boxes be drawn?
@@ -152,7 +152,7 @@ public class MyRenderer implements I_CrappilyDrawStuff {
      * @param col      draw it in this colour.
      */
     @Override
-    public void drawPolygon(I_Vect2D pos, I_Vect2D[] vertices, Color col) {
+    public void drawPolygon(final I_Vect2D pos, final I_Vect2D[] vertices, final Color col) {
 
         g.setColor(col);
         g.draw(
@@ -168,7 +168,7 @@ public class MyRenderer implements I_CrappilyDrawStuff {
      * @param col      draw it in this colour.
      */
     @Override
-    public void drawFilledPolygon(I_Vect2D pos, I_Vect2D[] vertices, Color col) {
+    public void drawFilledPolygon(final I_Vect2D pos, final I_Vect2D[] vertices, final Color col) {
 
         g.setColor(col);
         g.fill(

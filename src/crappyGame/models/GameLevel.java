@@ -3,20 +3,16 @@ package crappyGame.models;
 import crappy.CrappyBody;
 import crappy.CrappyCallbackHandler;
 import crappy.CrappyConnector;
-import crappy.I_View_CrappyBody;
 import crappy.collisions.AABBQuadTreeTools;
 import crappy.math.*;
 import crappy.utils.containers.IQuadruplet;
-import crappy.utils.containers.ITriplet;
 import crappyGame.A_Model;
-import crappyGame.Controller.Controller;
 import crappyGame.Controller.IAction;
 import crappyGame.Controller.IController;
 import crappyGame.GameObjects.Debris;
 import crappyGame.GameObjects.Payload;
 import crappyGame.GameObjects.Spaceship;
 import crappyGame.GameObjects.StringObject;
-import crappyGame.GraphicsTransform;
 import crappyGame.IGameRunner;
 import crappyGame.IModel;
 import crappyGame.UI.Viewable;
@@ -82,7 +78,7 @@ public class GameLevel extends A_Model implements IModel, Viewable, CrappyCallba
     );
 
     final StringObject pressTheAnyButtonWords = new StringObject(
-            "PRESS THE ANY BUTTON TO START!",
+            "PRESS A DIRECTION TO START!",
             gt.TO_RAW_SCREEN_SCALE_M(new Vect2D(VISIBLE_WORLD_WIDTH/2.0, VISIBLE_WORLD_HEIGHT/2.0)).finished(),
             Rot2D.IDENTITY,
             StringObject.ALIGNMENT_ENUM.MIDDLE
@@ -148,8 +144,8 @@ public class GameLevel extends A_Model implements IModel, Viewable, CrappyCallba
     }
 
     GameLevel(
-            IController ctrl,
-            IQuadruplet<Vect2D, Vect2D, AABBQuadTreeTools.I_StaticGeometryQuadTreeRootNode, Optional<BufferedImage>> levelGeom,
+            final IController ctrl,
+            final IQuadruplet<Vect2D, Vect2D, AABBQuadTreeTools.I_StaticGeometryQuadTreeRootNode, Optional<BufferedImage>> levelGeom,
             final int myLives,
             final double myUsedFuel,
             final IGameRunner runner
@@ -214,8 +210,8 @@ public class GameLevel extends A_Model implements IModel, Viewable, CrappyCallba
 
         world.update();
 
-        for (Iterator<Debris> diter = debris.iterator(); diter.hasNext();) {
-            Debris d = diter.next();
+        for (final Iterator<Debris> diter = debris.iterator(); diter.hasNext();) {
+            final Debris d = diter.next();
             d.update(world.totalDelta);
             if (!d.isStillExists()){
                 diter.remove();
@@ -266,7 +262,7 @@ public class GameLevel extends A_Model implements IModel, Viewable, CrappyCallba
                     Vect2DMath.VECTOR_BETWEEN_M(
                             midToLerpPos,
                             midToLerpPos.divide(
-                                    Vect2DMath.RETURN_X_IF_NOT_FINITE(safeCamDist/midToLerpPos.mag(), 1)
+                                    Vect2DMath.RETURN_X_IF_NOT_FINITE_OR_IF_ZERO(safeCamDist/midToLerpPos.mag(), 1)
                             )
                     ).mult(lerpSpeed)
                     .add(viewportCorner)
@@ -274,7 +270,7 @@ public class GameLevel extends A_Model implements IModel, Viewable, CrappyCallba
         }
 
         if (!viewportCorner.isFinite()){
-            viewportCorner = ship.getStartPos();
+            viewportCorner = ship.getStartPos().addScaled(halfVisibleWorld, -1);
         }
 
         controller.timestepEndReset();
@@ -321,16 +317,16 @@ public class GameLevel extends A_Model implements IModel, Viewable, CrappyCallba
     void createTowRope(){
         final CrappyConnector rope = new CrappyConnector(
                 ship.getBody(),
-                Vect2D.ZERO,
+                Spaceship.connectorPos,
                 pl.getBody(),
                 Vect2D.ZERO,
-                Vect2DMath.DIST(ship.getPos(), pl.getPos()),
-                5000,
+                50000,
                 100,
                 false,
                 CrappyConnector.TRUNCATION_RULE_FACTORY(
-                        CrappyConnector.TruncationEnum.COSINE_TRUNCATION,
-                        100
+                        CrappyConnector.TruncationEnum.PARTIAL_TANH,
+                        150,
+                        0.75
                 ),
                 false
         );
@@ -366,7 +362,7 @@ public class GameLevel extends A_Model implements IModel, Viewable, CrappyCallba
         gt.updateViewport(viewportCorner);
 
 
-        Vect2D bgVP = gt.TO_SCREEN_COORDS_V(gt.TO_WORLD_COORDS_M(Vect2D.ZERO).sub(viewportCorner).finished());
+        final Vect2D bgVP = gt.TO_SCREEN_COORDS_V(gt.TO_WORLD_COORDS_M(Vect2D.ZERO).sub(viewportCorner).finished());
 
 
         background.ifPresent(img -> g.setPaint(
@@ -383,7 +379,7 @@ public class GameLevel extends A_Model implements IModel, Viewable, CrappyCallba
         g.fillRect(0, 0, dims.width, dims.height);
 
 
-        AffineTransform at = g.getTransform();
+        final AffineTransform at = g.getTransform();
         super.draw(g);
         g.setTransform(at);
 
@@ -438,5 +434,4 @@ public class GameLevel extends A_Model implements IModel, Viewable, CrappyCallba
         }
     }
 
-    // TODO:
 }

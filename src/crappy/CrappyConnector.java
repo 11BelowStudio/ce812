@@ -1,3 +1,8 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 package crappy;
 
 import crappy.graphics.DrawableConnector;
@@ -6,15 +11,20 @@ import crappy.math.Vect2DMath;
 import crappy.utils.containers.IPair;
 
 
+import java.util.Objects;
+import java.util.UUID;
 import java.util.function.DoubleUnaryOperator;
 
 /**
- * A connector (usable as an elastic joint) for use within Crappy
+ * A connector (usable as an elastic joint) for use within Crappy/
+ *
+ * Somewhat based on the 'ElasticConnector' class provided by Dr. Michael Fairbank
+ * as part of the the CE812 Physics Based Games module at the University of Essex.
  *
  * @author Rachel Lowe
  */
 @SuppressWarnings("BooleanParameter")
-public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector {
+public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector, CrappyConnectorBodyInterface, IHaveIdentifier {
     /*
      * This Source Code Form is subject to the terms of the Mozilla Public
      * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -45,7 +55,7 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector
 
     private final boolean bodiesCanCollide;
 
-    private boolean pendingRemoval = false;
+    public final UUID id = UUID.randomUUID();
 
 
     /**
@@ -54,11 +64,13 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector
      * @param bodyALocalPos local pos of connector in first body
      * @param bodyB second body
      * @param bodyBLocalPos local pos of connector in second body
-     * @param naturalLength natural length between connection points. if not finite or below 0, automatically overwritten with current dist between the points.
+     * @param naturalLength natural length between connection points. Absolute value will be used.
+     *                      If not finite, automatically overwritten with current dist between the points.
      * @param constant spring constant
      * @param damping damping to apply
      * @param slack can the spring go slack?
-     * @param trunc truncation rule we're using
+     * @param trunc truncation rule we're using,
+     *              see {@link #TRUNCATION_RULE_FACTORY(TruncationEnum, double...)} for further assistance.
      * @param bodiesCanCollide are these bodies allowed to collide with each other?
      */
     public CrappyConnector(
@@ -77,8 +89,8 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector
         this.bodyALocalPos = bodyALocalPos;
         this.bodyB = bodyB;
         this.bodyBLocalPos = bodyBLocalPos;
-        if (Double.isFinite(naturalLength) && naturalLength >= 0) {
-            this.naturalLength = naturalLength;
+        if (Double.isFinite(naturalLength)) {
+            this.naturalLength = Math.abs(naturalLength);
         } else {
             this.naturalLength = Vect2DMath.DIST(
                     bodyALocalPos.localToWorldCoordinates(bodyA),
@@ -91,7 +103,7 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector
         this.truncationRule = trunc;
         this.bodiesCanCollide = bodiesCanCollide;
         bodyA.__addConnector_internalPlsDontUseManually(this);
-        bodyB.__removeConnector_internalPlsDontUseManually(this);
+        bodyB.__addConnector_internalPlsDontUseManually(this);
     }
 
 
@@ -104,7 +116,8 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector
      * @param constant spring constant
      * @param damping damping to apply
      * @param slack can the spring go slack?
-     * @param trunc truncation rule we're using
+     * @param trunc truncation rule we're using,
+     *              see {@link #TRUNCATION_RULE_FACTORY(TruncationEnum, double...)} for further assistance.
      * @param bodiesCanCollide are these bodies allowed to collide with each other?
      */
     public CrappyConnector(
@@ -210,6 +223,8 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector
 
     double rateOfChangeOfExtension(){
 
+        //System.out.println("b vel = " + bodyBLocalPos.getWorldVelocityOfLocalCoordinate(bodyB.getTempTransform()));
+        //System.out.println("a vel = " + bodyALocalPos.getWorldVelocityOfLocalCoordinate(bodyA.getTempTransform()));
         return Vect2DMath.MINUS(
                 bodyBLocalPos.getWorldVelocityOfLocalCoordinate(bodyB.getTempTransform()),
                 bodyALocalPos.getWorldVelocityOfLocalCoordinate(bodyA.getTempTransform())
@@ -296,13 +311,32 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector
     }
 
 
-    public static enum TruncationEnum{
-        NO_TRUNCATION,
-        STANDARD_TRUNCATION,
-        COSINE_TRUNCATION;
-    }
+
 
     public static CrappyConnectorMaker GET_CREATOR(){ return new CrappyConnectorMaker(); }
+
+    /**
+     * Obtains unique identifier for object
+     *
+     * @return unique identifier.
+     */
+    @Override
+    public UUID getID() {
+        return id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CrappyConnector that = (CrappyConnector) o;
+        return Double.compare(that.getNaturalLength(), getNaturalLength()) == 0 && Double.compare(that.springConstant, springConstant) == 0 && Double.compare(that.motionDampingConstant, motionDampingConstant) == 0 && canGoSlack == that.canGoSlack && bodiesCanCollide == that.bodiesCanCollide && bodyA.equals(that.bodyA) && bodyALocalPos.equals(that.bodyALocalPos) && bodyB.equals(that.bodyB) && bodyBLocalPos.equals(that.bodyBLocalPos) && id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(bodyA, bodyALocalPos, bodyB, bodyBLocalPos, getNaturalLength(), springConstant, motionDampingConstant, canGoSlack, bodiesCanCollide, id);
+    }
 
     /**
      * Here to make it a bit easier to make a CrappyConnector, inspired by JBox2D JointDef stuff.
@@ -325,6 +359,10 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector
 
         public boolean canGoSlack = false;
 
+        /**
+         * Truncation rule being used.
+         * @see #TRUNCATION_RULE_FACTORY(TruncationEnum, double...) for further help. 
+         */
         public DoubleUnaryOperator truncationRule = TRUNCATION_RULES._NO_TRUNCATION;
 
         public boolean bodiesCanCollide = false;
@@ -364,22 +402,98 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector
 
     }
 
-    public static DoubleUnaryOperator TRUNCATION_RULE_FACTORY(final TruncationEnum rule, final double trunc){
-        switch (rule){
-            case STANDARD_TRUNCATION:
-                return new TRUNCATION_RULES.StandardTruncation(trunc);
-            case COSINE_TRUNCATION:
-                return new TRUNCATION_RULES.SineTruncation(trunc);
-            case NO_TRUNCATION:
-            default:
-                return TRUNCATION_RULES._NO_TRUNCATION;
+    /**
+     * Used in {@link #TRUNCATION_RULE_FACTORY(TruncationEnum, double...)}
+     * @see #TRUNCATION_RULE_FACTORY(TruncationEnum, double...)
+     */
+    public static enum TruncationEnum{
+        /**
+         * @see TRUNCATION_RULES#_NO_TRUNCATION
+         */
+        NO_TRUNCATION,
+        /**
+         * @see TRUNCATION_RULES.StandardTruncation
+         */
+        STANDARD_TRUNCATION,
+        /**
+         * @see TRUNCATION_RULES.TanhTruncation
+         */
+        TANH_TRUNCATION,
+        /**
+         * @see TRUNCATION_RULES.PartialTanhTruncation
+         */
+        PARTIAL_TANH;
+    }
+
+
+    /**
+     * Attempts to create an appropriate truncation function based on what the programmer asks for
+     * @param rule the rule to use
+     * @param truncValuesEtc First index is the truncation amount to use.
+     *                       Further indices are for extra variables for the specified rules.
+     * @return a DoubleUnaryOperator to truncate the tension according to the desired rule.
+     * @throws IllegalArgumentException if there's an incorrect value given.
+     * @apiNote NaN (or zero) for truncation amount are treated as 'return zero',
+     * any infinity for truncation amount is treated as 'return as-is',
+     * @see TruncationEnum
+     * @see TRUNCATION_RULES
+     */
+    public static DoubleUnaryOperator TRUNCATION_RULE_FACTORY(
+            final TruncationEnum rule, final double... truncValuesEtc
+    ) throws IllegalArgumentException {
+        final double trunc = truncValuesEtc[0];
+        if (Double.isFinite(trunc)) {
+            switch (rule) {
+                case PARTIAL_TANH:
+                    if (Double.compare(trunc, 0) == 0){
+                        // partial tanh truncation involves division by trunc,
+                        // so, if trunc is zero, we shouldn't use this.
+                        // If there's a second variable given, we'll
+                        // see if it's possible to perform a standard truncation on that.
+                        // Otherwise, we'll just return zero.
+                        if (truncValuesEtc.length > 1){
+                            return TRUNCATION_RULE_FACTORY(TruncationEnum.STANDARD_TRUNCATION, truncValuesEtc[1]);
+                        }
+                        return TRUNCATION_RULES._RETURN_ZERO;
+                    }
+                    if (truncValuesEtc.length > 1){
+                        final double proportion = Math.abs(truncValuesEtc[1]);
+                        if (proportion > 1){
+                            throw new IllegalArgumentException(
+                                    "Index 1 of truncValuesEtc for PARTIAL TANH needs to have absolute value between 0 and 1," +
+                                    "recieved absolute value of " + proportion + "!!!"
+                            );
+                        }
+                        return new TRUNCATION_RULES.PartialTanhTruncation(trunc, proportion);
+                    }
+                    return new TRUNCATION_RULES.PartialTanhTruncation(trunc);
+                case TANH_TRUNCATION:
+                    if (Double.compare(trunc, 0) == 0){
+                        // tanh truncation involves division by trunc,
+                        // so, if trunc is zero, we shouldn't use TanhTruncation,
+                        // and we'll just use 'RETURN ZERO' instead
+                        return TRUNCATION_RULES._RETURN_ZERO;
+                    }
+                    return new TRUNCATION_RULES.TanhTruncation(trunc);
+                case STANDARD_TRUNCATION:
+                    return new TRUNCATION_RULES.StandardTruncation(trunc);
+                case NO_TRUNCATION:
+                default:
+                    return TRUNCATION_RULES._NO_TRUNCATION;
+            }
         }
+        if (Double.isNaN(trunc)){
+            return TRUNCATION_RULES._RETURN_ZERO;
+        }
+        return TRUNCATION_RULES._NO_TRUNCATION;
     }
 
     /**
      * Inner class with the usable truncation rules
      */
     public static final class TRUNCATION_RULES {
+
+        private TRUNCATION_RULES(){}
 
 
         @FunctionalInterface
@@ -392,6 +506,12 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector
          */
         public static final TruncationRule _NO_TRUNCATION = rawTension -> rawTension;
 
+        /**
+         * A truncation 'rule' that just returns zero. Not sure why you would want to use this,
+         * but, if you really want to use it, you can.
+         */
+        public static final TruncationRule _RETURN_ZERO = x -> 0;
+
 
         /**
          * Truncation rule which just limits extension ratios to be in range(-limit, limit)
@@ -401,15 +521,20 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector
             /**
              * upper/lower bound for the extension ratio
              */
-            final double limit;
+            protected final double limit;
 
             /**
              * Initialize a StandardTruncation rule with given limit
              *
-             * @param d defines lower/upper bound for extension ratio (forced to be positive)
+             * @param l defines lower/upper bound for extension ratio (forced to be positive)
+             * @throws IllegalArgumentException if l is not finite.
              */
-            public StandardTruncation(final double d) {
-                limit = Math.abs(d);
+            public StandardTruncation(final double l) throws IllegalArgumentException {
+                if (Double.isFinite(l)) {
+                    limit = Math.abs(l);
+                } else {
+                    throw new IllegalArgumentException("Cannot use a non-finite value for limit! Received " + l);
+                }
             }
 
             /**
@@ -432,29 +557,116 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector
         }
 
         /**
-         * Truncation rule which just limits values to be in range (-limit, limit) but uses the cosine rule to smoothen
-         * the truncation a bit
+         * Truncation rule which just limits values to be in range (-limit, limit) via the hyperbolic tangent function
          */
-        public static class SineTruncation extends StandardTruncation {
+        public static class TanhTruncation extends StandardTruncation {
 
 
-            public SineTruncation(final double d) {
-                super(d);
+            /**
+             * TanhTruncation constructor
+             * @param limit limit to use
+             * @throws IllegalArgumentException if limit is 0.
+             */
+            public TanhTruncation(final double limit) throws IllegalArgumentException {
+                super(limit);
+                if (Math.abs(limit) == 0){
+                    throw new IllegalArgumentException("TanhTruncation cannot use a limit of zero!");
+                }
             }
+
+            /**
+             *
+             * @param rawTension the double to truncate
+             *
+             * @return tanh(raw/limit) * limit
+             */
+            @Override
+            public double applyAsDouble(final double rawTension) {
+                return Math.tanh(rawTension/limit) * limit;
+            }
+        }
+
+        /**
+         * Like tanhtruncation, but you can define a certain proportion of the raw tension to be 'safe'
+         * from truncation.
+         *
+         * So, if you had a limit of lim, and defined a safeProportion of safe,
+         * giving a rawtension of raw:
+         * <html><pre>
+         *      let S = (lim * safe)
+         *      let L = lim - S
+         *      let R = abs(raw)
+         *
+         *      if R <= S: -> raw
+         *      else:
+         *          S + (tanh(R-S/L) * L) * sign(raw)</pre></html>
+         *
+         * so basically everything within safeProportion of limit goes untruncated,
+         * but everything above that safeProportion is given tanhTruncation.
+         *
+         */
+        public static class PartialTanhTruncation implements TruncationRule{
+
+            /**
+             * 'safe' part of the limit, untruncated
+             */
+            private final double untruncatedLimit;
+
+            /**
+             * 'unsafe' part of the limit, given tanh truncation
+             */
+            private final double truncRemainder;
+
+            /**
+             * True if truncRemainder is 0, so we can avoid dividing by 0.
+             */
+            private final boolean noRemainder;
+
+            /**
+             * Partial truncation with proportion 0.5
+             * @param limit the total amount to truncate
+             */
+            public PartialTanhTruncation(final double limit){
+                this(limit, 0.5);
+            }
+
+            /**
+             * Partial truncation with specified limit
+             * @param limit total limit
+             * @param safeProportion proportion of total limit that isn't truncated.
+             */
+            public PartialTanhTruncation(final double limit, final double safeProportion){
+                final double lim = Math.abs(limit);
+                if (lim == 0){
+                    throw new IllegalArgumentException("Cannot use a limit of 0!");
+                }
+                final double safe = Math.min(Math.abs(safeProportion), 1);
+
+                untruncatedLimit = lim * safe;
+                truncRemainder = lim - untruncatedLimit;
+                noRemainder = (truncRemainder >= 0);
+            }
+
 
             @Override
             public double applyAsDouble(final double rawTension) {
-                if (rawTension >= limit) {
-                    return limit;
-                } else if (rawTension <= -limit) {
-                    return -limit;
+                final double absRaw = Math.abs(rawTension); // find absolute tension
+                if (absRaw <= untruncatedLimit){
+                    return rawTension; // if it's within the safe limit, return as-is
+                } else if (noRemainder){
+                    // if there's no remainder, perform standard truncation
+                    return untruncatedLimit * Math.signum(rawTension);
                 }
-                return Math.cos(
-                        ((rawTension - limit) / (limit * 2)) // -1 if aDouble is at lower bound, 0 if aDouble is at upper bound
-                                * Math.PI //-PI if at lower bound, 0 if at upper bound
-                ) * limit * 2;
+                // if it's not in the safe limit
+
+                // we first get the untruncated amount
+                return untruncatedLimit + (
+                        // then we apply tanh truncation to the remainder of the absolute raw value
+                        Math.tanh((absRaw - untruncatedLimit)/truncRemainder) * truncRemainder
+                ) * Math.signum(rawTension); // and then factor in the sign of the non-absolute raw value
             }
         }
+
 
     }
 

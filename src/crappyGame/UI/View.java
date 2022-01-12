@@ -30,23 +30,18 @@ public class View extends JComponent implements IHaveScaledDimensions {
         synchronized (this) {
             viewThis = v;
             super.setPreferredSize(v.getSize());
-            super.setMinimumSize(v.getSize());
         }
     }
 
 
     @Override
-    public void paintComponent(Graphics g0){
+    public void paintComponent(final Graphics g0){
 
         final Graphics2D g = (Graphics2D) g0;
-
         final AffineTransform at = g.getTransform();
 
-        final IPair<Double, Double> dimRatio = currentDimRatio();
-
-        g.scale(dimRatio.getFirst(),dimRatio.getSecond());
-
         synchronized (this){
+            g.scale(currentDimRatio().getFirst(),currentDimRatio().getSecond());
             viewThis.draw(g);
         }
 
@@ -93,13 +88,13 @@ public class View extends JComponent implements IHaveScaledDimensions {
 
             g.setColor(Color.BLACK);
 
-            g.drawString("Placeholder!", 441, 331);
-            g.drawString("Placeholder!", 441, 329);
-            g.drawString("Placeholder!", 439, 331);
-            g.drawString("Placeholder!", 439, 329);
+            g.drawString(placeholderText, 441, 331);
+            g.drawString(placeholderText, 441, 329);
+            g.drawString(placeholderText, 439, 331);
+            g.drawString(placeholderText, 439, 329);
 
             g.setColor(Color.WHITE);
-            g.drawString("Placeholder!", 440, 330);
+            g.drawString(placeholderText, 440, 330);
         }
 
         @Override

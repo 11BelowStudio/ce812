@@ -357,7 +357,11 @@ public final class Vect2D implements Serializable, I_Vect2D {
 
     public double getY(){ return y; }
 
-
+    /**
+     * Turns this local coordinate vector into a world coordinate vector.
+     * @param trans transformation used for this
+     * @return this local coordinate translated into a world coordinate
+     */
     public Vect2D localToWorldCoordinates(final I_Transform trans){
         return localToWorldCoordinates(trans.getPos(), trans.getRot());
     }
@@ -377,27 +381,32 @@ public final class Vect2D implements Serializable, I_Vect2D {
     }
 
     /**
-     * Obtains the world velocity of this local coordinate.
+     * Obtains the raw world velocity of a local coordinate.
      * @param trans the I_Transform describing the body which this local coordinate belongs to
-     * @return velCOM + angVel x worldCoord
+     * @return velCOM + angVel x rotatedThis
      */
     public Vect2D getWorldVelocityOfLocalCoordinate(final I_Transform trans){
         return getWorldVelocityOfLocalCoordinate(
-                trans.getRot(),
-                trans.getPos(),
+                trans.getVel(),
                 trans.getAngVel(),
-                trans.getVel()
+                trans.getRot()
         );
     }
 
+    /**
+     * Obtains the world velocity of a local coordinate.
+     * @param velCOM the centre of mass velocity of the body
+     * @param angVel the angular velocity of the body
+     * @param worldRot world rotation of the body
+     * @return velCOM + angVel x r
+     */
     public Vect2D getWorldVelocityOfLocalCoordinate(
-            final I_Rot2D rot, final I_Vect2D worldPos, final double angVel, final I_Vect2D vel
+            final IPair<Double, Double> velCOM, final double angVel, final I_Rot2D worldRot
     ){
         return M_Vect2D.GET(this)
-                .rotate(rot) // rotation
-                .add(worldPos) // moving to world pos
+                .rotate(worldRot) // rotating the local coord to get r
                 .cross(angVel, false) // angVel X r
-                .add(vel) // adding main body vel
+                .add(velCOM) // adding main body vel
                 .finished(); // aaand done!
     }
 

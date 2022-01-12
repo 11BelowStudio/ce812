@@ -263,13 +263,13 @@ public interface I_CrappilyDrawStuff {
         } else if (h > 1.5){
             h = 1.5;
         }
-        h = (-h + 1.5)/3f;
+        h = (h - 0.5)/3f;
 
         drawLine(
                 getGraphicsTransform().TO_SCREEN_COORDS_V(p1),
                 getGraphicsTransform().TO_SCREEN_COORDS_V(p2),
                 Color.getHSBColor(
-                        (float) ((-h + 1.5)/3.0),
+                        (float) h,
                         1f,
                         1f
                 )

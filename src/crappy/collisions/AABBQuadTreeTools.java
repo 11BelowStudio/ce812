@@ -414,6 +414,30 @@ public final class AABBQuadTreeTools {
         }
 
         /**
+         * Attempts to obtain the body with the given ID
+         *
+         * @param id ID of the body to obtain
+         *
+         * @return an optional that may or may not contain that body.
+         */
+        @Override
+        public Optional<I_CrappyBody_CrappyWorld_Interface> getBody(UUID id) {
+            return Optional.empty();
+        }
+
+        /**
+         * Sees if there is a body with that given ID in this tree
+         *
+         * @param id ID of the body to obtain
+         *
+         * @return true if present, false otherwise.
+         */
+        @Override
+        public boolean hasBody(UUID id) {
+            return false;
+        }
+
+        /**
          * iterator over nothing (in case this is empty)
          */
         private static class EmptyIter implements Iterator<I_CrappyBody_CrappyWorld_Interface>{
@@ -588,6 +612,20 @@ public final class AABBQuadTreeTools {
          */
         I_Crappy_AABB getStaticBounds();
 
+        /**
+         * Attempts to obtain the body with the given ID
+         * @param id ID of the body to obtain
+         * @return an optional that may or may not contain that body.
+         */
+        Optional<I_CrappyBody_CrappyWorld_Interface> getBody(final UUID id);
+
+        /**
+         * Sees if there is a body with that given ID in this tree
+         * @param id ID of the body to obtain
+         * @return true if present, false otherwise.
+         */
+        boolean hasBody(final UUID id);
+
     }
 
     public static I_StaticGeometryQuadTreeRootNode DEFAULT_STATIC_GEOMETRY_TREE(){
@@ -605,15 +643,19 @@ public final class AABBQuadTreeTools {
         /**
          * A standard root node for static geometry.
          */
-        private static class StaticGeometryRootNode
-                extends StaticGeometryAABBTreeNode
+        private static class StaticGeometryRootNode extends StaticGeometryAABBTreeNode
                 implements I_StaticGeometryQuadTreeRootNode, Iterable<I_CrappyBody_CrappyWorld_Interface>
         {
 
             /**
              * All the shapes contained within
              */
-            private final List<I_CrappyBody_CrappyWorld_Interface> allBodies;
+            private final Collection<I_CrappyBody_CrappyWorld_Interface> allBodies;
+
+            /**
+             * All the shapes contained within, identified by their IDs.
+             */
+            private final Map<UUID, I_CrappyBody_CrappyWorld_Interface> idBodies;
 
             private final Crappy_AABB allBodiesBounds;
 
@@ -638,19 +680,37 @@ public final class AABBQuadTreeTools {
                     );
 
 
-                allBodies = geometryBodies.stream()
+                idBodies = geometryBodies.stream()
                         .unordered()
                         .collect(
-                            Collectors.collectingAndThen(
+                                Collectors.collectingAndThen(
+                                    Collectors.toMap(
+                                            I_CrappyBody_CrappyWorld_Interface::getID,
+                                            b2 -> b2,
+                                            (x, y) -> y,
+                                            LinkedHashMap::new
+                                    ),
+                                    Collections::unmodifiableMap
+                                )
+
+                        );
+
+                allBodies = idBodies
+                        .values()
+                        .stream()
+                        .collect(
+                        Collectors.collectingAndThen(
                                 Collectors.toCollection(ArrayList::new),
                                 l -> {
                                     l.trimToSize();
                                     return Collections.unmodifiableList(l);
                                 }
-                            )
-                        );
+                        )
+                );
 
                 allBodiesBounds = new Crappy_AABB();
+
+
                 for (final I_CrappyBody_CrappyWorld_Interface b: allBodies) {
 
                     allBodiesBounds.add_aabb(b.getAABB());
@@ -675,6 +735,33 @@ public final class AABBQuadTreeTools {
             @Override
             public I_Crappy_AABB getStaticBounds() {
                 return allBodiesBounds;
+            }
+
+            /**
+             * Attempts to obtain the body with the given ID
+             *
+             * @param id ID of the body to obtain
+             *
+             * @return an optional that may or may not contain that body.
+             */
+            @Override
+            public Optional<I_CrappyBody_CrappyWorld_Interface> getBody(final UUID id) {
+                if (hasBody(id)){
+                    return Optional.of(idBodies.get(id));
+                }
+                return Optional.empty();
+            }
+
+            /**
+             * Sees if there is a body with that given ID in this tree
+             *
+             * @param id ID of the body to obtain
+             *
+             * @return true if present, false otherwise.
+             */
+            @Override
+            public boolean hasBody(final UUID id) {
+                return idBodies.containsKey(id);
             }
 
             /**
@@ -704,7 +791,7 @@ public final class AABBQuadTreeTools {
              * @return set of CrappyShape_QuadTree_Interface objects with bounding boxes that overlap the point
              */
             @Override
-            public Set<CrappyShape_QuadTree_Interface> getPotentialPointCollisions(I_Vect2D point) {
+            public Set<CrappyShape_QuadTree_Interface> getPotentialPointCollisions(final I_Vect2D point) {
                 if (allBodiesBounds.check_if_in_bounds(point)) {
                     return I_StaticGeometryQuadTreeRootNode.super.getPotentialPointCollisions(point);
                 }
@@ -1156,7 +1243,6 @@ public final class AABBQuadTreeTools {
 
 
         Set<CrappyShape_QuadTree_Interface> getPointCollisions(final I_Vect2D p);
-        // TODO: this
 
     }
 
@@ -1185,17 +1271,27 @@ public final class AABBQuadTreeTools {
          * Anyway, it returns all of the {@link CrappyShape_QuadTree_Interface} items in this QuadTree that
          * have a bounding box that intersects with this one (and also adds it to the appropriate child nodes of the
          * QuadTree after it's done working out what things in there it intersected with)
-         * @param dBody the dynamic body we're trying to add/check.
-         * @return set of all the other pre-existing CrappyShape_QuadTree_Interface objects that the new shape collides with
+         * @param dBody the non-static body we're trying to add/check.
+         * @return set of all the other pre-existing CrappyShape_QuadTree_Interface objects that the new shape collides with,
+         * and also adds that new shape to the tree whilst it's doing that. But, if the current shape is not 'active',
+         * it'll basically just skip it, instead returning a LinkedHashSet of capacity 0.
+         * @throws IllegalArgumentException if a static body was given.
          */
-        default Set<CrappyShape_QuadTree_Interface> checkDynamicBodyAABB(final CrappyShape_QuadTree_Interface dBody){
+        default Set<CrappyShape_QuadTree_Interface> checkAndAddBodyAABB(final CrappyShape_QuadTree_Interface dBody) throws IllegalArgumentException{
             final CrappyBody_Shape_Interface b = dBody.getShape().getBody();
-            if (b.getBodyType() != CrappyBody.CRAPPY_BODY_TYPE.DYNAMIC){
-                throw new IllegalArgumentException("Expected a dynamic body, and that sure isn't dynamic!");
-            } else if (b.isActive()){
-                return apply(dBody);
+            switch (b.getBodyType()){
+                case KINEMATIC:
+                case DYNAMIC:
+                    if (b.isActive()){
+                        return apply(dBody);
+                    }
+                    return new LinkedHashSet<>(0);
+                default:
+                    // throws in a default method, so, if any further body types get added, it can complain about those too.
+                    throw new IllegalArgumentException(
+                            "Expected a dynamic or kinematic body, and that's " + b.getBodyType() + "!"
+                    );
             }
-            return emptySet;
         }
 
 
@@ -1221,6 +1317,8 @@ public final class AABBQuadTreeTools {
         private final I_DynamicKinematicAABBQuadTreeNode x_min_y_max;
         private final I_DynamicKinematicAABBQuadTreeNode x_max_y_min;
 
+        final int depthLeft4;
+
 
         DynamicKinematicAABBQuadTreeNode(
                 final IPair<Vect2D, Vect2D> minAndMidpoint, final int thisDepth, final int depthLimit
@@ -1232,6 +1330,7 @@ public final class AABBQuadTreeTools {
                 final Vect2D min, final Vect2D mid, final int thisDepth, final int depthLimit
         ){
             midpoint = mid;
+            depthLeft4 = (1 + depthLimit - thisDepth)*4;
 
             if (thisDepth>=depthLimit){
                 x_min_y_min = new DynamicKinematicAABBQuadTreeLeafNode();
@@ -1291,7 +1390,7 @@ public final class AABBQuadTreeTools {
 
         @Override
         public Set<CrappyShape_QuadTree_Interface> apply(final CrappyShape_QuadTree_Interface dBody) {
-            final Set<CrappyShape_QuadTree_Interface> results = new LinkedHashSet<>();
+            final Set<CrappyShape_QuadTree_Interface> results = new LinkedHashSet<>(depthLeft4);
             for (final Iterator<I_DynamicKinematicAABBQuadTreeNode> it =
                  childNodeIterator(AABB_Quad_Enum.AABB_Choose_Quadtree_Enum.get(midpoint, dBody)); it.hasNext(); ) {
                 results.addAll(it.next().apply(dBody));
@@ -1386,6 +1485,7 @@ public final class AABBQuadTreeTools {
                 return collidedWith;
             }
 
+
             @Override
             public Set<CrappyShape_QuadTree_Interface> getPointCollisions(final I_Vect2D p) {
                 if (allShapes.isEmpty()){
@@ -1405,11 +1505,11 @@ public final class AABBQuadTreeTools {
 
 
 
-        // TODO:
+        //
         //   Root node:
         //       Get boundary of all bounding boxes in list(s)
         //       Create empty structure, based on original bounding boxes. Predefined depth?
-        // TODO:
+        //
         //   Insertion + collision checking at same time
         //       Start with kinematics, don't bother checking their collisions with each other.
         //       For the dynamics
@@ -1653,10 +1753,9 @@ public final class AABBQuadTreeTools {
                         comparisonPoint, aabbBeingCompared.getMin(), aabbBeingCompared.getMax()
                 );
                  */
-                AABB_Choose_Quadtree_Enum g = AABB_Choose_Quadtree_Enum.get(
+                return AABB_Choose_Quadtree_Enum.get(
                         comparisonPoint, aabbBeingCompared.getMin(), aabbBeingCompared.getMax()
                 );
-                return g;
             }
 
             /**

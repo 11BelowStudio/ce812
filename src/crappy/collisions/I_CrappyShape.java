@@ -6,17 +6,20 @@
 package crappy.collisions;
 
 import crappy.CrappyBody_Shape_Interface;
+import crappy.IHaveIdentifier;
 import crappy.I_Transform;
 import crappy.math.I_Vect2D;
 import crappy.math.Rot2D;
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
 
+import java.util.UUID;
+
 /**
  * A view-only interface for collision shapes
  * @author Rachel Lowe
  */
-public interface I_CrappyShape extends I_HaveRestitution, I_HaveMass {
+public interface I_CrappyShape extends I_HaveRestitution, I_HaveMass, IHaveBody {
 
     /**
      * Obtain body this is attached to
@@ -139,12 +142,42 @@ public interface I_CrappyShape extends I_HaveRestitution, I_HaveMass {
 
 }
 
+/**
+ * Shortcut for obtaining restitution of shape
+ */
+@FunctionalInterface
 interface I_HaveRestitution{
 
     double getRestitution();
 }
 
+/**
+ * Shortcut for obtaining mass of shape
+ */
+@FunctionalInterface
 interface I_HaveMass{
 
     double getMass();
+}
+
+/**
+ * Shortcut for obtaining body of shape
+ */
+@FunctionalInterface
+interface IHaveBody extends IHaveIdentifier {
+    /**
+     * Obtain body this is attached to
+     * @return the body
+     */
+    CrappyBody_Shape_Interface getBody();
+
+
+    /**
+     * Obtains unique identifier for this shape's body
+     * @return the ID of the body.
+     */
+    @Override
+    default UUID getID() {
+        return getBody().getID();
+    }
 }

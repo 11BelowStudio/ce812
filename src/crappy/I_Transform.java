@@ -1,7 +1,5 @@
 package crappy;
 
-import crappy.math.I_Rot2D;
-import crappy.math.I_Vect2D;
 import crappy.math.Rot2D;
 import crappy.math.Vect2D;
 

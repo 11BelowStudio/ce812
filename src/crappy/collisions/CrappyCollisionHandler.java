@@ -6,6 +6,7 @@
 package crappy.collisions;
 
 import crappy.CrappyBody_Shape_Interface;
+import crappy.I_View_CrappyBody;
 
 import java.util.Collection;
 
@@ -22,12 +23,12 @@ public final class CrappyCollisionHandler {
 
     /**
      * Attempts to perform collision handling
-     * @param body the body that has had collisions
+     * @param shapeInterface the CrappyShape_QuadTree_Interface for the shape of the body that has had collisions
      * @param bbIntersects everything that it had a bounding box intersect with
      * @param deltaT timestep
      */
     public static <T extends CrappyShape_QuadTree_Interface> void HANDLE_COLLISIONS(
-            final T body,
+            final T shapeInterface,
             final Collection<? extends CrappyShape_QuadTree_Interface> bbIntersects,
             final double deltaT
     ){
@@ -36,7 +37,7 @@ public final class CrappyCollisionHandler {
             return;
         }
 
-        final I_CrappyShape s = body.getShape();
+        final I_CrappyShape s = shapeInterface.getShape();
 
         switch (s.getShapeType()){
             case CIRCLE:
@@ -70,36 +71,36 @@ public final class CrappyCollisionHandler {
             final Iterable<? extends CrappyShape_QuadTree_Interface> candidates,
             final double deltaT
     ){
-
+        final CrappyBody_Shape_Interface b = c.getBody();
         for (final CrappyShape_QuadTree_Interface si: candidates) {
             final I_CrappyShape s = si.getShape();
 
             // assuming that the two objects are actually allowed to collide with each other,
             // we attempt to let them collide.
-            if (c.getBody().allowedToCollideWith(s.getBody())){
+            if (CAN_COLLIDE(b, s)){
                 switch (s.getShapeType()){
                     case CIRCLE:
                         assert (s instanceof I_CrappyCircle);
                         if (CrappyCollisionMath.COLLIDE_CIRCLE_CIRCLE(c, s, deltaT)){
-                            NOTIFY_ABOUT_COLLISION(c.getBody(), s.getBody());
+                            NOTIFY_ABOUT_COLLISION(b, s.getBody());
                         }
                         break;
                     case EDGE:
                         assert (s instanceof I_CrappyEdge);
                         if (CrappyCollisionMath.COLLIDE_CIRCLE_EDGE(c, (I_CrappyEdge) s, deltaT)){
-                            NOTIFY_ABOUT_COLLISION(c.getBody(), s.getBody());
+                            NOTIFY_ABOUT_COLLISION(b, s.getBody());
                         }
                         break;
                     case LINE:
                         assert (s instanceof I_CrappyLine);
                         if (CrappyCollisionMath.COLLIDE_CIRCLE_LINE(c, (I_CrappyLine) s, deltaT)){
-                            NOTIFY_ABOUT_COLLISION(c.getBody(), s.getBody());
+                            NOTIFY_ABOUT_COLLISION(b, s.getBody());
                         }
                         break;
                     case POLYGON:
                         assert (s instanceof I_CrappyPolygon);
                         if (CrappyCollisionMath.COLLIDE_CIRCLE_POLYGON(c, (I_CrappyPolygon) s, deltaT)){
-                            NOTIFY_ABOUT_COLLISION(c.getBody(), s.getBody());
+                            NOTIFY_ABOUT_COLLISION(b, s.getBody());
                         }
                         break;
                 }
@@ -126,36 +127,36 @@ public final class CrappyCollisionHandler {
             final Iterable<? extends CrappyShape_QuadTree_Interface> candidates,
             final double deltaT
     ){
-
+        final CrappyBody_Shape_Interface b = l.getBody();
         for (final CrappyShape_QuadTree_Interface si: candidates) {
             final I_CrappyShape s = si.getShape();
 
             // assuming that the two objects are actually allowed to collide with each other,
             // we attempt to let them collide.
-            if (l.getBody().allowedToCollideWith(s.getBody())){
+            if (CAN_COLLIDE(b, s)){
                 switch (s.getShapeType()){
                     case CIRCLE:
                         assert (s instanceof I_CrappyCircle);
                         if (CrappyCollisionMath.COLLIDE_CIRCLE_LINE(s, l, deltaT)){
-                            NOTIFY_ABOUT_COLLISION(s.getBody(), l.getBody());
+                            NOTIFY_ABOUT_COLLISION(s.getBody(), b);
                         }
                         break;
                     case EDGE:
                         assert (s instanceof I_CrappyEdge);
                         if (CrappyCollisionMath.COLLIDE_LINE_EDGE(l, (I_CrappyEdge) s, deltaT)){
-                            NOTIFY_ABOUT_COLLISION(s.getBody(), l.getBody());
+                            NOTIFY_ABOUT_COLLISION(s.getBody(), b);
                         }
                         break;
                     case LINE:
                         assert (s instanceof I_CrappyLine);
                         if (CrappyCollisionMath.COLLIDE_LINE_LINE(l, (I_CrappyLine) s, deltaT)){
-                            NOTIFY_ABOUT_COLLISION(s.getBody(), l.getBody());
+                            NOTIFY_ABOUT_COLLISION(s.getBody(), b);
                         }
                         break;
                     case POLYGON:
                         assert (s instanceof I_CrappyPolygon);
                         if (CrappyCollisionMath.POLYGON_LINE_COLLISIONS((I_CrappyPolygon) s, l, deltaT)){
-                            NOTIFY_ABOUT_COLLISION(s.getBody(), l.getBody());
+                            NOTIFY_ABOUT_COLLISION(s.getBody(), b);
                         }
                         break;
                 }
@@ -175,36 +176,36 @@ public final class CrappyCollisionHandler {
             final Iterable<? extends CrappyShape_QuadTree_Interface> candidates,
             final double deltaT
     ){
-
+        final CrappyBody_Shape_Interface b = e.getBody();
         for (final CrappyShape_QuadTree_Interface si: candidates) {
             final I_CrappyShape s = si.getShape();
 
             // assuming that the two objects are actually allowed to collide with each other,
             // we attempt to let them collide.
-            if (e.getBody().allowedToCollideWith(s.getBody())){
+            if (CAN_COLLIDE(b, s)){
                 switch (s.getShapeType()){
                     case CIRCLE:
                         assert (s instanceof I_CrappyCircle);
                         if (CrappyCollisionMath.COLLIDE_CIRCLE_EDGE(s, e, deltaT)){
-                            NOTIFY_ABOUT_COLLISION(s.getBody(), e.getBody());
+                            NOTIFY_ABOUT_COLLISION(s.getBody(), b);
                         }
                         break;
                     case EDGE:
                         assert (s instanceof I_CrappyEdge);
                         if (CrappyCollisionMath.COLLIDE_EDGE_EDGE(e, (I_CrappyEdge) s, deltaT)){
-                            NOTIFY_ABOUT_COLLISION(s.getBody(), e.getBody());
+                            NOTIFY_ABOUT_COLLISION(s.getBody(), b);
                         }
                         break;
                     case LINE:
                         assert (s instanceof I_CrappyLine);
                         if (CrappyCollisionMath.COLLIDE_LINE_EDGE((I_CrappyLine) s, e, deltaT)){
-                            NOTIFY_ABOUT_COLLISION(s.getBody(), e.getBody());
+                            NOTIFY_ABOUT_COLLISION(s.getBody(), b);
                         }
                         break;
                     case POLYGON:
                         assert (s instanceof I_CrappyPolygon);
                         if (CrappyCollisionMath.POLYGON_EDGE_COLLISIONS((I_CrappyPolygon) s, e, deltaT)){
-                            NOTIFY_ABOUT_COLLISION(s.getBody(), e.getBody());
+                            NOTIFY_ABOUT_COLLISION(s.getBody(), b);
                         }
                         break;
                 }
@@ -224,36 +225,36 @@ public final class CrappyCollisionHandler {
             final Iterable<? extends CrappyShape_QuadTree_Interface> candidates,
             final double deltaT
     ){
-
+        final CrappyBody_Shape_Interface b = p.getBody();
         for (final CrappyShape_QuadTree_Interface si: candidates) {
             final I_CrappyShape s = si.getShape();
 
             // assuming that the two objects are actually allowed to collide with each other,
             // we attempt to let them collide.
-            if (p.getBody().allowedToCollideWith(s.getBody())){
+            if (CAN_COLLIDE(b, s)){
                 switch (s.getShapeType()){
                     case CIRCLE:
                         assert (s instanceof I_CrappyCircle);
                         if (CrappyCollisionMath.COLLIDE_CIRCLE_POLYGON((I_CrappyCircle) s, p, deltaT)){
-                            NOTIFY_ABOUT_COLLISION(p.getBody(), s.getBody());
+                            NOTIFY_ABOUT_COLLISION(b, s.getBody());
                         }
                         break;
                     case EDGE:
                         assert (s instanceof I_CrappyEdge);
                         if (CrappyCollisionMath.POLYGON_EDGE_COLLISIONS(p, (I_CrappyEdge) s, deltaT)){
-                            NOTIFY_ABOUT_COLLISION(p.getBody(), s.getBody());
+                            NOTIFY_ABOUT_COLLISION(b, s.getBody());
                         }
                         break;
                     case LINE:
                         assert (s instanceof I_CrappyLine);
                         if (CrappyCollisionMath.POLYGON_LINE_COLLISIONS(p, (I_CrappyLine) s, deltaT)){
-                            NOTIFY_ABOUT_COLLISION(p.getBody(), s.getBody());
+                            NOTIFY_ABOUT_COLLISION(b, s.getBody());
                         }
                         break;
                     case POLYGON:
                         assert (s instanceof I_CrappyPolygon);
                         if (CrappyCollisionMath.POLYGON_POLYGON_COLLISIONS(p, (I_CrappyPolygon) s, deltaT)){
-                            NOTIFY_ABOUT_COLLISION(p.getBody(), s.getBody());
+                            NOTIFY_ABOUT_COLLISION(b, s.getBody());
                         }
                         break;
                 }
@@ -261,5 +262,26 @@ public final class CrappyCollisionHandler {
             }
         }
 
+    }
+
+
+    /**
+     * Makes sure body A is allowed to collide with shape B's body, and vice versa
+     * @param a first body
+     * @param b the other shape
+     * @return true if they're both allowed to collide with each other
+     */
+    private static boolean CAN_COLLIDE(final I_View_CrappyBody a, final IHaveBody b){
+        return CAN_COLLIDE(a, b.getBody());
+    }
+
+    /**
+     * Makes sure body A is allowed to collide with body B, and vice versa
+     * @param a first body
+     * @param b other body
+     * @return true if they're both allowed to collide with each other
+     */
+    private static boolean CAN_COLLIDE(final I_View_CrappyBody a, final I_View_CrappyBody b){
+        return a.allowedToCollideWith(b) && b.allowedToCollideWith(a);
     }
 }

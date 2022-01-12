@@ -1,6 +1,5 @@
 package crappy;
 
-import crappy.graphics.DrawableCrappyShape;
 import crappy.math.I_Rot2D;
 import crappy.math.I_Vect2D;
 import crappy.math.Rot2D;
@@ -39,9 +38,9 @@ public interface CrappyBody_Connector_Interface extends I_Transform, IHaveIdenti
 
     boolean isActive();
 
-    void __addConnector_internalPlsDontUseManually(final CrappyConnector c);
+    void __addConnector_internalPlsDontUseManually(final CrappyConnectorBodyInterface c);
 
-    void __removeConnector_internalPlsDontUseManually(final CrappyConnector c);
+    void __removeConnector_internalPlsDontUseManually(final CrappyConnectorBodyInterface c);
 
 
 }

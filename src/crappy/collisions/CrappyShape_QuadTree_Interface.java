@@ -5,12 +5,14 @@
  */
 package crappy.collisions;
 
+import crappy.IHaveIdentifier;
+
 /**
  * An interface for the crappyshape within the axis-aligned bounding box quadtree
  *
  * @author Rachel Lowe
  */
-public interface CrappyShape_QuadTree_Interface {
+public interface CrappyShape_QuadTree_Interface extends IHaveIdentifier {
 
     I_Crappy_AABB getBoundingBox();
 

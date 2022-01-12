@@ -1,3 +1,8 @@
+/***
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 package crappy;
 
 import crappy.collisions.AABBQuadTreeTools;
@@ -12,6 +17,7 @@ import crappy.utils.lazyFinal.*;
 
 import java.util.*;
 
+import static crappy.CrappyBody.CRAPPY_BODY_TYPE.STATIC;
 import static java.util.Collections.synchronizedList;
 
 /**
@@ -19,41 +25,85 @@ import static java.util.Collections.synchronizedList;
  * @author Rachel Lowe
  */
 public class CrappyWorld {
-    /*
-     * This Source Code Form is subject to the terms of the Mozilla Public
-     * License, v. 2.0. If a copy of the MPL was not distributed with this
-     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+    /**
+     * We initially use a simple 'improved euler' (euler method with 2 half-steps) per update iteration
      */
+    public static final int DEFAULT_EULER_SUBSTEPS_PER_UPDATE_ITERATION = 2;
+
+    /**
+     * How many physics world updates are there per update?
+     * We initially have 100 euler updates per call to the update loop.
+     */
+    public static final int DEFAULT_UPDATE_ITERATIONS_WITHIN_UPDATE_METHOD = 100;
+
+    /**
+     * What length of time (milliseconds) should the update loop simulate?
+     * By default, it simulates 20 milliseconds.
+     */
+    public static final int DEFAULT_UPDATE_DELAY = 20;
+
+    /**
+     * Calculator for DeltaT, given update delay (milliseconds) and update iterations
+     * @param update_delay length of time (milliseconds) to simulate in the update method
+     * @param update_iterations number of update iterations within the update method
+     * @return an appropriate DELTA_T value for those inputs.
+     */
+    public static double DELTA_T_CALCULATOR(final int update_delay, final int update_iterations){
+        return update_delay / 1000.0 / (double) update_iterations;
+    }
+
+    public static final double DEFAULT_DELTA_T = DELTA_T_CALCULATOR(DEFAULT_UPDATE_DELAY, DEFAULT_UPDATE_ITERATIONS_WITHIN_UPDATE_METHOD);
+
+    /**
+     * Default gravity for update loop (set to roughly equal to earth gravity)
+     */
+    public static final Vect2D DEFAULT_GRAVITY = new Vect2D(0, -9.81);
+
+    /**
+     * The chosen default gravity for update loop.
+     */
+    public final Vect2D grav;
 
     /**
      * How many stages are there in each euler update?
      */
-    public static final int DEFAULT_EULER_SUBSTEPS = 2;
-
-    public static final int DEFAULT_EULER_UPDATES_PER_RENDER_ATTEMPT = 100;
-
-    public static final int DEFAULT_DELAY = 20;
-
-    public static final double DEFAULT_DELTA_T = DEFAULT_DELAY / 1000.0 / (double) DEFAULT_EULER_UPDATES_PER_RENDER_ATTEMPT;
-
-    public static final Vect2D DEFAULT_GRAVITY = new Vect2D(0, -9.81);
-
-    public final Vect2D grav;
-
     public final int eulerSubsteps;
 
+    /**
+     * How many update iterations per update method call?
+     */
     public final int eulerUpdatesPerUpdate;
 
+    /**
+     * Length of time (ms) simulated by update loop?
+     */
     public final int delay;
 
+    /**
+     * DeltaT for all the sub-updates combined?
+     */
     public final double totalDelta;
 
+    /**
+     * Per-iteration update timestep
+     */
     public final double deltaT;
 
 
-    final List<CrappyBody> dynamicBodies = new ArrayList<>();
+    /**
+     * map of (ID, body) for all dynamic bodies
+     */
+    private final Map<UUID, CrappyBody> dynamics = new LinkedHashMap<>();
 
-    final List<CrappyBody> kinematicBodies = new ArrayList<>();
+    /**
+     * map of (ID, body) for all kinematic bodies
+     */
+    private final Map<UUID, CrappyBody> kinematics = new LinkedHashMap<>();
+    /**
+     * Map of (ID, connector) for all connectors
+     */
+    private final Map<UUID, CrappyConnector> connects = new LinkedHashMap<>();
 
     /**
      * AABB holding static geometry
@@ -73,7 +123,7 @@ public class CrappyWorld {
                     IProtectedOverwrite.ProtectedOverwriteLockMode.PRIVATE_WRITEABLE
             );
 
-    final Set<CrappyConnector> connectors = new LinkedHashSet<>();
+
 
     private final Object UPDATE_SYNC_OBJECT = new Object();
 
@@ -83,36 +133,62 @@ public class CrappyWorld {
     public final List<DrawableBody> drawableStatics = synchronizedList(new ArrayList<>());
     public final List<DrawableConnector> drawableConnectors = synchronizedList(new ArrayList<>());
 
+    /**
+     * Creates a CrappyWorld with fully tuned parameters.
+     * @param gravity default gravity
+     * @param eulerSubsteps default number of euler substeps per update iteration
+     * @param eulerUpdatesPerUpdate number of update iterations in update loop
+     * @param delay length of time (milliseconds) that the update method should simulate (in terms of physics)
+     */
     public CrappyWorld(final Vect2D gravity, final int eulerSubsteps, final int eulerUpdatesPerUpdate, final int delay){
         this.eulerSubsteps = eulerSubsteps;
         this.eulerUpdatesPerUpdate = eulerUpdatesPerUpdate;
         this.delay = delay;
+
+        this.deltaT = DELTA_T_CALCULATOR(delay, eulerUpdatesPerUpdate);
+
         this.totalDelta = delay / 1000.0;
-        this.deltaT = totalDelta / (double) eulerUpdatesPerUpdate;
 
         this.grav = gravity;
     }
 
+    /**
+     * Creates a CrappyWorld using all the default parameters except for gravity
+     * @param gravity default gravity to apply in the update loop
+     */
     public CrappyWorld(final Vect2D gravity){
-        this(gravity, DEFAULT_EULER_SUBSTEPS, DEFAULT_EULER_UPDATES_PER_RENDER_ATTEMPT, DEFAULT_DELAY);
+        this(gravity, DEFAULT_EULER_SUBSTEPS_PER_UPDATE_ITERATION, DEFAULT_UPDATE_ITERATIONS_WITHIN_UPDATE_METHOD, DEFAULT_UPDATE_DELAY);
     }
 
+    /**
+     * Creates a new CrappyWorld, using all of the default parameters.
+     */
     public CrappyWorld(){
-        this (DEFAULT_GRAVITY, DEFAULT_EULER_SUBSTEPS, DEFAULT_EULER_UPDATES_PER_RENDER_ATTEMPT, DEFAULT_DELAY);
+        this (DEFAULT_GRAVITY, DEFAULT_EULER_SUBSTEPS_PER_UPDATE_ITERATION, DEFAULT_UPDATE_ITERATIONS_WITHIN_UPDATE_METHOD, DEFAULT_UPDATE_DELAY);
     }
 
-    // TODO: synchronized sets of bodies/connectors that are 'safe' for the programmer using CRAPPY
-    //  to use to get a view of the physics world
 
 
+    /**
+     * Runs the update method, using the parameters we had already specified for the CrappyWorld earlier
+     */
     public void update(){
         update(deltaT, grav, eulerUpdatesPerUpdate, eulerSubsteps);
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
-    public void update(final double delta, final I_Vect2D grav, final int eulerIterations, final int eulerSubsteps){
 
-        if (eulerIterations <= 0){
+
+    /**
+     * Manually tunable update loop.
+     * @param delta the timestep used for each iteration
+     * @param grav constant gravity
+     * @param updateIterations how many update iterations are we doing?
+     * @param eulerSubsteps how many euler method substeps per iteration?
+     */
+    @SuppressWarnings("StatementWithEmptyBody")
+    public void update(final double delta, final I_Vect2D grav, final int updateIterations, final int eulerSubsteps){
+
+        if (updateIterations <= 0){
             throw new IllegalArgumentException("I cannot perform 0 (or fewer) update iterations!");
         }
         if (eulerSubsteps <= 0) {
@@ -124,30 +200,39 @@ public class CrappyWorld {
 
         final double subDelta = delta / (double) eulerSubsteps;
 
+        final Collection<CrappyBody> dyns = dynamics.values();
+        final Collection<CrappyBody> kins = kinematics.values();
+        final Collection<CrappyConnector> cons = connects.values();
+
 
         synchronized (UPDATE_SYNC_OBJECT) {
 
             // we make sure that any changes to the states of the bodies since the last update call have been resolved.
-            resolveChangesToBodies(dynamicBodies);
-            resolveChangesToBodies(kinematicBodies);
+            //resolveChangesToBodies(dynamicBodies);
+            //resolveChangesToBodies(kinematicBodies);
+
+            resolveChangesToBodies(dyns);
+            resolveChangesToBodies(kins);
 
             // same for the connectors.
-            for (conIter = connectors.iterator(); conIter.hasNext(); ) {
-                if (conIter.next().startingDisposal()) {
-                    conIter.remove();
-                }
-            }
+            //connectors.removeIf(CrappyConnector::startingDisposal);
+            cons.removeIf(CrappyConnector::startingDisposal);
 
             // and doing any other prep stuff we need to resolve before the first euler update
-            for(iter = dynamicBodies.iterator(); iter.hasNext(); iter.next().handleStuffBeforeFirstEulerUpdate());
-            for(iter = kinematicBodies.iterator(); iter.hasNext(); iter.next().handleStuffBeforeFirstEulerUpdate());
+            //for(iter = dynamicBodies.iterator(); iter.hasNext(); iter.next().handleStuffBeforeFirstEulerUpdate());
+            //for(iter = kinematicBodies.iterator(); iter.hasNext(); iter.next().handleStuffBeforeFirstEulerUpdate());
 
+            for(iter = dyns.iterator(); iter.hasNext(); iter.next().handleStuffBeforeFirstEulerUpdate());
+            for(iter = kins.iterator(); iter.hasNext(); iter.next().handleStuffBeforeFirstEulerUpdate());
 
 
             final AABBQuadTreeTools.I_DynamicKinematicAABBQuadTreeRootNode newObjectTree =
-                    AABBQuadTreeTools.DYN_KYN_AABB_FACTORY_BOUNDS_FINDER(dynamicBodies, kinematicBodies);
+                    //AABBQuadTreeTools.DYN_KYN_AABB_FACTORY_BOUNDS_FINDER(dynamicBodies, kinematicBodies);
+                    AABBQuadTreeTools.DYN_KYN_AABB_FACTORY_BOUNDS_FINDER(dyns, kins);
 
-            for (int i = 0; i < eulerIterations; i++) {
+
+
+            for (int i = 0; i < updateIterations; i++) {
 
                 //connectors.forEach(CrappyConnector::applyForcesToBodies);
 
@@ -158,6 +243,7 @@ public class CrappyWorld {
                 newObjectTree.clearAll(); // wipe it clean so we can do this update.
 
                 // time for some for abuse.
+                /*
                 for (conIter = connectors.iterator(); conIter.hasNext(); conIter.next().applyForcesToBodies()) ;
                 for (iter = dynamicBodies.iterator(); iter.hasNext();
                      iter.next().first_euler_sub_update(delta, grav, subDelta))
@@ -166,42 +252,71 @@ public class CrappyWorld {
                      iter.next().first_euler_sub_update(delta, grav, subDelta))
                     ;
 
+                 */
+                for (conIter = cons.iterator(); conIter.hasNext(); conIter.next().applyForcesToBodies()) ;
+                for (iter = dyns.iterator(); iter.hasNext();
+                     iter.next().first_euler_sub_update(delta, grav, subDelta))
+                    ;
+                for (iter = kins.iterator(); iter.hasNext();
+                     iter.next().first_euler_sub_update(delta, grav, subDelta))
+                    ;
 
                 for (int steps = 1; steps < eulerSubsteps; steps++) {
+                    for (conIter = cons.iterator(); conIter.hasNext(); conIter.next().applyForcesToBodies()) ;
+                    for (iter = dyns.iterator(); iter.hasNext(); iter.next().euler_substep(subDelta)) ;
+                    for (iter = kins.iterator(); iter.hasNext(); iter.next().euler_substep(subDelta)) ;
+                    /*
                     for (conIter = connectors.iterator(); conIter.hasNext(); conIter.next().applyForcesToBodies()) ;
                     for (iter = dynamicBodies.iterator(); iter.hasNext(); iter.next().euler_substep(subDelta)) ;
                     for (iter = kinematicBodies.iterator(); iter.hasNext(); iter.next().euler_substep(subDelta)) ;
+
+                     */
                 }
 
+                /*
                 for (iter = dynamicBodies.iterator(); iter.hasNext(); iter.next().applyAllTempChanges()) ;
                 for (iter = kinematicBodies.iterator(); iter.hasNext(); iter.next().applyAllTempChanges()) ;
 
-                // adds all the kinematic bodies to the dynamic/kinematic AABB tree
-                newObjectTree.addAllKinematicBodies(kinematicBodies);
+                 */
+                for (iter = dyns.iterator(); iter.hasNext(); iter.next().applyAllTempChanges()) ;
+                for (iter = kins.iterator(); iter.hasNext(); iter.next().applyAllTempChanges()) ;
 
-                // and then attempts to perform all of the collisions for dynamic bodies
-                for (iter = dynamicBodies.iterator(); iter.hasNext(); ) {
+                // adds all the kinematic bodies to the dynamic/kinematic AABB tree
+                //newObjectTree.addAllKinematicBodies(kinematicBodies);
+                //newObjectTree.addAllKinematicBodies(kins);
+
+                //
+                //   * Put the dynamic bodies into qTree, obtain bounding box intersects per dynamic body
+                //      * also check dynamics against static geometry
+                //   * Narrow-phase collision detection for all of these intersects
+                //   * Also collision handling (applying forces, callbacks, etc)
+                //  and remove any bodies marked for removal as a result of collision handling
+
+
+                // attempts to check the kinematic bodies against the static objects and each other
+                for (iter = kins.iterator(); iter.hasNext(); ) {
                     I_CrappyBody_CrappyWorld_Interface b = iter.next();
                     if (b.isActive()) {
                         CrappyCollisionHandler.HANDLE_COLLISIONS(
                                 b.getShape(),
                                 staticGeometry.get().getShapesThatProbablyCollideWithToOut(
                                         b.getAABB(),
-                                        newObjectTree.checkDynamicBodyAABB(b.getShape())
+                                        newObjectTree.checkAndAddBodyAABB(b.getShape())
                                 ),
                                 delta// * 1000
                         );
                     }
                 }
 
-                // and then seeing if the kinematics collided with anything
-                for (iter = kinematicBodies.iterator(); iter.hasNext(); ) {
-                    I_CrappyBody_CrappyWorld_Interface k = iter.next();
-                    if (k.isActive()) {
+                // and then seeing if the dynamics collided with anything
+                for (iter = dyns.iterator(); iter.hasNext(); ) {
+                    I_CrappyBody_CrappyWorld_Interface d = iter.next();
+                    if (d.isActive()) {
                         CrappyCollisionHandler.HANDLE_COLLISIONS(
-                                k.getShape(),
-                                staticGeometry.get().getShapesThatProbablyCollideWith(
-                                        k.getAABB()
+                                d.getShape(),
+                                staticGeometry.get().getShapesThatProbablyCollideWithToOut(
+                                        d.getAABB(),
+                                        newObjectTree.checkAndAddBodyAABB(d.getShape())
                                 ),
                                 delta// * 1000
                         );
@@ -209,11 +324,11 @@ public class CrappyWorld {
                 }
 
                 for (
-                        iter = dynamicBodies.iterator(); iter.hasNext();
+                        iter = dyns.iterator(); iter.hasNext();
                         iter.next().performPostCollisionBitmaskCallback()
                 );
                 for (
-                        iter = kinematicBodies.iterator(); iter.hasNext();
+                        iter = kins.iterator(); iter.hasNext();
                         iter.next().performPostCollisionBitmaskCallback()
                 );
                 for (
@@ -222,48 +337,38 @@ public class CrappyWorld {
                 );
 
 
-                resolveChangesToBodies(dynamicBodies);
-                resolveChangesToBodies(kinematicBodies);
+                resolveChangesToBodies(dyns);
+                resolveChangesToBodies(kins);
 
                 // remove any connectors that need to be removed
-                for (conIter = connectors.iterator(); conIter.hasNext(); ) {
-                    if (conIter.next().startingDisposal()) {
-                        conIter.remove();
-                    }
-                }
+                cons.removeIf(CrappyConnector::startingDisposal);
             }
 
             // last-minute cleanup (removing any external forces applied last timestep that aren't needed any more etc)
-            for(iter = dynamicBodies.iterator(); iter.hasNext(); iter.next().resolveStuffAfterLastEulerUpdate());
-            for(iter = kinematicBodies.iterator(); iter.hasNext(); iter.next().resolveStuffAfterLastEulerUpdate());
+            for(iter = dyns.iterator(); iter.hasNext(); iter.next().resolveStuffAfterLastEulerUpdate());
+            for(iter = kins.iterator(); iter.hasNext(); iter.next().resolveStuffAfterLastEulerUpdate());
 
-            // TODO:
-            //   * Put the dynamic bodies into qTree, obtain bounding box intersects per dynamic body
-            //      * also check dynamics against static geometry
-            //   * Narrow-phase collision detection for all of these intersects
-            //   * Also collision handling (applying forces, callbacks, etc)
-            //  and remove any bodies marked for removal as a result of collision handling
-
+            dynKineGeometry.setOverride(newObjectTree);
 
             // now we update the drawable versions of these bodies.
 
             synchronized (drawableDynamics){
                 drawableDynamics.clear();
-                for (DrawableBody b: dynamicBodies) {
+                for (DrawableBody b: dyns) {
                     b.updateDrawables();
                     drawableDynamics.add(b);
                 }
             }
             synchronized (drawableKinematics){
                 drawableKinematics.clear();
-                for (DrawableBody b: kinematicBodies) {
+                for (DrawableBody b: kins) {
                     b.updateDrawables();
                     drawableKinematics.add(b);
                 }
             }
             synchronized (drawableConnectors) {
                 drawableConnectors.clear();
-                for (DrawableConnector c : connectors) {
+                for (DrawableConnector c : cons) {
                     c.updateDrawables();
                     drawableConnectors.add(c);
                 }
@@ -275,7 +380,6 @@ public class CrappyWorld {
             }
 
              */
-
 
         }
 
@@ -304,6 +408,7 @@ public class CrappyWorld {
     }
 
 
+
     /**
      * Set the world's static geometry.
      * @param geom the Quadtree describing the world's static geometry.
@@ -323,20 +428,28 @@ public class CrappyWorld {
         }
     }
 
+    /**
+     * Attempts to add the given body b to the CrappyWorld. INTENDED FOR KINEMATIC AND DYNAMIC BODIES ONLY!
+     * @param b the body to add.
+     * @throws IllegalArgumentException if the body is static, or if the body has no shape.
+     * @throws AssertionError if I have made a massive cock-up due to not expecting a currently unknown type of body.
+     */
     public void addBody(final CrappyBody b) throws IllegalArgumentException, AssertionError{
+        if (b.getBodyType() == STATIC){
+            throw new IllegalArgumentException("Please use the 'setStaticGeometry' method to add static geometry.");
+        } else if (b.getShape() == null) {
+            throw new IllegalArgumentException("Please initialize a shape for this body first!");
+        }
         synchronized (UPDATE_SYNC_OBJECT) {
-            if (b.getShape() == null) {
-                throw new IllegalArgumentException("Please initialize a shape for this body first!");
-            }
             switch (b.getBodyType()) {
-                case STATIC:
-                    break;
                 case KINEMATIC:
-                    kinematicBodies.add(b);
+                    kinematics.put(b.getID(), b);
                     break;
                 case DYNAMIC:
-                    dynamicBodies.add(b);
+                    dynamics.put(b.getID(), b);
                     break;
+                case STATIC:
+                    throw new IllegalArgumentException("Please use the 'setStaticGeometry' method to add static geometry.");
                 default:
                     throw new AssertionError("Did not expect a body of type " + b.getBodyType() + "!");
             }
@@ -345,15 +458,19 @@ public class CrappyWorld {
 
     public void addConnector(final CrappyConnector c){
         synchronized (UPDATE_SYNC_OBJECT) {
-            connectors.add(c);
+            connects.put(c.getID(), c);
         }
     }
 
     /**
      * Marks the given body B for prompt removal.
      * @param b the body that needs to be removed.
+     * @throws IllegalArgumentException if one attempts to remove a static body.
      */
-    public void removeBody(final CrappyBody b){
+    public void removeBody(final I_ManipulateCrappyBody b) throws IllegalArgumentException{
+        if (b.getBodyType() == STATIC){
+            throw new IllegalArgumentException("Cannot remove a static body!");
+        }
         b.setMarkForRemoval(true);
     }
 
@@ -386,6 +503,61 @@ public class CrappyWorld {
             drawableConnectors.forEach(crapRenderer::acceptConnector);
         }
 
+    }
+
+    public List<DrawableBody> getRenderableBodies(final CrappyBody.CRAPPY_BODY_TYPE b){
+
+        switch (b){
+            case KINEMATIC:
+                synchronized (drawableKinematics){
+                    return Collections.unmodifiableList(new ArrayList<>(drawableKinematics));
+                }
+            case STATIC:
+                synchronized (drawableStatics){
+                    return Collections.unmodifiableList(new ArrayList<>(drawableStatics));
+                }
+            case DYNAMIC:
+                synchronized (drawableDynamics){
+                    return Collections.unmodifiableList(new ArrayList<>(drawableDynamics));
+                }
+            default:
+                throw new AssertionError("Was not expecting a body of type " + b + "!");
+        }
+    }
+
+
+    public List<DrawableConnector> getRenderableConnectors() {
+        synchronized (drawableConnectors){
+            return Collections.unmodifiableList(new ArrayList<>(drawableConnectors));
+        }
+    }
+
+    /**
+     * Attempts to obtain a CrappyBody in the world from ID
+     * @param id
+     * @return an optional that holds that CrappyBody (if it is known)
+     */
+    public Optional<CrappyBody> getBodyFromID(final UUID id){
+        if (dynamics.containsKey(id)){
+            return Optional.of(dynamics.get(id));
+        } else if (kinematics.containsKey(id)){
+            return Optional.of(kinematics.get(id));
+        } else {
+            staticGeometry.getOptional().ifPresent(s -> s.getBody(id));
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Attempts to obtain a CrappyConnector in the world from ID
+     * @param id
+     * @return an optional that holds that connector (if it is known)
+     */
+    public Optional<CrappyConnector> getConnectorFromID(final UUID id){
+        if (connects.containsKey(id)){
+            return Optional.of(connects.get(id));
+        }
+        return Optional.empty();
     }
 
     public enum CLICK_MODE{

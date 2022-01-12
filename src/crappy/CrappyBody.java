@@ -63,7 +63,7 @@ public class CrappyBody implements
      * Temporarily stores the change in velocity experienced by this object between its original velocity and
      * the velocity of it mid-timestep
      */
-    protected final M_Vect2D tempVelChange = M_Vect2D.GET();
+    protected transient final M_Vect2D tempVelChange = M_Vect2D.GET();
 
     /**
      * Velocity of this body mid-timestep
@@ -83,7 +83,7 @@ public class CrappyBody implements
     /**
      * The change in the rotation of this body mid-timestep.
      */
-    protected final M_Rot2D tempRotChange = M_Rot2D.GET();
+    protected transient final M_Rot2D tempRotChange = M_Rot2D.GET();
 
     /**
      * Previous rotation.
@@ -147,12 +147,12 @@ public class CrappyBody implements
     /**
      * All the forces to apply to this body which may change mid-timestep
      */
-    protected final M_Vect2D pending_forces_mid_timestep = M_Vect2D.GET();
+    protected transient final M_Vect2D pending_forces_mid_timestep = M_Vect2D.GET();
 
     /**
      * All the torques to apply to this body which may change mid-timestep
      */
-    protected double pending_torque_mid_timestep = 0;
+    protected transient double pending_torque_mid_timestep = 0;
 
     /**
      * For torques that need to remain sustained throughout all of the update iterations
@@ -233,7 +233,7 @@ public class CrappyBody implements
     /**
      * Basically a bitmask to indicate what 'tags' the objects this object collided with had.
      */
-    int combinedBitsOfOtherObjectsCollidedWith = 0;
+    transient int combinedBitsOfOtherObjectsCollidedWith = 0;
 
     /**
      * This is a bitmask, as some sort of arbitrary 'tag' system for bodies.
@@ -270,12 +270,12 @@ public class CrappyBody implements
     /**
      * A set with all of the connectors attached to this body.
      */
-    final Set<CrappyConnector> myConnections = new HashSet<>();
+    final Set<CrappyConnectorBodyInterface> myConnections = new HashSet<>();
 
     /**
-     * IDs of bodies that I cannot collide with.
+     * The identified bodies that this object cannot collide with.
      */
-    private final Set<IHaveIdentifier> idsICannotCollideWith = new HashSet<>();
+    private final Map<UUID, IHaveIdentifier> idsICannotCollideWith = Collections.synchronizedMap(new HashMap<>());
 
 
     private boolean discarded = false;
@@ -401,11 +401,10 @@ public class CrappyBody implements
      * @return true if they can collide, otherwise false.
      */
     public boolean allowedToCollideWith(final I_View_CrappyBody other){
-
-        if (idsICannotCollideWith.contains(other)){
+        if (idsICannotCollideWith.containsKey(other.getID())){
             return false;
         } else {
-            return anyMatchInBitmasks(other);
+            return tagsICanCollideWithBitmask < 0 || anyMatchInBitmasks(other);
         }
 
     }
@@ -426,7 +425,7 @@ public class CrappyBody implements
      */
     @Override
     public boolean anyMatchInBitmasks(final IHaveBitmask other){
-        return tagsICanCollideWithBitmask == -1 || ((tagsICanCollideWithBitmask & other.getBitmask()) > 0);
+        return tagsICanCollideWithBitmask < 0 || ((tagsICanCollideWithBitmask & other.getBitmask()) > 0);
     }
 
     /**
@@ -785,7 +784,7 @@ public class CrappyBody implements
             case KINEMATIC:
                 return source != FORCE_SOURCE.ENGINE;
             default:
-                return canMoveLinearly;
+                return true;
         }
 
     }
@@ -1033,10 +1032,14 @@ public class CrappyBody implements
             //System.out.println("localCollidePos = " + localCollidePos + ", norm = " + norm + ", jImpulse = " + jImpulse);
 
             //System.out.println("tempVel = " + velocity);
-            velocity.addScaled(norm, jImpulse / getMass());
+            if (canMoveLinearly) {
+                velocity.addScaled(norm, jImpulse / getMass());
+            }
             //System.out.println("tempVel = " + velocity);
             //System.out.println("tempAngVelocity = " + angVelocity);
-            angVelocity += (jImpulse * localCollidePos.cross(norm)) / getMomentOfInertia();
+            if (canRotate) {
+                angVelocity += (jImpulse * localCollidePos.cross(norm)) / getMomentOfInertia();
+            }
             //System.out.println("tempAngVelocity = " + angVelocity);
         }
     }
@@ -1074,29 +1077,34 @@ public class CrappyBody implements
     }
 
     @Override
-    public void __addConnector_internalPlsDontUseManually(final CrappyConnector c) {
+    public void __addConnector_internalPlsDontUseManually(final CrappyConnectorBodyInterface c) {
         myConnections.add(c);
-        refreshBodiesICannotCollideWith();
+        if (!c.canBodiesCollide()) {
+            refreshBodiesICannotCollideWith();
+        }
     }
 
     @Override
-    public void __removeConnector_internalPlsDontUseManually(final CrappyConnector c) {
+    public void __removeConnector_internalPlsDontUseManually(final CrappyConnectorBodyInterface c) {
         myConnections.remove(c);
-        refreshBodiesICannotCollideWith();
+        if (!c.canBodiesCollide()) {
+            refreshBodiesICannotCollideWith();
+        }
     }
 
     /**
-     * Refreshes the set of bodies that this object cannot collide with.
+     * Refreshes the map of UUIDs for the bodies that this object cannot collide with.
      */
     private void refreshBodiesICannotCollideWith(){
-        Collection<IHaveIdentifier> badIDs = new HashSet<>();
-        for (CrappyConnector c: myConnections) {
-            if (!c.canBodiesCollide()){
-                badIDs.add(c.getOtherBody(this));
+        synchronized (idsICannotCollideWith) {
+            idsICannotCollideWith.clear();
+            for (CrappyConnectorBodyInterface c : myConnections) {
+                if (!c.canBodiesCollide()) {
+                    final IHaveIdentifier o = c.getOtherBody(this);
+                    idsICannotCollideWith.putIfAbsent(o.getID(), o);
+                }
             }
         }
-        idsICannotCollideWith.clear();
-        idsICannotCollideWith.addAll(badIDs);
     }
 
     public DrawableCrappyShape getDrawableShape() {
@@ -1140,27 +1148,30 @@ public class CrappyBody implements
 
             default:
 
-                pending_forces_this_timestep.mult(1/mass);
-
-                //pending_torque_this_timestep = (inertia == 0) ? 0 : (pending_torque_this_timestep/inertia);
-
-                pending_torque_this_timestep = Vect2DMath.RETURN_X_IF_NOT_FINITE(
-                        pending_torque_this_timestep/inertia, 0
-                );
-
-
-                tempVel.set(velocity);
-                if (linearDrag != 0){
-                    // and we apply the drag to the body if appropriate
-                    tempVel.mult(1-linearDrag);
-                }
-
 
                 tempPosition.set(position);
                 tempRot.set(rotation);
-                tempAngVelocity = angVelocity * (1-angularDrag);
 
-                tempVel.addScaled(pending_forces_this_timestep, deltaT);
+                if (canMoveLinearly) {
+                    pending_forces_this_timestep.mult(1/mass);
+                    tempVel.set(velocity);
+                    if (linearDrag != 0) {
+                        // and we apply the drag to the body if appropriate
+                        tempVel.mult(1 - linearDrag);
+                    }
+                    tempVel.addScaled(pending_forces_this_timestep, deltaT);
+                } else {
+                    tempVel.reset();
+                }
+                if (canRotate) {
+                    pending_torque_this_timestep = Vect2DMath.RETURN_X_IF_NOT_FINITE(
+                            pending_torque_this_timestep/inertia, 0
+                    );
+                    tempAngVelocity = angVelocity * (1-angularDrag);
+                    tempAngVelocity += (pending_torque_this_timestep * deltaT);
+                } else {
+                    tempAngVelocity = 0;
+                }
 
                 break;
         }
@@ -1187,25 +1198,29 @@ public class CrappyBody implements
             return;
         }
 
-        tempPosition.addScaled(
-                tempVel, substepDeltaT
-        );
-
-        tempRot.rotateBy(tempAngVelocity * substepDeltaT);
-
-        tempVel.addScaled(pending_forces_this_timestep, substepDeltaT);
-        tempVel.addScaled(pending_forces_mid_timestep.mult(1/mass), substepDeltaT);
-        tempVel.addScaled(pending_external_forces, substepDeltaT);
+        if (canMoveLinearly) {
+            tempPosition.addScaled(
+                    tempVel, substepDeltaT
+            );
+            tempVel.addScaled(pending_forces_this_timestep, substepDeltaT);
+            tempVel.addScaled(pending_forces_mid_timestep.mult(1/mass), substepDeltaT);
+            tempVel.addScaled(pending_external_forces, substepDeltaT);
+        }
 
         pending_forces_mid_timestep.reset();
 
-        if (inertia != 0) {
-            tempAngVelocity += (pending_torque_this_timestep * substepDeltaT);
-            tempAngVelocity += ((pending_torque_mid_timestep / inertia) * substepDeltaT);
-            tempAngVelocity += (pending_external_torque * substepDeltaT);
-        }
 
-        pending_torque_mid_timestep = 0;
+        if (canRotate) {
+            tempRot.rotateBy(tempAngVelocity * substepDeltaT);
+
+            if (inertia != 0) {
+                tempAngVelocity += (pending_torque_this_timestep * substepDeltaT);
+                tempAngVelocity += ((pending_torque_mid_timestep / inertia) * substepDeltaT);
+                tempAngVelocity += (pending_external_torque * substepDeltaT);
+            }
+
+            pending_torque_mid_timestep = 0;
+        }
 
         intermediateTransform.update();
 
@@ -1421,8 +1436,6 @@ public class CrappyBody implements
         public double mass = 1;
 
         public CrappyBody.CRAPPY_BODY_TYPE bodyType = null;
-
-        public boolean tangible = true;
 
         public double linearDrag = 0.9;
 

@@ -60,6 +60,8 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
     };
      */
 
+    public static Vect2D connectorPos = SHIP_SHAPE[2];
+
     public Spaceship(Vect2D startPos, CrappyWorld world, IRecieveDebris d){
 
 
@@ -165,7 +167,7 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
                 Rot2D.IDENTITY,
                 0,
                 1,
-                0,
+                1,
                 0.0001,
                 0.0001,
                 CrappyBody.CRAPPY_BODY_TYPE.DYNAMIC,
@@ -195,8 +197,7 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
      * @implNote default implementation does nothing.
      */
     @Override
-    public void collidedWith(I_View_CrappyBody otherBody) {
-    }
+    public void collidedWith(I_View_CrappyBody otherBody) {}
 
     /**
      * The CrappyBody will call this after all collisions have been detected/computed. It gives the combined bitmask
@@ -207,8 +208,10 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
      * @implNote default implementation does nothing
      */
     @Override
-    public void acceptCollidedWithBitmaskAfterAllCollisions(int collidedWithBits) {
-        if ((BodyTagEnum.WORLD.bitmask & collidedWithBits) > 0 || (BodyTagEnum.PAYLOAD.bitmask & collidedWithBits) > 0){
+    public void acceptCollidedWithBitmaskAfterAllCollisions(final int collidedWithBits) {
+        if ((BodyTagEnum.WORLD.bitmask & collidedWithBits) > 0 || (BodyTagEnum.PAYLOAD.bitmask & collidedWithBits) > 0
+                //(state != SHIP_STATE.TOWING && (BodyTagEnum.PAYLOAD.bitmask & collidedWithBits) > 0)
+        ){
             if (stillAlive){
                 debrisGoesHere.addDebris(getPos(), getRot(), getVel(), 2 + (int)(Math.random()*5), IRecieveDebris.DebrisSource.SHIP);
                 dedPos = getPos();

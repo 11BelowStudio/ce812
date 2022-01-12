@@ -49,6 +49,9 @@ public class Controller implements IController{
      */
     @Override
     public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode() != KeyEvent.VK_ESCAPE){
+            act.justPressedAny();
+        }
         switch (e.getKeyCode()){
             case KeyEvent.VK_LEFT:
             case KeyEvent.VK_A:

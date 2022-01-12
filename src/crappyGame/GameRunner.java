@@ -10,7 +10,7 @@ import javax.swing.*;
 
 import java.awt.Component;
 
-import static crappy.CrappyWorld.DEFAULT_DELAY;
+import static crappy.CrappyWorld.DEFAULT_UPDATE_DELAY;
 
 public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
 
@@ -53,7 +53,7 @@ public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
 
         display.repackAndRevalidateAndSetVisible();
 
-        repaintTimer = new Timer(DEFAULT_DELAY, e -> theView.repaint());
+        repaintTimer = new Timer(DEFAULT_UPDATE_DELAY, e -> theView.repaint());
 
         runIt();
     }
@@ -101,7 +101,7 @@ public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
                 modelChanged = false;
             }
             endTime = System.currentTimeMillis();
-            timeout = DEFAULT_DELAY - (endTime - startTime);
+            timeout = DEFAULT_UPDATE_DELAY - (endTime - startTime);
             if (timeout > 0){
                 Thread.sleep(timeout);
             }

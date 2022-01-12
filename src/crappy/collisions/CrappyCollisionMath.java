@@ -8,8 +8,6 @@ package crappy.collisions;
 import crappy.CrappyBody;
 import crappy.math.*;
 
-import java.util.Scanner;
-import java.util.Vector;
 
 import static crappy.math.Vect2DMath.*;
 
@@ -942,9 +940,10 @@ public final class CrappyCollisionMath {
         }
 
 
-        if (Vect2DMath.WORLD_VEL_OF_LOCAL_COORD_M(
-                Vect2DMath.WORLD_TO_LOCAL_M(collisionPoint, p.getBodyTransform()).finished(), p.getBodyTransform()
+        if (Vect2DMath.WORLD_VEL_OF_ROTATED_LOCAL_COORD_M(
+                collisionPoint, p.getBodyTransform()
         ).dot_discard(e.getWorldNorm()) < 0){
+            // if the circle was actually moving towards the edge, we begin
             return COLLIDE_CIRCLE_EDGE(
                     p.getCircleForWorldCollisionPos(collisionPoint),
                     e,

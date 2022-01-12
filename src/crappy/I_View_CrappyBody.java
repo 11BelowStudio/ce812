@@ -1,3 +1,8 @@
+/***
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 package crappy;
 
 import crappy.math.I_Rot2D;
@@ -8,19 +13,12 @@ import crappy.collisions.A_CrappyShape;
 import crappy.collisions.Crappy_AABB;
 import crappy.utils.bitmasks.IHaveBitmask;
 
-import java.util.UUID;
-
 /**
  * A view-only interface of the CrappyBody.
  *
  * @author Rachel Lowe
  */
 public interface I_View_CrappyBody extends I_Transform, IHaveBitmask, IHaveIdentifier {
-    /*
-     * This Source Code Form is subject to the terms of the Mozilla Public
-     * License, v. 2.0. If a copy of the MPL was not distributed with this
-     * file, You can obtain one at https://mozilla.org/MPL/2.0/.
-     */
 
     /**
      * mid-timestep position
