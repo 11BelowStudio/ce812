@@ -150,11 +150,7 @@ public class Payload implements CrappyCallbackHandler, Respawnable, GameObject {
      * @implNote default implementation does nothing.
      */
     @Override
-    public void collidedWith(I_View_CrappyBody otherBody) {
-
-        System.out.println(otherBody.getName());
-        System.out.println("");
-    }
+    public void collidedWith(final I_View_CrappyBody otherBody) {}
 
     /**
      * The CrappyBody will call this after all collisions have been detected/computed. It gives the combined bitmask

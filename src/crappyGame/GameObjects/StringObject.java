@@ -9,6 +9,9 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.util.function.Function;
 
+/**
+ * A class for a string (white text, black outline) to draw onto the screen
+ */
 public class StringObject implements Drawable {
 
     private String words = "";
@@ -218,6 +221,10 @@ public class StringObject implements Drawable {
 
         public Rot2D getRotation(){
             return s.getRotation();
+        }
+
+        public String getWords(){
+            return s.getWords();
         }
 
         public ALIGNMENT_ENUM getAlignment(){

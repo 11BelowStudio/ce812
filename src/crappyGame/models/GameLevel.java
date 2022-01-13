@@ -338,7 +338,7 @@ public class GameLevel extends A_Model implements IModel, Viewable, CrappyCallba
         SoundManager.playTowNoise();
     }
 
-    private void won(){
+    void won(){
 
         SoundManager.playScored();
         gamestate = GAMESTATE.WON_LEVEL;

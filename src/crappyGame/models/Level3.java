@@ -54,6 +54,13 @@ public class Level3 extends GameLevel{
         SoundManager.playBackgroundMusic(SoundManager.MUSIC_THEMES.MAIN_THEME);
 
     }
+
+    @Override
+    void won() {
+        super.won();
+        System.out.println("CONGARTULATION!");
+        System.out.println(fuelUsedHUD.getWords());
+    }
 }
 
 /**

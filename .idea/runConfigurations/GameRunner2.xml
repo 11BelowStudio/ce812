@@ -2,8 +2,6 @@
   <configuration default="false" name="GameRunner2" type="Application" factoryName="Application" singleton="false">
     <option name="ALTERNATIVE_JRE_PATH" value="C:/Program Files/Java/jre1.8.0_311" />
     <classpathModifications>
-      <entry exclude="true" path="D:\OneDrive - University of Essex\MSc\CE812 physics-based games\CE812_lowe_rachel_m\lib\hamcrest-core-1.3.jar" />
-      <entry exclude="true" path="D:\OneDrive - University of Essex\MSc\CE812 physics-based games\CE812_lowe_rachel_m\lib\junit-4.13.1.jar" />
       <entry path="D:\OneDrive - University of Essex\MSc\CE812 physics-based games\CE812_lowe_rachel_m\lib\junit-4.13.2.jar" />
     </classpathModifications>
     <option name="INCLUDE_PROVIDED_SCOPE" value="true" />
