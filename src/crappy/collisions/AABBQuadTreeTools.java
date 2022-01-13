@@ -584,7 +584,7 @@ public final class AABBQuadTreeTools {
             // if there's no geometry, we return an empty leaf node.
             return new EmptyQuadtreeLeafNodeStaticGeom();
         }
-        System.out.println(geometryShapes.size());
+        //System.out.println(geometryShapes.size());
         return new StaticGeometryAABBTreeNode.StaticGeometryRootNode(
                 geometryShapes.stream()
                     .unordered()
@@ -935,7 +935,7 @@ public final class AABBQuadTreeTools {
             map.forEach((k, v) -> leSet.addAll(v));
 
             if(leSet.size() != getCandidatesLeft()){
-                System.out.println("OH NO!!!!");
+                System.out.println("OH NO!!!! stuff is missing!");
                 for (CrappyShape_QuadTree_Interface cs: geometryShapes) {
                     if (!leSet.contains(cs)){
                         System.out.println(cs);

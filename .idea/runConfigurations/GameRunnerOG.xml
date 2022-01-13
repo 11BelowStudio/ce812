@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="GameRunnerOG" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="crappyGame.GameRunner" />
+    <module name="CE812_lowe_rachel_m" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

@@ -339,7 +339,6 @@ public final class CrappyCollisionMath {
 
     public static boolean COLLIDE_CIRCLE_EDGE(final I_CrappyShape c, final I_CrappyEdge e, final double deltaT){
 
-        // TODO: completely rewrite this (same for the polygon version)
 
         if( // first, we attempt to collide the circle with the end point edge of this body.
                 COLLIDE_CIRCLE_CIRCLE(c, e.getEndPointCircle(), deltaT)

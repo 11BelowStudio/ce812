@@ -1,0 +1,18 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="GameRunner" type="Application" factoryName="Application" nameIsGenerated="true">
+    <classpathModifications>
+      <entry exclude="true" path="D:\OneDrive - University of Essex\MSc\CE812 physics-based games\CE812_lowe_rachel_m\lib\jbox2d-library-2.2.1.1.jar" />
+    </classpathModifications>
+    <option name="MAIN_CLASS_NAME" value="crappyGame.GameRunner" />
+    <module name="CE812_lowe_rachel_m" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="crappyGame.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

@@ -424,7 +424,7 @@ public class CrappyWorld {
                     drawableStatics.add(s);
                 }
             }
-            System.out.println(staticGeometry.getAssert().toString());
+            //System.out.println(staticGeometry.getAssert().toString());
         }
     }
 

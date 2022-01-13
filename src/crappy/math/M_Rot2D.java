@@ -1,7 +1,6 @@
 package crappy.math;
 
 import crappy.internals.CrappyWarning;
-import org.jbox2d.common.Rot;
 
 import java.io.Serializable;
 import java.util.Queue;

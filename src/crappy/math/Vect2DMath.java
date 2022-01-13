@@ -1235,7 +1235,7 @@ public final class Vect2DMath {
      * @return the area of the polygon described by the Vect2Ds. If positive, that means the corners are ordered
      * anticlockwise 'about the normal'. If negative, that means the corners are clockwise.
      * @throws IllegalArgumentException if fewer than 3 corners.
-     * @see <a href=https://iq.opengenus.org/area-of-polygon-shoelace/>https://iq.opengenus.org/area-of-polygon-shoelace/</a>
+     * @see <a href="https://iq.opengenus.org/area-of-polygon-shoelace/">https://iq.opengenus.org/area-of-polygon-shoelace/</a>
      * @see <a href="http://paulbourke.net/geometry/polygonmesh/centroid.pdf">http://paulbourke.net/geometry/polygonmesh/centroid.pdf</a>
      * for the area/centroid polygon maths
      * @see #AREA_AND_CENTROID_OF_VECT2D_POLYGON(Vect2D...)
@@ -1338,48 +1338,6 @@ public final class Vect2DMath {
 
     }
 
-
-    /**
-     * Attempts to find the moment of inertia for an arbitrary polygon with corners defined by the 'corners' list,
-     * based on the moment of inertia algorithm on Wikipedia for:
-     * 'Plane polygon with vertices P1, P2, P3, ..., PN and mass m uniformly distributed on its interior,
-     * rotating about an axis perpendicular to the plane and passing through the origin.'
-     * @param mass mass of that polygon
-     * @param corners list of vectors describing the shape in question
-     * @return moment of inertia about (0,0) for that shape BEFORE BEING MULTIPLIED BY MASS!
-     * @throws IllegalArgumentException if fewer than 3 corners given
-     */
-    public static double POLYGON_MOMENT_OF_INERTIA_ABOUT_ZERO(final double mass, final Vect2D... corners){
-        if (corners.length < 3){
-            throw new IllegalArgumentException(
-                    "I can't find the moment of inertia for a polygon with fewer than 3 corners! " +
-                            "You only gave me " + corners.length + " corners!"
-            );
-        }
-
-        double numerator = 0;
-        double denominator = 0;
-
-        final M_Vect2D current = M_Vect2D.GET(corners[corners.length-1]);
-
-        for (Vect2D next: corners) {
-
-            final double cXn = current.cross(next);
-
-            numerator += (
-                    cXn + current.dot(current) + current.dot(next) + next.dot(next)
-            );
-
-            denominator += cXn;
-
-            current.set(next);
-        }
-
-        current.finished();
-
-        return mass * numerator / (6 * denominator);
-
-    }
 
     /**
      * A more conclusive 'polygon moment of inertia' solver,
@@ -1839,7 +1797,7 @@ public final class Vect2DMath {
 
     /**
      * Attempts to see if a given point is within a given polygon.
-     * From <a href="https://jeffreythompson.org/collision-detection/poly-point.php">https://jeffreythompson.org/collision-detection/poly-point.php</a>
+     * Based on the algorithm explained here: <a href="https://jeffreythompson.org/collision-detection/poly-point.php">https://jeffreythompson.org/collision-detection/poly-point.php</a>
      * @param point the point we are checking
      * @param verts vertices describing the polygon
      * @return true if the point is within the shape described by verts.

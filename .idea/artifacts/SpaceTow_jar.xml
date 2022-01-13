@@ -3,8 +3,6 @@
     <output-path>$PROJECT_DIR$/out/artifacts/SpaceTow_jar</output-path>
     <root id="archive" name="SpaceTow.jar">
       <element id="module-output" name="CE812_lowe_rachel_m" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/junit-4.13.1.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/hamcrest-core-1.3.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/junit-4.13.2.jar" path-in-jar="/" />
     </root>
   </artifact>

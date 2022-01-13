@@ -14,7 +14,10 @@ import static crappy.CrappyWorld.DEFAULT_UPDATE_DELAY;
 
 public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
+
+        System.out.println("*** A Scientific Recreation of Daily Life in the Space Towing Industry circa 3052 CE ***");
+
         new GameRunner();
     }
 
