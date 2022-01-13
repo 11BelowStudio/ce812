@@ -18,7 +18,7 @@ A game made for CE812 Physics-Based Games
 * README.md
     * This file you are reading right now.
 * LICENSE.txt
-    * The terms of the Mozilla Public License 2.0 (which CRAPPY is released under)
+    * The terms of the Mozilla Public License 2.0 (which the game and its physics engine have been released under)
 * SpaceTow.jar
     * This is *A Scientific Interpretation of Daily Life in the Space Towing Industry, Circa 3052 CE*,
       in executable .jar form
