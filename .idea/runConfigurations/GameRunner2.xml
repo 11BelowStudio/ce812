@@ -1,0 +1,27 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="GameRunner2" type="Application" factoryName="Application" singleton="false">
+    <option name="ALTERNATIVE_JRE_PATH" value="C:/Program Files/Java/jre1.8.0_311" />
+    <classpathModifications>
+      <entry path="D:\OneDrive - University of Essex\MSc\CE812 physics-based games\CE812_lowe_rachel_m\lib\junit-4.13.2.jar" />
+    </classpathModifications>
+    <option name="INCLUDE_PROVIDED_SCOPE" value="true" />
+    <option name="MAIN_CLASS_NAME" value="crappyGame.GameRunner" />
+    <module name="CE812_lowe_rachel_m" />
+    <shortenClasspath name="NONE" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="crappy.collisions.AABBTests" />
+        <option name="ENABLED" value="true" />
+        <option name="INCLUDE" value="false" />
+      </pattern>
+      <pattern>
+        <option name="PATTERN" value="crappy.math.MathTests" />
+        <option name="ENABLED" value="true" />
+        <option name="INCLUDE" value="false" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
