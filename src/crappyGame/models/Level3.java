@@ -1,5 +1,6 @@
 package crappyGame.models;
 
+import crappy.math.Vect2D;
 import crappyGame.Controller.IController;
 import crappyGame.IGameRunner;
 import crappyGame.assets.SoundManager;
@@ -15,6 +16,9 @@ import static javax.swing.JOptionPane.*;
  */
 public class Level3 extends GameLevel{
 
+    private boolean notHadTheTalk = true;
+
+    private boolean flippedGravity = false;
 
     public Level3(
             IController ctrl,
@@ -30,6 +34,16 @@ public class Level3 extends GameLevel{
                 runner
         );
         congratsWords.updateWords("Congratulations! You have survived the Space Towing Industry!");
+        notHadTheTalk = true;
+        flippedGravity = false;
+    }
+
+    @Override
+    Vect2D getCurrentGravity(){
+        if (flippedGravity){
+            return super.INVERTED_GRAVITY;
+        }
+        return super.getCurrentGravity();
     }
 
 
@@ -37,21 +51,36 @@ public class Level3 extends GameLevel{
     void createTowRope() {
         huh();
         super.createTowRope();
+        flippedGravity = true;
     }
+
+    @Override
+    boolean respawn(){
+        boolean res = super.respawn();
+        if (res){
+            flippedGravity = false;
+        }
+        return res;
+    }
+
+
 
     private void huh(){
 
-        letsTalkAboutThis talkinBout = letsTalkAboutThis.INTRO;
-        controller.resetAll();
-        final Component p = runner.getViewComponent();
-        SoundManager.togglePlayThrusters(false);
-        SoundManager.playBackgroundMusic(SoundManager.MUSIC_THEMES.CONVERSATIONAL_INTERLUDE);
-        runner.notifyAboutPause(true);
-        do{
-            talkinBout = talkinBout.talk(p);
-        } while (talkinBout != letsTalkAboutThis.__END__);
-        runner.notifyAboutPause(false);
-        SoundManager.playBackgroundMusic(SoundManager.MUSIC_THEMES.MAIN_THEME);
+        if (notHadTheTalk) {
+            notHadTheTalk = false;
+            letsTalkAboutThis talkinBout = letsTalkAboutThis.INTRO;
+            controller.resetAll();
+            final Component p = runner.getViewComponent();
+            SoundManager.togglePlayThrusters(false);
+            SoundManager.playBackgroundMusic(SoundManager.MUSIC_THEMES.CONVERSATIONAL_INTERLUDE);
+            runner.notifyAboutPause(true);
+            do {
+                talkinBout = talkinBout.talk(p);
+            } while (talkinBout != letsTalkAboutThis.__END__);
+            runner.notifyAboutPause(false);
+            SoundManager.playBackgroundMusic(SoundManager.MUSIC_THEMES.MAIN_THEME);
+        }
 
     }
 

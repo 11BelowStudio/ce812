@@ -164,6 +164,10 @@ public class GameLevel extends A_Model implements IModel, Viewable, CrappyCallba
         fuelUsedHUD.setData(fuelUsed);
     }
 
+    Vect2D getCurrentGravity(){
+        return super.GAME_GRAVITY;
+    }
+
 
     @Override
     public void update() {
@@ -208,7 +212,8 @@ public class GameLevel extends A_Model implements IModel, Viewable, CrappyCallba
             }
         }
 
-        world.update();
+        //world.update();
+        world.update(getCurrentGravity());
 
         for (final Iterator<Debris> diter = debris.iterator(); diter.hasNext();) {
             final Debris d = diter.next();
@@ -305,7 +310,7 @@ public class GameLevel extends A_Model implements IModel, Viewable, CrappyCallba
         }
     }
 
-    private boolean respawn(){
+    boolean respawn(){
         if (ship.respawn(world)) {
             pl.respawn(world);
             SoundManager.playPlac();

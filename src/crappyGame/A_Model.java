@@ -23,6 +23,7 @@ public abstract class A_Model implements IModel{
     protected final GraphicsTransform gt = new GraphicsTransform(VISIBLE_WORLD_WIDTH, VISIBLE_WORLD_HEIGHT, dims, viewportCorner);
 
     protected final Vect2D GAME_GRAVITY = new Vect2D(0, -1.9);
+    protected final Vect2D INVERTED_GRAVITY = GAME_GRAVITY.invert();
 
     protected final CrappyWorld world = new CrappyWorld(GAME_GRAVITY);
 

@@ -176,6 +176,14 @@ public class CrappyWorld {
         update(deltaT, grav, eulerUpdatesPerUpdate, eulerSubsteps);
     }
 
+    /**
+     * Runs the update method using defaults for everything but the gravity
+     * @param customGrav custom gravity to use instead.
+     */
+    public void update(I_Vect2D customGrav){
+        update(deltaT, customGrav, eulerUpdatesPerUpdate, eulerSubsteps);
+    }
+
 
 
     /**
