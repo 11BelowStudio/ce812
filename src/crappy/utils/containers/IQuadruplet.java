@@ -33,4 +33,14 @@ public interface IQuadruplet <T1, T2, T3, T4> extends ITriplet<T1, T2, T3>, Seri
     static <T1, T2, T3, T4> IQuadruplet<T1, T2, T3, T4> of(final T1 a, final T2 b, final T3 c, final T4 d){
         return new Quadruplet<>(a,b,c,d);
     }
+
+    /**
+     * Makes a quadruplet from a triplet and something else
+     * @param tri triplet containing first 3 elements
+     * @param d 4th element
+     * @return quadruplet containing triplet contents + 4th
+     */
+    static <T1, T2, T3, T4> IQuadruplet<T1, T2, T3, T4> of(final ITriplet<T1, T2, T3> tri, final T4 d){
+        return new Quadruplet<>(tri, d);
+    }
 }

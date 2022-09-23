@@ -245,10 +245,10 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector
 
     private Vect2D normalizedVectorFromAToB(){
         return Vect2DMath.MINUS_M(
-                        bodyBWorldPos(),
-                        bodyAWorldPos()
-                ).norm()
-                .finished();
+                bodyBWorldPos(),
+                bodyAWorldPos()
+            ).norm()
+            .finished();
     }
 
     @Override

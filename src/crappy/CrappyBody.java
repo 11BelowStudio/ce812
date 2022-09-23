@@ -26,7 +26,8 @@ public class CrappyBody implements
         I_ManipulateCrappyBody,
         I_CrappyBody_CrappyWorld_Interface,
         DrawableBody,
-        CrappyBody_ShapeSetter_Interface {
+        CrappyBody_ShapeSetter_Interface
+{
     /*
      * This Source Code Form is subject to the terms of the Mozilla Public
      * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -134,7 +135,7 @@ public class CrappyBody implements
 
 
     /**
-     * For forces that need to remain sustained throughout all of the update iterations
+     * For forces that need to remain sustained throughout all update iterations
      */
     protected final M_Vect2D pending_external_forces = M_Vect2D.GET();
 
@@ -185,7 +186,7 @@ public class CrappyBody implements
     protected double restitution = 1;
 
     /**
-     * Whether or not this body is considered 'active'.
+     * Whetherthis body is considered 'active'.
      */
     protected boolean active = true;
 
@@ -205,12 +206,12 @@ public class CrappyBody implements
     protected PendingStateChange pendingIntangbility = PendingStateChange.SAME_AS_IT_EVER_WAS;
 
     /**
-     * Whether or not this body is currently allowed to move
+     * Whether this body is currently allowed to move
      */
     protected boolean canMoveLinearly = true;
 
     /**
-     * Whether or not this body is currently allowed to rotate
+     * Whether this body is currently allowed to rotate
      */
     protected boolean canRotate = true;
 
@@ -268,7 +269,7 @@ public class CrappyBody implements
 
 
     /**
-     * A set with all of the connectors attached to this body.
+     * A set holding all the connectors attached to this body.
      */
     final Set<CrappyConnectorBodyInterface> myConnections = new HashSet<>();
 
@@ -721,7 +722,7 @@ public class CrappyBody implements
     }
 
     /**
-     * Collision shape
+     * Obtains the collision shape
      *
      * @return collision shape
      */
@@ -975,6 +976,7 @@ public class CrappyBody implements
      */
     public void applyTorque(final double torque, final FORCE_SOURCE source){
 
+        //noinspection DuplicatedCode
         if (canApplyThisForce(source) && inertia > 0){
             switch (source){
                 case ENGINE:
@@ -1005,6 +1007,7 @@ public class CrappyBody implements
      */
     public void applyMidTimestepTorque(final double torque, final FORCE_SOURCE source){
 
+        //noinspection DuplicatedCode
         if (canApplyThisForce(source) && inertia > 0){
             switch (source){
                 case ENGINE:
@@ -1025,6 +1028,12 @@ public class CrappyBody implements
         applyMidTimestepTorque(torque, FORCE_SOURCE.MANUAL);
     }
 
+    /**
+     * Applies appropriate forces for when this hit something static
+     * @param localCollidePos local position (on this object) of the collision
+     * @param norm normal vector for the collision
+     * @param jImpulse Collision impulse (to apply to this)
+     */
     @Override
     public void applyHitSomethingStatic(I_Vect2D localCollidePos, I_Vect2D norm, double jImpulse) {
         if (canApplyThisForce(FORCE_SOURCE.ENGINE)) {
@@ -1107,6 +1116,11 @@ public class CrappyBody implements
         }
     }
 
+    /**
+     * Obtains this body's drawable shape
+     * @return {@link #getShape()}
+     * @see #getShape()
+     */
     public DrawableCrappyShape getDrawableShape() {
         return getShape();
     }
@@ -1249,7 +1263,7 @@ public class CrappyBody implements
         discarded = true;
     }
 
-
+    @Override
     public void clearAllPendingForces(){
 
         pending_forces_mid_timestep.reset();
@@ -1263,6 +1277,7 @@ public class CrappyBody implements
      * Makes all the temporary changes to velocity and position (done during sub-updates) not temporary.
      *
      */
+    @Override
     public void applyAllTempChanges(){
 
         if (eus == EULER_UPDATE_STATE.SUB_UPDATING) {
@@ -1383,10 +1398,8 @@ public class CrappyBody implements
         return new CrappyBodyCreator();
     }
 
-
+    @Override
     public void overwriteVelocityAfterCollision(final I_Vect2D newVel, final double newAngVel, final FORCE_SOURCE overwriteSource){
-
-
 
         if (canApplyThisForce(overwriteSource)) {
             velocity = newVel.toVect2D();

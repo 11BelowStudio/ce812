@@ -1,6 +1,21 @@
 # A Scientific Interpretation of Daily Life in the Space Towing Industry, Circa 3052 CE
 
-A game made for CE812 Physics-Based Games
+A game I made for CE812 Physics-Based Games, using **CRAPPY**
+(the ***C**ool **R**ealism-**A**djacent **P**hysics **P**ackage, **Y**'know?*)
+
+**CRAPPY** was *also* made, by me, for the CE812 Physics-Based Games module.
+
+In this game, you join the ranks of the noble members of the Space Towing Industry,
+and your job is to fly into these caves,
+pick up the mythical **Ball Of Being Towed In Space**,
+and tow it back to where you came from!
+
+And uhh try not to crash into anything!
+
+
+![a cool annotated screenshot](/report%20images/screenshot%201.png)
+![a cool screenshot of the game](/report%20images/screenshot%204.png)
+![a cool annotated version of the first screenshot](/report%20images/screenshot%204%20annotated.png)
 
 ### Software/hardware requirements
 
@@ -18,45 +33,12 @@ A game made for CE812 Physics-Based Games
 * README.md
   * This file you are reading right now.
 * LICENSE.txt
-  * The terms of the Mozilla Public License 2.0 (which CRAPPY is released under)
+  * The terms of the Mozilla Public License 2.0 (which **CRAPPY** and this game have been released under)
 * SpaceTow.jar
   * This is *A Scientific Interpretation of Daily Life in the Space Towing Industry, Circa 3052 CE*,
     in executable .jar form
-* 210086 - CE812 Report.pdf
-  * The obligatory report on the coursework
-* lib/
-  * Contains [junit-4.13.2.jar](https://mvnrepository.com/artifact/junit/junit/4.13.2),
-    without which this game won't actually compile if you try building it from source.
-* bin/
-  * Contains the class files for the game (with some of the resources)
-* src/
-  * Contains the source files for the game (with all of the resources).
-    * Main class is `crappyGame.GameRunner`
-      * src/crappyGame/GameRunner.java
 
-## How to run the game from source via terminal/command line
+## Credits
 
-Windows users
-```
-java -Dfile.encoding=UTF-8 -classpath "lib\junit-4.13.2.jar;out\production\CE812_lowe_rachel_m" crappyGame.GameRunner
-```
-
-Linux/Mac users
-```
-java -Dfile.encoding=UTF-8 -classpath "lib\junit-4.13.2.jar:out\production\CE812_lowe_rachel_m" crappyGame.GameRunner
-```
-
-~~the `-Dfile.encoding=UTF-8` optional, but is included here just in case omitting it gets awkward.~~
-
-
-
-## How to run the game via the jar using terminal/command line
-
-
-```
-java -jar SpaceTow.jar 
-```
-
-alternatively, you can just click on the SpaceTow.jar file,
-and open that using Java if asked.
-
+* This game is a shameless rip-off of *Thrust* by Jeremy Smith, 1986.
+* *CRAPPY* was heavily inspired by [*JBox2D*](https://github.com/jbox2d/jbox2d).

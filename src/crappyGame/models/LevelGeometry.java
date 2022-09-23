@@ -3,11 +3,13 @@ package crappyGame.models;
 import crappy.CrappyBody;
 import crappy.collisions.AABBQuadTreeTools;
 import crappy.collisions.CrappyEdge;
+import crappy.collisions.CrappyLine;
 import crappy.math.Rot2D;
 import crappy.math.Vect2D;
 import crappy.math.Vect2DMath;
 import crappy.utils.bitmasks.IHaveBitmask;
 import crappy.utils.containers.IQuadruplet;
+import crappy.utils.containers.ITriplet;
 import crappyGame.GameObjects.BodyTagEnum;
 import crappyGame.assets.ImageManager;
 
@@ -119,8 +121,8 @@ public final class LevelGeometry {
 
         final Vect2D PAYLOAD_POS = new Vect2D(W*3/4, H/2);
 
+        //noinspection DuplicatedCode
         final Collection<CrappyBody> bodies = new ArrayList<>();
-
 
         bodies.add(edgeMaker(0,H,W/16, H*7/8));
         bodies.add(edgeMaker(W/16, H*7/8, W/32, H*3/4));
@@ -230,6 +232,77 @@ public final class LevelGeometry {
                 PAYLOAD_POS,
                 AABBQuadTreeTools.STATIC_GEOMETRY_AABB_QUADTREE_FACTORY(bodies),
                 BACKGROUND_IMAGE
+        );
+    }
+
+    public static IQuadruplet<Vect2D, Vect2D, AABBQuadTreeTools.I_StaticGeometryQuadTreeRootNode, Optional<BufferedImage>> makeLevel4(
+            final double WIDTH, final double HEIGHT
+    ) {
+        ITriplet<Vect2D, Vect2D, AABBQuadTreeTools.I_StaticGeometryQuadTreeRootNode> level2Quad = makeLevel2(WIDTH, HEIGHT);
+
+        final double W = WIDTH*2;
+        final double H = HEIGHT*2;
+
+        final Vect2D SHIP_POS = new Vect2D(W*3/4, H/2); //new Vect2D(W/8, H*7/8);
+
+        final Vect2D PAYLOAD_POS = new Vect2D(W/4, H/2); //new Vect2D(W*3/4, H/2);
+
+        //noinspection DuplicatedCode
+        final Collection<CrappyBody> bodies = new ArrayList<>();
+
+        bodies.add(edgeMaker(0,H,W/16, H*7/8));
+        bodies.add(edgeMaker(W/16, H*7/8, W/32, H*3/4));
+        bodies.add(edgeMaker(W/32, H*3/4, W/12, H/2));
+        bodies.add(edgeMaker(W/12, H/2, W/8, H/8));
+        bodies.add(edgeMaker(W/8, H/8, W/2, H/18));
+        bodies.add(edgeMaker(W/2, H/18, W*3/4, H/15));
+        bodies.add(edgeMaker(W*3/4, H/15, W*13/14, H/2));
+        bodies.add(edgeMaker(W*13/14, H/2, W*15/18, H*9/12));
+        bodies.add(edgeMaker(W*15/18, H*9/12, W*2/3, H*2/3, 0.2));
+        bodies.add(edgeMaker(W*2/3, H*2/3, W/2, H*7/12, 0.4));
+        bodies.add(edgeMaker(W/2, H*7/12, W/3, H*4/7, 0.4));
+        bodies.add(edgeMaker(W/3, H*4/7, W*5/16, H*3/4, 0.6));
+        bodies.add(edgeMaker(W*5/16, H*3/4, W/2, H, 0.5));
+        bodies.add(edgeMaker(W/2, H, 0, H));
+
+        CrappyBody finishLineBody = new CrappyBody(
+                new Vect2D(W/2, H*7/12),
+                Vect2D.ZERO,
+                Rot2D.IDENTITY,
+                0,
+                0,
+                0,
+                0,
+                0,
+                CrappyBody.CRAPPY_BODY_TYPE.STATIC,
+                BodyTagEnum.FINISH_LINE.getBitmask(),
+                IHaveBitmask.COMBINE_BITMASKS_OR(BodyTagEnum.PAYLOAD, BodyTagEnum.SHIP),
+                CrappyBody.CrappyBodyCreator.defaultCallbackHandler,
+                new Object(),
+                "Finish line",
+                false,
+                false,
+                false
+        );
+        bodies.add(finishLineBody);
+
+
+        CrappyLine finishLine = new CrappyLine(
+                finishLineBody,
+                Vect2D.ZERO,
+                Vect2DMath.VECTOR_BETWEEN( // new Vect2D(W*5/16, H*3/4),new Vect2D(W/32, H*3/4)
+                        new Vect2D(W/2, H*7/12),
+                        new Vect2D(W*5/8, 0)
+                )
+        );
+        finishLine.renderable = true;
+
+
+        return IQuadruplet.of(
+                SHIP_POS,
+                PAYLOAD_POS,
+                AABBQuadTreeTools.STATIC_GEOMETRY_AABB_QUADTREE_FACTORY(bodies),
+                ImageManager.BG4.getOptional()
         );
     }
 }

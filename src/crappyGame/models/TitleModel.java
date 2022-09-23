@@ -57,11 +57,11 @@ public class TitleModel extends A_Model {
     public TitleModel(IController ctrl, IGameRunner runner) {
         super(ctrl, runner);
         done = false;
-        SoundManager.playBackgroundMusic(SoundManager.MUSIC_THEMES.MAIN_THEME);
+        SoundManager.playBackgroundMusic(SoundManager.MUSIC_THEMES.CONVERSATIONAL_INTERLUDE);
     }
 
     @Override
-    public void update() {
+    public void update(double deltaTime) {
         if (controller.getAction().pressedAny()){
             done = true;
             SoundManager.playClap();

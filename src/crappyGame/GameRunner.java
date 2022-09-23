@@ -3,6 +3,7 @@ package crappyGame;
 import crappyGame.Controller.Controller;
 import crappyGame.UI.DisplayFrame;
 import crappyGame.UI.View;
+import crappyGame.assets.SoundManager;
 import crappyGame.models.LEVELS;
 import crappyGame.models.TitleModel;
 
@@ -11,6 +12,7 @@ import javax.swing.*;
 import java.awt.Component;
 
 import static crappy.CrappyWorld.DEFAULT_UPDATE_DELAY;
+import static crappy.CrappyWorld.DEFAULT_UPDATE_DELTA;
 
 public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
 
@@ -96,11 +98,11 @@ public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
             startTime = System.currentTimeMillis();
             if (!isPaused) {
                 //WILL ONLY UPDATE THE MODEL IF NOT PAUSED!
-                currentModel.update();
+                currentModel.update(DEFAULT_UPDATE_DELTA);
             }
             if (modelChanged){
                 theView.setViewable(currentModel);
-                currentModel.update();
+                currentModel.update(DEFAULT_UPDATE_DELTA);
                 modelChanged = false;
             }
             endTime = System.currentTimeMillis();
@@ -187,12 +189,12 @@ public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
         if (currentLevel == LEVELS.__END_OF_GAME){
             JOptionPane.showMessageDialog(
                     display.getTheFrame().getContentPane(),
-                    "<html><p><b>INSTRUCTIONS</b><br>" +
-                            "Fly into the cave, pick up the mythical Ball Of Being Towed In Space, and tow it back!<br>" +
+                    "<html><h1>INSTRUCTIONS</h1>" +
+                            "<p>Fly into the cave, pick up the mythical Ball Of Being Towed In Space, and tow it back!<br>" +
                             "Also don't fly into the walls of the cave and don't allow the ball to hit the walls either</p><br>" +
                             "<br>" +
-                            "<p><b>CONTROLS</b><br>" +
-                            "* Up arrow key or W to thrust your ship in the direction it's facing!<br>" +
+                            "<h2>CONTROLS</h2>" +
+                            "<p>* Up arrow key or W to thrust your ship in the direction it's facing!<br>" +
                             "* Left/A to rotate anticlockwise, Right/D to rotate clockwise!<br>" +
                             "* Space (when close enough) to start towing the mythical Ball of Being Towed In Space!</p><br>" +
                             "<br>" +
@@ -201,7 +203,8 @@ public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
                     "instructions I guess",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            currentLevel = LEVELS.LEVEL1;
+            SoundManager.playBackgroundMusic(SoundManager.MUSIC_THEMES.MAIN_THEME);
+            currentLevel = LEVELS.LEVEL_1;
             livesLeft = DEFAULT_LIVES;
         } else {
             livesLeft++;

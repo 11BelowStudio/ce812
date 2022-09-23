@@ -39,6 +39,8 @@ public final class SoundManager {
 
     private static final Clip interludeTheme = getClip("conversational");
 
+    private static final Clip ominousDrum = getClip("ominous drum");
+
     /**
      * An enumeration of values for the background soundtracks that may (or may not) currently be playing
      */
@@ -109,6 +111,8 @@ public final class SoundManager {
     public static void playTowNoise(){play(towNoise);}
 
     public static void playTowBroke(){play(towBroke);}
+
+    public static void playOminousDrum(){play(ominousDrum);}
 
     /**
      * Toggles whether or not the thrusters should be playing

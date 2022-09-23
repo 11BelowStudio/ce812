@@ -49,6 +49,13 @@ public class Quadruplet<T1, T2, T3, T4> implements IQuadruplet<T1, T2, T3, T4>{
         fourth = d;
     }
 
+    public Quadruplet(final ITriplet<T1, T2, T3> tri, final T4 d){
+        first = tri.getFirst();
+        second= tri.getSecond();
+        third = tri.getThird();
+        fourth = d;
+    }
+
 
 
     /**

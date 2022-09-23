@@ -39,6 +39,8 @@ public class Tuple<T> implements Iterable<T>, Serializable {
         length = contents.length;
         if (length <= 0){
             throw new IllegalArgumentException("Cannot create a tuple of less than 1 element!");
+        } else if (contents[0] == null){
+            throw new IllegalArgumentException("cannot construct tuples that start with null!");
         }
         //noinspection unchecked
         data = (T[]) Array.newInstance( contents[0].getClass(), length);

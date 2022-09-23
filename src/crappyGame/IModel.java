@@ -4,7 +4,7 @@ import crappyGame.UI.Viewable;
 
 public interface IModel extends Drawable, Viewable {
 
-    void update();
+    void update(double deltaTime);
 
     boolean isFinished();
 

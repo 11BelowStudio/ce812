@@ -44,6 +44,11 @@ public class CrappyWorld {
     public static final int DEFAULT_UPDATE_DELAY = 20;
 
     /**
+     * {@link #DEFAULT_UPDATE_DELAY} expressed as 'what proportion of a second' is used for the delay
+     */
+    public static final double DEFAULT_UPDATE_DELTA = ((double)DEFAULT_UPDATE_DELAY)/1000.0;
+
+    /**
      * Calculator for DeltaT, given update delay (milliseconds) and update iterations
      * @param update_delay length of time (milliseconds) to simulate in the update method
      * @param update_iterations number of update iterations within the update method
@@ -184,6 +189,14 @@ public class CrappyWorld {
         update(deltaT, customGrav, eulerUpdatesPerUpdate, eulerSubsteps);
     }
 
+    public void update(double timestep){
+        update(timestep, grav);
+    }
+
+    public void update(double timestep, I_Vect2D customGrav){
+        update(timestep/eulerUpdatesPerUpdate, customGrav, eulerUpdatesPerUpdate, eulerSubsteps);
+    }
+
 
 
     /**
@@ -216,20 +229,13 @@ public class CrappyWorld {
         synchronized (UPDATE_SYNC_OBJECT) {
 
             // we make sure that any changes to the states of the bodies since the last update call have been resolved.
-            //resolveChangesToBodies(dynamicBodies);
-            //resolveChangesToBodies(kinematicBodies);
-
             resolveChangesToBodies(dyns);
             resolveChangesToBodies(kins);
 
             // same for the connectors.
-            //connectors.removeIf(CrappyConnector::startingDisposal);
             cons.removeIf(CrappyConnector::startingDisposal);
 
             // and doing any other prep stuff we need to resolve before the first euler update
-            //for(iter = dynamicBodies.iterator(); iter.hasNext(); iter.next().handleStuffBeforeFirstEulerUpdate());
-            //for(iter = kinematicBodies.iterator(); iter.hasNext(); iter.next().handleStuffBeforeFirstEulerUpdate());
-
             for(iter = dyns.iterator(); iter.hasNext(); iter.next().handleStuffBeforeFirstEulerUpdate());
             for(iter = kins.iterator(); iter.hasNext(); iter.next().handleStuffBeforeFirstEulerUpdate());
 
@@ -242,52 +248,45 @@ public class CrappyWorld {
 
             for (int i = 0; i < updateIterations; i++) {
 
-                //connectors.forEach(CrappyConnector::applyForcesToBodies);
-
-
-                //dynamicBodies.forEach(c -> c.first_euler_sub_update(delta, grav));
-                //kinematicBodies.forEach(c->c.first_euler_sub_update(delta,grav));
 
                 newObjectTree.clearAll(); // wipe it clean so we can do this update.
 
                 // time for some for abuse.
-                /*
-                for (conIter = connectors.iterator(); conIter.hasNext(); conIter.next().applyForcesToBodies()) ;
-                for (iter = dynamicBodies.iterator(); iter.hasNext();
-                     iter.next().first_euler_sub_update(delta, grav, subDelta))
-                    ;
-                for (iter = kinematicBodies.iterator(); iter.hasNext();
-                     iter.next().first_euler_sub_update(delta, grav, subDelta))
-                    ;
-
-                 */
-                for (conIter = cons.iterator(); conIter.hasNext(); conIter.next().applyForcesToBodies()) ;
-                for (iter = dyns.iterator(); iter.hasNext();
-                     iter.next().first_euler_sub_update(delta, grav, subDelta))
-                    ;
+                for (conIter = cons.iterator();
+                     conIter.hasNext();
+                     conIter.next().applyForcesToBodies()
+                );
+                for (iter = dyns.iterator();
+                     iter.hasNext();
+                     iter.next().first_euler_sub_update(delta, grav, subDelta)
+                );
                 for (iter = kins.iterator(); iter.hasNext();
-                     iter.next().first_euler_sub_update(delta, grav, subDelta))
-                    ;
+                     iter.next().first_euler_sub_update(delta, grav, subDelta)
+                );
 
                 for (int steps = 1; steps < eulerSubsteps; steps++) {
-                    for (conIter = cons.iterator(); conIter.hasNext(); conIter.next().applyForcesToBodies()) ;
-                    for (iter = dyns.iterator(); iter.hasNext(); iter.next().euler_substep(subDelta)) ;
-                    for (iter = kins.iterator(); iter.hasNext(); iter.next().euler_substep(subDelta)) ;
-                    /*
-                    for (conIter = connectors.iterator(); conIter.hasNext(); conIter.next().applyForcesToBodies()) ;
-                    for (iter = dynamicBodies.iterator(); iter.hasNext(); iter.next().euler_substep(subDelta)) ;
-                    for (iter = kinematicBodies.iterator(); iter.hasNext(); iter.next().euler_substep(subDelta)) ;
-
-                     */
+                    for (conIter = cons.iterator();
+                         conIter.hasNext();
+                         conIter.next().applyForcesToBodies()
+                    );
+                    for (iter = dyns.iterator();
+                         iter.hasNext();
+                         iter.next().euler_substep(subDelta)
+                    );
+                    for (iter = kins.iterator();
+                         iter.hasNext();
+                         iter.next().euler_substep(subDelta)
+                    );
                 }
 
-                /*
-                for (iter = dynamicBodies.iterator(); iter.hasNext(); iter.next().applyAllTempChanges()) ;
-                for (iter = kinematicBodies.iterator(); iter.hasNext(); iter.next().applyAllTempChanges()) ;
-
-                 */
-                for (iter = dyns.iterator(); iter.hasNext(); iter.next().applyAllTempChanges()) ;
-                for (iter = kins.iterator(); iter.hasNext(); iter.next().applyAllTempChanges()) ;
+                for (iter = dyns.iterator();
+                     iter.hasNext();
+                     iter.next().applyAllTempChanges()
+                );
+                for (iter = kins.iterator();
+                     iter.hasNext();
+                     iter.next().applyAllTempChanges()
+                );
 
                 // adds all the kinematic bodies to the dynamic/kinematic AABB tree
                 //newObjectTree.addAllKinematicBodies(kinematicBodies);
@@ -302,7 +301,7 @@ public class CrappyWorld {
 
 
                 // attempts to check the kinematic bodies against the static objects and each other
-                for (iter = kins.iterator(); iter.hasNext(); ) {
+                for (iter = kins.iterator(); iter.hasNext();) {
                     I_CrappyBody_CrappyWorld_Interface b = iter.next();
                     if (b.isActive()) {
                         CrappyCollisionHandler.HANDLE_COLLISIONS(
@@ -331,17 +330,17 @@ public class CrappyWorld {
                     }
                 }
 
-                for (
-                        iter = dyns.iterator(); iter.hasNext();
-                        iter.next().performPostCollisionBitmaskCallback()
+                for (iter = dyns.iterator();
+                     iter.hasNext();
+                     iter.next().performPostCollisionBitmaskCallback()
                 );
-                for (
-                        iter = kins.iterator(); iter.hasNext();
-                        iter.next().performPostCollisionBitmaskCallback()
+                for (iter = kins.iterator();
+                     iter.hasNext();
+                     iter.next().performPostCollisionBitmaskCallback()
                 );
-                for (
-                        iter = staticGeometry.get().iterator(); iter.hasNext();
-                        iter.next().performPostCollisionBitmaskCallback()
+                for (iter = staticGeometry.get().iterator();
+                     iter.hasNext();
+                     iter.next().performPostCollisionBitmaskCallback()
                 );
 
 
@@ -353,8 +352,14 @@ public class CrappyWorld {
             }
 
             // last-minute cleanup (removing any external forces applied last timestep that aren't needed any more etc)
-            for(iter = dyns.iterator(); iter.hasNext(); iter.next().resolveStuffAfterLastEulerUpdate());
-            for(iter = kins.iterator(); iter.hasNext(); iter.next().resolveStuffAfterLastEulerUpdate());
+            for(iter = dyns.iterator();
+                iter.hasNext();
+                iter.next().resolveStuffAfterLastEulerUpdate()
+            );
+            for(iter = kins.iterator();
+                iter.hasNext();
+                iter.next().resolveStuffAfterLastEulerUpdate()
+            );
 
             dynKineGeometry.setOverride(newObjectTree);
 

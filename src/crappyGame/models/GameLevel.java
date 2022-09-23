@@ -170,7 +170,7 @@ public class GameLevel extends A_Model implements IModel, Viewable, CrappyCallba
 
 
     @Override
-    public void update() {
+    public void update(double deltaTime) {
 
 
         if (!pendingBodiesToAdd.isEmpty()){
@@ -213,11 +213,11 @@ public class GameLevel extends A_Model implements IModel, Viewable, CrappyCallba
         }
 
         //world.update();
-        world.update(getCurrentGravity());
+        world.update(deltaTime, getCurrentGravity());
 
         for (final Iterator<Debris> diter = debris.iterator(); diter.hasNext();) {
             final Debris d = diter.next();
-            d.update(world.totalDelta);
+            d.update(deltaTime);
             if (!d.isStillExists()){
                 diter.remove();
             }
@@ -236,7 +236,7 @@ public class GameLevel extends A_Model implements IModel, Viewable, CrappyCallba
                     // WIN!
                     won();
                 } else if (act.isUpHeld() || act.isRightHeld() || act.isLeftHeld()){
-                    fuelUsed += 0.01;
+                    fuelUsed += deltaTime;
                     fuelUsedHUD.setData(fuelUsed);
                 }
                 break;

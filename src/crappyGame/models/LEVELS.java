@@ -6,9 +6,11 @@ import crappyGame.IGameRunner;
 public enum LEVELS {
 
     __END_OF_GAME(),
-    LEVEL3(__END_OF_GAME),
-    LEVEL2(LEVEL3),
-    LEVEL1(LEVEL2);
+
+    LEVEL_4(__END_OF_GAME),
+    LEVEL_3(LEVEL_4),
+    LEVEL_2(LEVEL_3),
+    LEVEL_1(LEVEL_2);
 
     public final LEVELS nextLevel;
 
@@ -39,10 +41,16 @@ public enum LEVELS {
      * @throws EndOfGameException if we are at the end of the game, and no level can be generated.
      */
     public GameLevel generateThisLevel(final IController ctrl, final int lives, final double fuelUsed, final IGameRunner runner) throws EndOfGameException{
-        if (this==LEVEL3){
-            return new Level3(ctrl, lives, fuelUsed, runner);
+
+        switch (this){
+            case LEVEL_4:
+                return new Level4(ctrl, lives, fuelUsed, runner);
+            case LEVEL_3:
+                return new Level3(ctrl, lives, fuelUsed, runner);
+            default:
+                return new GameLevel(ctrl, getLevelGeometryMaker(), lives,fuelUsed, runner);
         }
-        return new GameLevel(ctrl, getLevelGeometryMaker(), lives,fuelUsed, runner);
+        //return new GameLevel(ctrl, getLevelGeometryMaker(), lives,fuelUsed, runner);
     }
 
 
@@ -54,12 +62,14 @@ public enum LEVELS {
     public LevelGeometry.IGeomMaker getLevelGeometryMaker() throws EndOfGameException{
 
         switch (this){
-            case LEVEL1:
+            case LEVEL_1:
                 return LevelGeometry::makeLevel1;
-            case LEVEL2:
+            case LEVEL_2:
                 return LevelGeometry::makeLevel2;
-            case LEVEL3:
+            case LEVEL_3:
                 return LevelGeometry::makeLevel3;
+            case LEVEL_4:
+                return LevelGeometry::makeLevel4;
             default:
                 throw new EndOfGameException(this + " HAS NO LEVEL ASSOCIATED WITH IT!");
         }
