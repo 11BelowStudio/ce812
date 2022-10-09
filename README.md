@@ -12,10 +12,7 @@ and tow it back to where you came from!
 
 And uhh try not to crash into anything!
 
-
-![a cool annotated screenshot](/report%20images/screenshot%201.png)
-![a cool screenshot of the game](/report%20images/screenshot%204.png)
-![a cool annotated version of the first screenshot](/report%20images/screenshot%204%20annotated.png)
+![a cool gif showing gameplay](/report%20images/level1.gif)
 
 ### Software/hardware requirements
 
@@ -40,5 +37,6 @@ And uhh try not to crash into anything!
 
 ## Credits
 
+* Programming/art/audio/level design/etc: Rachel Lowe (me)
 * This game is a shameless rip-off of *Thrust* by Jeremy Smith, 1986.
 * *CRAPPY* was heavily inspired by [*JBox2D*](https://github.com/jbox2d/jbox2d).
