@@ -62,3 +62,6 @@ And try not to crash into anything!
   * Finished this game for the CE812 Physics Based Games assignment
   * Technical details about this game and the CRAPPY physics package (made by me for this game) can be read [here](https://github.com/11BelowStudio/ce812/tree/master/ce812%20assignment)
 
+
+(note to self: JPackage command is `jpackage --type app-image -i "out\artifacts\SpaceTow_jar\" -n SpaceTow --main-class crappyGame.GameRunner --main-jar "SpaceTow_jar.jar" --icon "SpaceTow.ico" --jlink-options "--strip-native-commands --strip-debug --no-man-pages --no-header-files --compress=2"`)
+

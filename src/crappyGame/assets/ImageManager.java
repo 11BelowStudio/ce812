@@ -57,6 +57,7 @@ public final class ImageManager {
             TITLE.set(loadImage("title"));
 
             ICON_IMAGES.add(loadImage("icon64"));
+            ICON_IMAGES.add(loadImage("icon48"));
             ICON_IMAGES.add(loadImage("icon32"));
             ICON_IMAGES.add(loadImage("icon16"));
 

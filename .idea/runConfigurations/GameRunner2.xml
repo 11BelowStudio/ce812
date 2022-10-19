@@ -7,6 +7,7 @@
     <option name="INCLUDE_PROVIDED_SCOPE" value="true" />
     <option name="MAIN_CLASS_NAME" value="crappyGame.GameRunner" />
     <module name="CE812_lowe_rachel_m" />
+    <option name="PROGRAM_PARAMETERS" value="-Xlint:unchecked" />
     <shortenClasspath name="NONE" />
     <extension name="coverage">
       <pattern>

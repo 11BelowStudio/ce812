@@ -20,6 +20,7 @@ And try not to crash into anything!
 
 * Compulsory
   * A computer
+  * Java 8 or later installed on your computer
   * A keyboard plugged in to your computer
 * Optional
   * A mouse (recommended)
@@ -32,14 +33,12 @@ And try not to crash into anything!
   * This file you are reading right now.
 * LICENSE.txt
   * The terms of the Mozilla Public License 2.0 (which **CRAPPY** and this game have been released under)
-* SpaceTow.exe
-  * This is *A Scientific Interpretation of Daily Life in the Space Towing Industry, Circa 3052 CE*, in exe form
+* SpaceTow.jar
+  * This is *A Scientific Interpretation of Daily Life in the Space Towing Industry, Circa 3052 CE*,
+    in executable .jar form
 * scores.txt
   * high scores
   * pls do not edit it manually (that's cheating) >:(
-* /app and /runtime
-  * All the code/runtime stuff that's needed for this game to work
-  * DO NOT DELETE IT!
 
 ## Credits
 
