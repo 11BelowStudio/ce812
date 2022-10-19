@@ -35,6 +35,8 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
 
     boolean justDied = false;
 
+    private final double myMass;
+
     public enum SHIP_STATE{
         JUST_RESPAWNED,
         GOING_IN,
@@ -62,9 +64,9 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
 
     public static Vect2D connectorPos = SHIP_SHAPE[2];
 
-    public Spaceship(Vect2D startPos, CrappyWorld world, IRecieveDebris d){
+    public Spaceship(Vect2D startPos, CrappyWorld world, IRecieveDebris d, double mass){
 
-
+        this.myMass = mass;
         this.startPos = startPos;
         respawn(world);
         debrisGoesHere = d;
@@ -129,19 +131,20 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
                 if (!stillAlive){
                     state = SHIP_STATE.DEAD;
                     SoundManager.togglePlayThrusters(false);
-                }
-                if (act.isLeftHeld()){
-                    body.applyTorque(STEER_RATE * body.getMomentOfInertia());
-                }
-                if (act.isRightHeld()){
-                    body.applyTorque(-STEER_RATE * body.getMomentOfInertia());
-                }
+                } else {
+                    if (act.isLeftHeld()) {
+                        body.applyTorque(STEER_RATE * body.getMomentOfInertia());
+                    }
+                    if (act.isRightHeld()) {
+                        body.applyTorque(-STEER_RATE * body.getMomentOfInertia());
+                    }
 
-                if (act.isUpHeld()){
-                    body.applyForce(THRUST_FORCE.rotate(body.getRot()));
-                }
+                    if (act.isUpHeld()) {
+                        body.applyForce(THRUST_FORCE.rotate(body.getRot()));
+                    }
 
-                SoundManager.togglePlayThrusters(act.isLeftHeld() | act.isRightHeld() | act.isUpHeld());
+                    SoundManager.togglePlayThrusters(act.isUpHeld());
+                }
                 break;
             case FREEFALL_OF_SHAME:
                 SoundManager.togglePlayThrusters(false);
@@ -156,6 +159,11 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
 
     }
 
+    /**
+     * Attempts to respawn the ship in the world
+     * @param w the world that the ship is in
+     * @return true if the ship could be respawned. false if the ship is still alive/not allowed to be respawned
+     */
     public boolean respawn(final CrappyWorld w){
 
         if (state != SHIP_STATE.DEAD || (body != null && !body.isDiscarded())){
@@ -166,7 +174,7 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
                 Vect2D.ZERO,
                 Rot2D.IDENTITY,
                 0,
-                1,
+                myMass,
                 1,
                 0.0001,
                 0.0001,
@@ -185,6 +193,9 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
         w.addBody(body);
         state = SHIP_STATE.JUST_RESPAWNED;
         stillAlive = true;
+
+
+
         return true;
     }
 
@@ -209,7 +220,9 @@ public class Spaceship implements CrappyCallbackHandler, Respawnable, GameObject
      */
     @Override
     public void acceptCollidedWithBitmaskAfterAllCollisions(final int collidedWithBits) {
-        if ((BodyTagEnum.WORLD.bitmask & collidedWithBits) > 0 || (BodyTagEnum.PAYLOAD.bitmask & collidedWithBits) > 0
+        if (
+            (BodyTagEnum.WORLD.bitmask & collidedWithBits) > 0 ||
+            (BodyTagEnum.PAYLOAD.bitmask & collidedWithBits) > 0
                 //(state != SHIP_STATE.TOWING && (BodyTagEnum.PAYLOAD.bitmask & collidedWithBits) > 0)
         ){
             if (stillAlive){

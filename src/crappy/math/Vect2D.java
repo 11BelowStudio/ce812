@@ -433,7 +433,27 @@ public final class Vect2D implements Serializable, I_Vect2D {
         return new Vect2D(-x, -y);
     }
 
-
-
+    /**
+     * Obtains a random normal vector
+     * @return a vect2D with mag 1 and a random polar angle
+     */
+    public static Vect2D GET_RANDOM_NORMAL(){
+        return GET_RANDOM_POLAR_WITH_MAGNITUDE(1);
+    }
+    /**
+     * Obtains a random vector with a magnitude between 0-1
+     * @return a vect2D with mag 0-1 and a random polar angle
+     */
+    public static Vect2D GET_RANDOM_IN_UNIT_CIRCLE(){
+        return GET_RANDOM_POLAR_WITH_MAGNITUDE(Math.random());
+    }
+    /**
+     * Obtains a random vector with a known magnitude
+     * @param mag the magnitude for this random vector
+     * @return a vect2D with mag 0-1 and a random polar angle
+     */
+    public static Vect2D GET_RANDOM_POLAR_WITH_MAGNITUDE(double mag){
+        return Vect2D.POLAR(Rot2D.RANDOM_ROTATION(), mag);
+    }
 }
 

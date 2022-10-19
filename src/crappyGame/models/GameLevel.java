@@ -106,14 +106,7 @@ public class GameLevel extends A_Model implements IModel, Viewable, CrappyCallba
     );
 
 
-    final static Vect2D safeCameraOffset = new Vect2D(VISIBLE_WORLD_WIDTH/16, VISIBLE_WORLD_HEIGHT/16);
 
-    final static double safeCamDist = safeCameraOffset.mag();
-    final static double safeCamDistSquared = safeCameraOffset.magSquared();
-
-    final static Vect2D halfVisibleWorld = new Vect2D(VISIBLE_WORLD_WIDTH/2, VISIBLE_WORLD_HEIGHT/2);
-
-    final static double lerpSpeed = 0.1;
 
 
     final List<Debris> debris = new ArrayList<>();
@@ -152,7 +145,7 @@ public class GameLevel extends A_Model implements IModel, Viewable, CrappyCallba
     ){
         super(ctrl, runner);
 
-        ship = new Spaceship(levelGeom.getFirst(), world, this);
+        ship = new Spaceship(levelGeom.getFirst(), world, this, 1);
         pl = new Payload(levelGeom.getSecond(), world, this);
 
         world.setStaticGeometry(levelGeom.getThird());
@@ -235,7 +228,7 @@ public class GameLevel extends A_Model implements IModel, Viewable, CrappyCallba
                 } else if (pl.getState() == Payload.BALL_STATE.SUCCESS){
                     // WIN!
                     won();
-                } else if (act.isUpHeld() || act.isRightHeld() || act.isLeftHeld()){
+                } else if (act.isUpHeld()){
                     fuelUsed += deltaTime;
                     fuelUsedHUD.setData(fuelUsed);
                 }

@@ -21,4 +21,6 @@ public interface IAction {
 
     Vect2D getClickLocation();
 
+
+
 }

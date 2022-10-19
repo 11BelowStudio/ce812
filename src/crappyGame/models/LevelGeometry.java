@@ -295,7 +295,7 @@ public final class LevelGeometry {
                         new Vect2D(W*5/8, 0)
                 )
         );
-        finishLine.renderable = true;
+        finishLine.renderable = false;
 
 
         return IQuadruplet.of(

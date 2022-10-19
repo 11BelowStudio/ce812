@@ -54,14 +54,58 @@ public final class SoundManager {
     private static MUSIC_THEMES currentTheme = MUSIC_THEMES.NO_MUSIC;
 
     /**
+     * Are sound effects enabled or not?
+     */
+    private static boolean sfxEnabled = true;
+
+    /**
+     * Use this to enable/disable sound effects
+     * @param newSFXtoggle new state for whether sound effects are enabled or disabled
+     */
+    public static void toggleSFX(boolean newSFXtoggle){
+        sfxEnabled = newSFXtoggle;
+        togglePlayThrusters(isThrusting);
+    }
+
+    /**
      * Helper method to play the given clip from the start
      * @param clip the clip to play
      */
     private static void play(final Clip clip) {
-        clip.setFramePosition(0);
+        play(clip, true);
+    }
+
+    /**
+     * Method to play a clip
+     * @param clip the clip to play
+     * @param resetFirst set the frame position to 0 if true
+     */
+    private static void play(final Clip clip, final boolean resetFirst){
+        if (resetFirst){
+            clip.setFramePosition(0);
+        }
         clip.start();
     }
 
+    /**
+     * Helper method for playing sound effect clips
+     * @param clip the sound effect clip to play
+     */
+    private static void playSFX(final Clip clip){
+        if (sfxEnabled){
+            play(clip);
+        }
+    }
+
+    /**
+     * Helper method to play the given clip when it needs to be infinitely looping
+     * @param clip the clip to play looped.
+     * @param resetFirst true to restart the clip from the start
+     */
+    private static void playLooped(final Clip clip, final boolean resetFirst){
+        clip.loop(Clip.LOOP_CONTINUOUSLY);
+        play(clip, resetFirst);
+    }
     /**
      * Helper method to play the given clip when it needs to be infinitely looping
      * @param clip the clip to play looped.
@@ -70,7 +114,6 @@ public final class SoundManager {
         clip.loop(Clip.LOOP_CONTINUOUSLY);
         play(clip);
     }
-
 
     /**
      * Loads the named clip
@@ -91,28 +134,36 @@ public final class SoundManager {
     }
 
     public static void playClap(){
-        play(clap);
+        playSFX(clap);
     }
 
     public static void playPlac(){
-        play(plac);
+        playSFX(plac);
     }
 
     public static void playBoom(){
-        play(boom);
+        playSFX(boom);
     }
 
     public static void playSolidHit(){
-        play(solidHit);
+        playSFX(solidHit);
     }
 
-    public static void playScored(){play(scoredPoint);}
+    public static void playScored(){
+        playSFX(scoredPoint);
+    }
 
-    public static void playTowNoise(){play(towNoise);}
+    public static void playTowNoise(){
+        playSFX(towNoise);
+    }
 
-    public static void playTowBroke(){play(towBroke);}
+    public static void playTowBroke(){
+        playSFX(towBroke);
+    }
 
-    public static void playOminousDrum(){play(ominousDrum);}
+    public static void playOminousDrum(){
+        playSFX(ominousDrum);
+    }
 
     /**
      * Toggles whether or not the thrusters should be playing
@@ -121,14 +172,28 @@ public final class SoundManager {
     @SuppressWarnings("BooleanParameter")
     public static void togglePlayThrusters(final boolean thrusting){
 
+        //final boolean isPlaying = thruster.isRunning();
+        if (thruster.isRunning()){
+            if (!thrusting || !sfxEnabled){
+                thruster.stop();
+            }
+        } else{
+            if (thrusting && sfxEnabled){
+                playLooped(thruster, false);
+            }
+        }
+        isThrusting = thrusting;
+
+        /*
         if (thrusting ^ isThrusting){
-            if (thrusting){
+            if (thrusting & sfxEnabled){
                 playLooped(thruster);
             } else {
                 thruster.stop();
             }
             isThrusting = thrusting;
         }
+        */
     }
 
     /**
