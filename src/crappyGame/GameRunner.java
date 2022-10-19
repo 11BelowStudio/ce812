@@ -4,6 +4,7 @@ import crappyGame.Controller.Controller;
 import crappyGame.UI.DisplayFrame;
 import crappyGame.UI.View;
 import crappyGame.assets.SoundManager;
+import crappyGame.misc.HighScoreHandler;
 import crappyGame.models.LEVELS;
 import crappyGame.models.TitleModel;
 
@@ -43,6 +44,8 @@ public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
 
     private boolean modelChanged = false;
 
+    HighScoreHandler scoreHandler;
+
 
     public GameRunner(){
 
@@ -59,6 +62,8 @@ public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
         display.repackAndRevalidateAndSetVisible();
 
         repaintTimer = new Timer(DEFAULT_UPDATE_DELAY, e -> theView.repaint());
+
+        scoreHandler = new HighScoreHandler("scores.txt", display.getTheFrame());
 
         runIt();
     }
@@ -213,6 +218,9 @@ public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
         try{
             currentModel = currentLevel.generateThisLevel(ctrl, livesLeft, fuelUsed, this);
         } catch (LEVELS.EndOfGameException e){
+
+            scoreHandler.recordHighScore(fuelUsed);
+
             currentModel = new TitleModel(ctrl, this);
         }
         ctrl.resetAll();
@@ -223,6 +231,7 @@ public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
     @Override
     public void levelLost() {
         ctrl.resetAll();
+        scoreHandler.showHighScores();
         modelChanged = true;
         currentLevel = LEVELS.__END_OF_GAME;
         currentModel = new TitleModel(ctrl, this);
@@ -232,5 +241,10 @@ public class GameRunner implements IQuit, IChangeScenes, IPause, IGameRunner{
     @Override
     public Component getViewComponent() {
         return display.getTheFrame().getContentPane();
+    }
+
+    @Override
+    public HighScoreHandler.ScoreRecord getHighScore() {
+        return scoreHandler.getHighestScore();
     }
 }

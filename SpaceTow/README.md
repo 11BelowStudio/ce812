@@ -16,8 +16,6 @@ and tow it back to where you came from!
 
 And try not to crash into anything!
 
-![a cool gif showing gameplay](/report%20images/level1.gif)
-
 ### Software/hardware requirements
 
 * Compulsory

@@ -37,6 +37,15 @@ public abstract class A_Model implements IModel{
 
     protected static final Color spaceColour = new Color(11, 25, 45);
 
+    protected final static Vect2D safeCameraOffset = new Vect2D(VISIBLE_WORLD_WIDTH/16, VISIBLE_WORLD_HEIGHT/16);
+
+    protected final static double safeCamDist = safeCameraOffset.mag();
+    protected final static double safeCamDistSquared = safeCameraOffset.magSquared();
+
+    protected final static Vect2D halfVisibleWorld = new Vect2D(VISIBLE_WORLD_WIDTH/2, VISIBLE_WORLD_HEIGHT/2);
+
+    protected final static double lerpSpeed = 0.1;
+
     protected A_Model(final IController ctrl, IGameRunner runner){
 
         controller = ctrl;

@@ -5,7 +5,7 @@ import crappyGame.UI.IHaveScaledDimensions;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 
-public class Controller implements IController{
+public class Controller implements IController {
 
     private final Action act = new Action();
 

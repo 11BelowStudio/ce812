@@ -588,6 +588,29 @@ public final class M_Vect2D implements I_Vect2D {
     }
 
     /**
+     * Obtains a random normal vector
+     * @return M_Vect2D with mag 1 and a random polar angle
+     */
+    public static M_Vect2D GET_RANDOM_NORMAL(){
+        return GET_RANDOM_POLAR_WITH_MAGNITUDE(1);
+    }
+    /**
+     * Obtains a random vector with a magnitude between 0-1
+     * @return a M_Vect2D with mag 0-1 and a random polar angle
+     */
+    public static M_Vect2D GET_RANDOM_IN_UNIT_CIRCLE(){
+        return GET_RANDOM_POLAR_WITH_MAGNITUDE(Math.random());
+    }
+    /**
+     * Obtains a random vector with a known magnitude
+     * @param mag the magnitude for this random vector
+     * @return a M_Vect2D with mag 0-1 and a random polar angle
+     */
+    public static M_Vect2D GET_RANDOM_POLAR_WITH_MAGNITUDE(double mag){
+        return M_Vect2D.POLAR(Rot2D.RANDOM_ROTATION(), mag);
+    }
+
+    /**
      * Creates a new Point2D.Double holding the same thing as this M_Vect2D holds/held,
      * promptly disposes of this M_Vect2D, and then returns that new Point2D.Double
      * @return a Point2D.Double reflecting what the state of this vector was when it was called.
