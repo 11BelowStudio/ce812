@@ -11,8 +11,8 @@ package crappy;
 public interface CrappyConnectorBodyInterface {
 
     /**
-     * Whether or not the attached bodies can collide
-     * @return true if the attached bodies can collide with each other, otherwise false.
+     * Can the attached bodies collide with each other?
+     * @return true if the attached bodies are allowed to collide with each other, otherwise false.
      */
     boolean canBodiesCollide();
 

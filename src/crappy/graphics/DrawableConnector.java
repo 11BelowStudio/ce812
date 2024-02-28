@@ -14,11 +14,27 @@ import crappy.math.Vect2D;
  */
 public interface DrawableConnector {
 
+    /**
+     * obtains the drawable position of the end of the connector connected to Body B
+     * @return drawable position of the end of the connector connected to Body B
+     */
     Vect2D getDrawableAPos();
 
+    /**
+     * obtains the drawable position of the end of the connector connected to Body A
+     * @return drawable position of the end of the connector connected to Body A
+     */
     Vect2D getDrawableBPos();
 
+    /**
+     * Returns the natural length of this connector
+     * @return connector natural length
+     */
     double getNaturalLength();
 
+    /**
+     * Updates the drawablePosA and drawablePosB to results of
+     * {@link crappy.CrappyConnector#bodyAWorldPos()} and {@link crappy.CrappyConnector#bodyBWorldPos()}
+     */
     void updateDrawables();
 }

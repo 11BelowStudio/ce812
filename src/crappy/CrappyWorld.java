@@ -129,13 +129,29 @@ public class CrappyWorld {
             );
 
 
-
+    /**
+     * used for threading sync stuff
+     */
     private final Object UPDATE_SYNC_OBJECT = new Object();
 
-
+    /**
+     * drawable dynamic bodies
+     */
     public final List<DrawableBody> drawableDynamics = synchronizedList(new ArrayList<>());
+
+    /**
+     * drawable kinematic bodies
+     */
     public final List<DrawableBody> drawableKinematics = synchronizedList(new ArrayList<>());
+
+    /**
+     * drawable static bodies
+     */
     public final List<DrawableBody> drawableStatics = synchronizedList(new ArrayList<>());
+
+    /**
+     * drawable connectors
+     */
     public final List<DrawableConnector> drawableConnectors = synchronizedList(new ArrayList<>());
 
     /**
@@ -166,7 +182,7 @@ public class CrappyWorld {
     }
 
     /**
-     * Creates a new CrappyWorld, using all of the default parameters.
+     * Creates a new CrappyWorld, using the default parameters.
      */
     public CrappyWorld(){
         this (DEFAULT_GRAVITY, DEFAULT_EULER_SUBSTEPS_PER_UPDATE_ITERATION, DEFAULT_UPDATE_ITERATIONS_WITHIN_UPDATE_METHOD, DEFAULT_UPDATE_DELAY);
@@ -189,6 +205,10 @@ public class CrappyWorld {
         update(deltaT, customGrav, eulerUpdatesPerUpdate, eulerSubsteps);
     }
 
+    /**
+     * Runs update method with custom timestep but everything else is default
+     * @param timestep custom timestep to use
+     */
     public void update(double timestep){
         update(timestep, grav);
     }
@@ -196,7 +216,6 @@ public class CrappyWorld {
     public void update(double timestep, I_Vect2D customGrav){
         update(timestep/eulerUpdatesPerUpdate, customGrav, eulerUpdatesPerUpdate, eulerSubsteps);
     }
-
 
 
     /**
@@ -518,6 +537,11 @@ public class CrappyWorld {
 
     }
 
+    /**
+     * Obtains UnmodifiableList of all of the drawable bodies of the desired body type
+     * @param b body type we want all of the drawables of
+     * @return new Unmodifiable list of DrawableBody objects of the given type
+     */
     public List<DrawableBody> getRenderableBodies(final CrappyBody.CRAPPY_BODY_TYPE b){
 
         switch (b){
@@ -539,6 +563,10 @@ public class CrappyWorld {
     }
 
 
+    /**
+     * Obtains all the renderable connectors in the world
+     * @return new UnmodifiableList with all drawableConnectors
+     */
     public List<DrawableConnector> getRenderableConnectors() {
         synchronized (drawableConnectors){
             return Collections.unmodifiableList(new ArrayList<>(drawableConnectors));
@@ -547,7 +575,7 @@ public class CrappyWorld {
 
     /**
      * Attempts to obtain a CrappyBody in the world from ID
-     * @param id
+     * @param id the ID of the CrappyBody we want
      * @return an optional that holds that CrappyBody (if it is known)
      */
     public Optional<CrappyBody> getBodyFromID(final UUID id){
@@ -563,7 +591,7 @@ public class CrappyWorld {
 
     /**
      * Attempts to obtain a CrappyConnector in the world from ID
-     * @param id
+     * @param id the ID of the CrappyConnector we want
      * @return an optional that holds that connector (if it is known)
      */
     public Optional<CrappyConnector> getConnectorFromID(final UUID id){
@@ -573,14 +601,38 @@ public class CrappyWorld {
         return Optional.empty();
     }
 
+    /**
+     * Used within {@link #attemptClick(I_Vect2D, CLICK_MODE, CLICK_WHICH)}
+     */
     public enum CLICK_MODE{
+        /**
+         * Stop calling {@link I_CrappyBody#wasClicked()} on bodies in click pos
+         * once we reach a {@link CrappyBody} for which
+         * {@link I_CrappyBody#wasClicked()} returns true
+         */
         CLICK_FIRST_SUCCESSFUL,
+        /**
+         * Attempt calling {@link I_CrappyBody#wasClicked()} for all bodies that intersect
+         * with the click pos, regardless of {@link I_CrappyBody#wasClicked()} result
+         */
         CLICK_ALL
     }
 
+    /**
+     * Used within {@link #attemptClick(I_Vect2D, CLICK_MODE, CLICK_WHICH)}
+     */
     public enum CLICK_WHICH{
+        /**
+         * Check only the static bodies
+         */
         STATIC_ONLY,
+        /**
+         * Check the dynamic and kinematic bodies only
+         */
         NON_STATIC_ONLY,
+        /**
+         * Check all the bodies
+         */
         ANYTHING
     }
 

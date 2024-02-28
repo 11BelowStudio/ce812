@@ -52,7 +52,7 @@ public interface I_Crappy_AABB extends IPair<Vect2D, Vect2D>, Cloneable, Predica
      *
      * @param otherAABB the input argument
      *
-     * @return {@code true} if the this intersects with the other CrappyAABB, otherwise {@code false}
+     * @return {@code true} if this AABB intersects with the other CrappyAABB, otherwise {@code false}
      */
     @Override
     default boolean test(final I_Crappy_AABB otherAABB) {
@@ -79,6 +79,11 @@ public interface I_Crappy_AABB extends IPair<Vect2D, Vect2D>, Cloneable, Predica
         return a.__innerBBOverlapCheck(b) || b.__innerBBOverlapCheck(a);
     }
 
+    /**
+     * Is part of me within the other AABB?
+     * @param other the other AABB we're checking
+     * @return true if part of this AABB is within the bounds of the other AABB
+     */
     default boolean __innerBBOverlapCheck(final I_Crappy_AABB other){
         return getMin().isLessThanOrEqualTo(other.getMax()) && getMax().isGreaterThanOrEqualTo(other.getMin());
     }

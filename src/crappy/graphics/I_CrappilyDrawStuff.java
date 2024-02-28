@@ -19,6 +19,8 @@ import java.awt.*;
  * Loosely inspired by Box2D's debug draw method, because I'm lazy.
  * This particular implementation of it, however, is completely my own work.
  *
+ * Feel free to override the default methods in here!
+ *
  * @author Rachel Lowe
  */
 public interface I_CrappilyDrawStuff {
@@ -146,6 +148,11 @@ public interface I_CrappilyDrawStuff {
     }
 
 
+    /**
+     * Use this to draw the axis-aligned bounding box of a DrawableCrappyShape.
+     * Feel free to override this default implementation!
+     * @param d the DrawableCrappyShape we want to render the AABB of
+     */
     default void acceptAABB(DrawableCrappyShape d){
         final I_Crappy_AABB b = d.getBody().getAABB();
         final Vect2D min = getGraphicsTransform().TO_SCREEN_COORDS_V(b.getMin());
@@ -156,6 +163,11 @@ public interface I_CrappilyDrawStuff {
         drawRectangle(min.x, max.y, wh.x, wh.y, Color.WHITE);
     }
 
+    /**
+     * Use this to draw the circle of a DrawableCrappyShape.DrawableCircle.
+     * Feel free to override this default implementation!
+     * @param c the DrawableCrappyShape.DrawableCircle we want to render
+     */
     default void acceptCircle(final DrawableCrappyShape.DrawableCircle c){
 
         
@@ -168,8 +180,8 @@ public interface I_CrappilyDrawStuff {
             acceptAABB(c);
         }
 
-        drawFilledCircle(screenPos, xRad, yRad, SELECT_COLOR_BODY(c.getShapeType(), c.getBody().getBodyType(), true));
-        drawCircle(screenPos, xRad, yRad, SELECT_COLOR_BODY(c.getShapeType(), c.getBody().getBodyType(), false));
+        drawFilledCircle(screenPos, xRad, yRad, DEFAULT_COLORS.SELECT_COLOR_BODY(c.getShapeType(), c.getBody().getBodyType(), true));
+        drawCircle(screenPos, xRad, yRad, DEFAULT_COLORS.SELECT_COLOR_BODY(c.getShapeType(), c.getBody().getBodyType(), false));
         if (RENDERING_ROTATIONS()) {
             drawLine(screenPos, getGraphicsTransform().TO_SCREEN_COORDS_V(c.getDrawablePos().add(Vect2DMath.INVERT_X(c.getDrawableRot()))), Color.CYAN);
         }
@@ -179,6 +191,11 @@ public interface I_CrappilyDrawStuff {
     }
 
 
+    /**
+     * Use this to draw the polygon of a DrawableCrappyShape.DrawablePolygon.
+     * Feel free to override this default implementation!
+     * @param p the DrawableCrappyShape.DrawablePolygon we want to render
+     */
     default void acceptPolygon(final DrawableCrappyShape.DrawablePolygon p){
 
         final Vect2D screenPos = getGraphicsTransform().TO_SCREEN_COORDS_V(p.getDrawablePos());
@@ -193,12 +210,12 @@ public interface I_CrappilyDrawStuff {
             acceptAABB(p);
         }
 
-        drawFilledPolygon(screenPos, screenVertices, SELECT_COLOR_BODY(p.getShapeType(), p.getBody().getBodyType(), true));
+        drawFilledPolygon(screenPos, screenVertices, DEFAULT_COLORS.SELECT_COLOR_BODY(p.getShapeType(), p.getBody().getBodyType(), true));
 
         if (RENDERING_INCIRCLES()) {
             acceptCircle(p.getDrawableIncircle());
         }
-        drawPolygon(screenPos, screenVertices, SELECT_COLOR_BODY(p.getShapeType(), p.getBody().getBodyType(), false));
+        drawPolygon(screenPos, screenVertices, DEFAULT_COLORS.SELECT_COLOR_BODY(p.getShapeType(), p.getBody().getBodyType(), false));
 
         if (RENDERING_ROTATIONS()) {
             drawLine(screenPos, getGraphicsTransform().TO_SCREEN_COORDS_V(p.getDrawablePos().add(Vect2DMath.INVERT_X(p.getDrawableRot()))), Color.CYAN);
@@ -208,7 +225,11 @@ public interface I_CrappilyDrawStuff {
         }
     }
 
-
+    /**
+     * Use this to draw the edge of a DrawableCrappyShape.DrawableEdge.
+     * Feel free to override this default implementation!
+     * @param e the DrawableCrappyShape.DrawableEdge we want to render
+     */
     default void acceptEdge(DrawableCrappyShape.DrawableEdge e){
 
         if (RENDERING_BOUNDING_BOXES()) {
@@ -220,14 +241,18 @@ public interface I_CrappilyDrawStuff {
 
         if (RENDERING_NORMALS()) {
             final Vect2D screenNorm = getGraphicsTransform().TO_SCREEN_COORDS_V(e.getDrawableNorm());
-            drawLine(getGraphicsTransform().TO_SCREEN_COORDS_V(e.getDrawableCentroid()), screenNorm, SELECT_COLOR_BODY(e.getShapeType(), e.getBody().getBodyType(), true));
+            drawLine(getGraphicsTransform().TO_SCREEN_COORDS_V(e.getDrawableCentroid()), screenNorm, DEFAULT_COLORS.SELECT_COLOR_BODY(e.getShapeType(), e.getBody().getBodyType(), true));
         }
 
         acceptCircle(e.getDrawableEndCircle());
-        drawLine(screenStart, screenEnd, SELECT_COLOR_BODY(e.getShapeType(), e.getBody().getBodyType(), false));
+        drawLine(screenStart, screenEnd, DEFAULT_COLORS.SELECT_COLOR_BODY(e.getShapeType(), e.getBody().getBodyType(), false));
     }
 
-
+    /**
+     * Use this to draw the line of a DrawableCrappyShape.DrawableLine.
+     * Feel free to override this default implementation!
+     * @param l the DrawableCrappyShape.DrawableLine we want to render
+     */
     default void acceptLine(DrawableCrappyShape.DrawableLine l){
 
         if (RENDERING_BOUNDING_BOXES()) {
@@ -244,11 +269,16 @@ public interface I_CrappilyDrawStuff {
         if (RENDERING_NORMALS()) {
             final Vect2D screenNormA = getGraphicsTransform().TO_SCREEN_COORDS_V(l.getDrawableNorm());
             final Vect2D screenNormB = getGraphicsTransform().TO_SCREEN_COORDS_V(l.getDrawableNormEnd());
-            drawLine(screenNormA, screenNormB, SELECT_COLOR_BODY(l.getShapeType(), l.getBody().getBodyType(), true));
+            drawLine(screenNormA, screenNormB, DEFAULT_COLORS.SELECT_COLOR_BODY(l.getShapeType(), l.getBody().getBodyType(), true));
         }
-        drawLine(screenStart, screenEnd, SELECT_COLOR_BODY(l.getShapeType(), l.getBody().getBodyType(), false));
+        drawLine(screenStart, screenEnd, DEFAULT_COLORS.SELECT_COLOR_BODY(l.getShapeType(), l.getBody().getBodyType(), false));
     }
 
+    /**
+     * Use this to draw the visuals of a DrawableConnector.
+     * Feel free to override this default implementation!
+     * @param c the DrawableConnector we want to render
+     */
     default void acceptConnector(final DrawableConnector c){
 
         final Vect2D p1 = c.getDrawableAPos();
@@ -277,65 +307,91 @@ public interface I_CrappilyDrawStuff {
     }
 
 
+    /**
+     * Uses this renderer to draw the given body
+     * @param d DrawableBody we want to draw
+     */
     default void drawThisBody(final DrawableBody d){ d.drawCrappily(this); }
 
+    /**
+     * Wrapper for the default colours used by the default renderer methods
+     */
+    public static enum DEFAULT_COLORS{
+        ;
 
-    static Color SELECT_COLOR_BODY(I_CrappyShape.CRAPPY_SHAPE_TYPE stype, CrappyBody.CRAPPY_BODY_TYPE btype, boolean filled){
+        static final Color STATIC_FILLED = new Color(210, 200, 200, 128);
+        static final Color STATIC_HOLLOW = new Color(220, 210, 210, 255);
+        static final Color DYN_CIRCLE_FILLED = new Color(150, 200, 150, 128);
+        static final Color DYN_CIRCLE_HOLLOW = new Color(150, 250, 200, 255);
+        static final Color DYN_POLY_FILLED = new Color(150, 150, 200, 128);
+        static final Color DYN_POLY_HOLLOW = new Color(200, 150, 255, 255);
+        static final Color DYN_LINE_FILLED = new Color(200, 200, 100, 128);
+        static final Color DYN_LINE_HOLLOW = new Color(250, 250, 75, 255);
+        static final Color KIN_CIRCLE_FILLED = new Color(75, 75, 200, 128);
+        static final Color KIN_CIRCLE_HOLLOW = new Color(75, 75, 255, 255);
+        static final Color KIN_POLY_FILLED = new Color(200, 150, 150, 128);
+        static final Color KIN_POLY_HOLLOW = new Color(255, 100, 100, 255);
+        static final Color KIN_LINE_FILLED = new Color(100, 200, 100, 128);
+        static final Color KIN_LINE_HOLLOW = new Color(55, 200, 55, 255);
 
-        switch (btype){
-            case STATIC:
-                if (filled){
-                    return new Color(210, 200, 200, 128);
-                } else {
-                    return new Color(220, 210, 210, 255);
-                }
-            case DYNAMIC:
-                switch (stype){
-                    case CIRCLE:
-                        if (filled){
-                            return new Color(150, 200, 150, 128);
-                        } else {
-                            return new Color(150, 250, 200, 255);
-                        }
-                    case POLYGON:
-                        if (filled){
-                            return new Color(150, 150, 200, 128);
-                        } else {
-                            return new Color(200, 150, 255, 255);
-                        }
-                    case EDGE:
-                    case LINE:
-                        if (filled){
-                            return new Color(200, 200, 100, 128);
-                        } else {
-                            return new Color(250, 250, 75, 255);
-                        }
-                }
-            case KINEMATIC:
-                switch (stype){
-                    case CIRCLE:
-                        if (filled){
-                            return new Color(75, 75, 200, 128);
-                        } else {
-                            return new Color(75, 75, 255, 255);
-                        }
-                    case POLYGON:
-                        if (filled){
-                            return new Color(200, 150, 150, 128);
-                        } else {
-                            return new Color(255, 100, 100, 255);
-                        }
-                    case LINE:
-                    case EDGE:
-                        if (filled){
-                            return new Color(100, 200, 100, 128);
-                        } else {
-                            return new Color(55, 200, 55, 255);
-                        }
-                }
+
+        public static Color SELECT_COLOR_BODY(I_CrappyShape.CRAPPY_SHAPE_TYPE stype, CrappyBody.CRAPPY_BODY_TYPE btype, boolean filled){
+
+            switch (btype){
+                case STATIC:
+                    if (filled){
+                        return STATIC_FILLED;
+                    } else {
+                        return STATIC_HOLLOW;
+                    }
+                case DYNAMIC:
+                    switch (stype){
+                        case CIRCLE:
+                            if (filled){
+                                return DYN_CIRCLE_FILLED;
+                            } else {
+                                return DYN_CIRCLE_HOLLOW;
+                            }
+                        case POLYGON:
+                            if (filled){
+                                return DYN_POLY_FILLED;
+                            } else {
+                                return DYN_POLY_HOLLOW;
+                            }
+                        case EDGE:
+                        case LINE:
+                            if (filled){
+                                return DYN_LINE_FILLED;
+                            } else {
+                                return DYN_LINE_HOLLOW;
+                            }
+                    }
+                case KINEMATIC:
+                    switch (stype){
+                        case CIRCLE:
+                            if (filled){
+                                return KIN_CIRCLE_FILLED;
+                            } else {
+                                return KIN_CIRCLE_HOLLOW;
+                            }
+                        case POLYGON:
+                            if (filled){
+                                return KIN_POLY_FILLED;
+                            } else {
+                                return KIN_POLY_HOLLOW;
+                            }
+                        case LINE:
+                        case EDGE:
+                            if (filled){
+                                return KIN_LINE_FILLED;
+                            } else {
+                                return KIN_LINE_HOLLOW;
+                            }
+                    }
+            }
+            return Color.MAGENTA;
         }
-
-        return Color.MAGENTA;
-
     }
+
+
 }

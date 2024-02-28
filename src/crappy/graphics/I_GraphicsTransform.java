@@ -37,11 +37,11 @@ public interface I_GraphicsTransform {
     public IPair<Double, Double> getScreenScale();
 
     default double convertWorldLengthToScreenLength(double wLen){
-        return wLen /= getScreenScale().getFirst();
+        return wLen / getScreenScale().getFirst();
     }
 
     default double convertWorldHeightToScreenHeight(double wHeight){
-        return wHeight /= getScreenScale().getSecond();
+        return wHeight / getScreenScale().getSecond();
     }
 
     /**

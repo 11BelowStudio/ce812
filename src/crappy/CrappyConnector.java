@@ -19,7 +19,7 @@ import java.util.function.DoubleUnaryOperator;
  * A connector (usable as an elastic joint) for use within Crappy/
  *
  * Somewhat based on the 'ElasticConnector' class provided by Dr. Michael Fairbank
- * as part of the the CE812 Physics Based Games module at the University of Essex.
+ * as part of the CE812 Physics Based Games module at the University of Essex.
  *
  * @author Rachel Lowe
  */
@@ -31,11 +31,22 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector
      * file, You can obtain one at https://mozilla.org/MPL/2.0/.
      */
 
-
+    /**
+     * The first body being connected
+     */
     private final CrappyBody_Connector_Interface bodyA;
+    /**
+     * Local pos on body A of the connection point
+     */
     private final Vect2D bodyALocalPos;
 
+    /**
+     * The other body being connected
+     */
     private final CrappyBody_Connector_Interface bodyB;
+    /**
+     * Local pos on body B of the connection point
+     */
     private final Vect2D bodyBLocalPos;
 
     private final double naturalLength;
@@ -194,6 +205,10 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector
 
     }
 
+    /**
+     * Calculates current tension of the connector
+     * @return current amount of tension
+     */
     double calculateTension(){
 
         final double dist = Vect2DMath.DIST(
@@ -221,6 +236,11 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector
         return hookeTension + dampingTension;
     }
 
+    /**
+     * Works out the rate of change of the extension of the connector
+     * (by working out the rate at which the connection points are moving relative to prior pos)
+     * @return rate at which the length of the connector is changing
+     */
     double rateOfChangeOfExtension(){
 
         //System.out.println("b vel = " + bodyBLocalPos.getWorldVelocityOfLocalCoordinate(bodyB.getTempTransform()));
@@ -231,18 +251,28 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector
         ).dot(
                 normalizedVectorFromAToB()
         );
-
     }
 
+    /**
+     * World pos of body A connection location
+     * @return World pos of body A connection location
+     */
     public Vect2D bodyAWorldPos(){
         return bodyALocalPos.localToWorldCoordinates(bodyA.getTempPos(), bodyA.getTempRot());
     }
 
+    /**
+     * World pos of body B connection location
+     * @return World pos of body B connection location
+     */
     public Vect2D bodyBWorldPos(){
         return bodyBLocalPos.localToWorldCoordinates(bodyB.getTempPos(), bodyB.getTempRot());
     }
 
-
+    /**
+     * Obtains normalized vector from A to B
+     * @return A to B unit vector
+     */
     private Vect2D normalizedVectorFromAToB(){
         return Vect2DMath.MINUS_M(
                 bodyBWorldPos(),
@@ -251,19 +281,27 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector
             .finished();
     }
 
+    /**
+     * Wrapper for {@link #bodyAWorldPos()}
+     * @return World pos of body A connection location
+     */
     @Override
     public Vect2D getFirst() {
         return bodyAWorldPos();
     }
 
+    /**
+     * Wrapper for {@link #bodyBWorldPos()}
+     * @return World pos of body B connection location
+     */
     @Override
     public Vect2D getSecond() {
         return bodyBWorldPos();
     }
 
     /**
-     * Whether or not the attached bodies can collide
-     * @return true if the attached bodies can collide with each other, otherwise false.
+     * Can the attached bodies collide with each other?
+     * @return true if the attached bodies are allowed to collide with each other, otherwise false.
      */
     public boolean canBodiesCollide(){
         return bodiesCanCollide;
@@ -282,7 +320,10 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector
         }
     }
 
-
+    /**
+     * Updates the {@link #drawablePosA} and {@link #drawablePosB} to results of
+     * {@link crappy.CrappyConnector#bodyAWorldPos()} and {@link crappy.CrappyConnector#bodyBWorldPos()}
+     */
     public void updateDrawables(){
         synchronized (drawSyncer){
             drawablePosA = bodyAWorldPos();
@@ -291,6 +332,10 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector
     }
 
 
+    /**
+     * obtains the {@link #drawablePosA}
+     * @return drawable position of the end of the connector connected to Body A
+     */
     @Override
     public Vect2D getDrawableAPos() {
         synchronized (drawSyncer){
@@ -298,6 +343,10 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector
         }
     }
 
+    /**
+     * obtains the {@link #drawablePosB}
+     * @return drawable position of the end of the connector connected to Body B
+     */
     @Override
     public Vect2D getDrawableBPos() {
         synchronized (drawSyncer){
@@ -305,14 +354,19 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector
         }
     }
 
+    /**
+     * Returns the {@link #naturalLength} of this connector
+     * @return connector natural length
+     */
     @Override
     public double getNaturalLength() {
         return naturalLength;
     }
 
-
-
-
+    /**
+     * Creates a new CrappyConnectorMaker
+     * @return new CrappyConnectorMaker
+     */
     public static CrappyConnectorMaker GET_CREATOR(){ return new CrappyConnectorMaker(); }
 
     /**
@@ -489,13 +543,15 @@ public class CrappyConnector implements IPair<Vect2D, Vect2D>, DrawableConnector
     }
 
     /**
-     * Inner class with the usable truncation rules
+     * Inner class/empty enum with the usable truncation rules
      */
-    public static final class TRUNCATION_RULES {
+    public enum TRUNCATION_RULES {
+        ;
 
-        private TRUNCATION_RULES(){}
 
-
+        /**
+         * parent TruncationRule interface (doubleUnaryOperator)
+         */
         @FunctionalInterface
         public static interface TruncationRule extends DoubleUnaryOperator {
             double applyAsDouble(final double rawTension);

@@ -20,7 +20,7 @@ public interface I_CrappyCircle extends I_CrappyShape {
      *
      * @param worldPoint world position of point
      *
-     * @return whether or not it's in bounds.
+     * @return true if this point is within this circle's bounds.
      * Works this out by finding the vector between the worldPoint and this shape's centroid,
      * then compares the SQUARE magnitude of that to the SQUARE radius of this
      * (so we don't have to faff around with square roots)

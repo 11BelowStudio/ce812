@@ -80,20 +80,40 @@ public interface I_CrappyShape extends I_HaveRestitution, I_HaveMass, IHaveBody 
      */
     Vect2D getLocalCentroid();
 
+    /**
+     * Obtains world pos of attached body
+     * @return world pos of attached body
+     */
     default Vect2D getPos(){
         return getBodyTransform().getPos();
     }
 
+    /**
+     * Obtains world rotation of attached body
+     * @return world rotation of attached body
+     */
     default Rot2D getRot(){ return getBodyTransform().getRot(); }
 
+    /**
+     * Obtains world velocity of attached body
+     * @return world velocity of attached body
+     */
     default Vect2D getVel(){
         return getBodyTransform().getVel();
     }
 
+    /**
+     * Obtains angular velocity of attached body
+     * @return angular velocity of attached body
+     */
     default double getAngVel(){
         return getBodyTransform().getAngVel();
     }
 
+    /**
+     * Obtains axis-aligned bounding box of shape
+     * @return this shape's AABB (within the world)
+     */
     I_Crappy_AABB getBoundingBox();
 
     /**
@@ -102,17 +122,27 @@ public interface I_CrappyShape extends I_HaveRestitution, I_HaveMass, IHaveBody 
      */
     Vect2D getLastFrameWorldPos();
 
+    /**
+     * Obtains the world velocity of this local position on the body
+     * @param localPos local pos on the body we want to get the world velocity of
+     * @return world velocity of that point on the body
+     */
     default Vect2D getVelOfLocalPoint(final I_Vect2D localPos){
         return Vect2DMath.WORLD_VEL_OF_LOCAL_COORD_M(localPos, getBodyTransform()).finished();
     }
 
+    /**
+     * Obtains the world velocity of the given world position on the body
+     * @param worldPos position (relative to the world) of the body that we want to get the world velocity of
+     * @return result of calling {@link #getVelOfLocalPoint(I_Vect2D)} using the world pos transformed to local pos
+     */
     default Vect2D getVelOfWorldPoint(final I_Vect2D worldPos){
         return getVelOfLocalPoint(Vect2DMath.WORLD_TO_LOCAL_M(worldPos, getBodyTransform()).finished());
     }
 
 
     /**
-     * Works out whether a given point is in this shape or not
+     * Works out whether a given point in the world is in this shape or not
      * @param worldPoint the point we're checking
      * @return true if it's within this shape, false otherwise.
      */
@@ -148,6 +178,10 @@ public interface I_CrappyShape extends I_HaveRestitution, I_HaveMass, IHaveBody 
 @FunctionalInterface
 interface I_HaveRestitution{
 
+    /**
+     * obtains coefficient of restitution
+     * @return coefficient of restitution
+     */
     double getRestitution();
 }
 
@@ -157,6 +191,10 @@ interface I_HaveRestitution{
 @FunctionalInterface
 interface I_HaveMass{
 
+    /**
+     * obtains mass of shape's body
+     * @return mass
+     */
     double getMass();
 }
 

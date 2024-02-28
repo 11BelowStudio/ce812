@@ -776,7 +776,7 @@ public class CrappyBody implements
     /**
      * Cannot apply forces to static bodies, and cannot apply ENGINE forces to kinematic bodies
      * @param source the source of this force
-     * @return whether or not we can apply it to this body
+     * @return true we can apply forces from the given source to this body
      */
     private boolean canApplyThisForce(final FORCE_SOURCE source){
         switch (bodyType){
@@ -843,6 +843,10 @@ public class CrappyBody implements
         }
     }
 
+    /**
+     * Private method used to apply gravity force to a body (adds to pending_forces and pending_torque)
+     * @param grav the raw gravity force.
+     */
     private void applyGravityForce(final I_Vect2D grav){
 
         if (canApplyThisForce(FORCE_SOURCE.ENGINE)){
@@ -899,7 +903,6 @@ public class CrappyBody implements
      * @param localForcePos local position of where this force is being applied
      */
     public void applyMidTimestepForce(final I_Vect2D force, final I_Vect2D localForcePos) {
-
         applyMidTimestepForce(force, localForcePos, FORCE_SOURCE.MANUAL);
     }
 
@@ -937,15 +940,6 @@ public class CrappyBody implements
 
     }
 
-    /**
-     * Use this to apply a force that depends on the distance between this body and somewhere else,
-     * but applied to (0, 0) on this body.
-     * Will be ignored by static bodies.
-     * @param force the force to apply to point (0, 0) on this body.
-     */
-    public void applyMidTimestepForce(final I_Vect2D force){
-        applyMidTimestepForce(force, FORCE_SOURCE.MANUAL);
-    }
 
     /**
      * Use this to apply a force that depends on the distance between this body and somewhere else,
@@ -990,13 +984,7 @@ public class CrappyBody implements
 
     }
 
-    /**
-     * Like {@link #applyTorque(double, FORCE_SOURCE)} but source is manual. Please use this.
-     * @param torque torque to apply throughout timestep
-     */
-    public void applyTorque(final double torque){
-        applyTorque(torque, FORCE_SOURCE.MANUAL);
-    }
+
 
     /**
      * Applies torque to this object for sub-timestep.
@@ -1020,13 +1008,6 @@ public class CrappyBody implements
         }
     }
 
-    /**
-     * Applies torque to this object for sub-timestep.
-     * @param torque torque to apply
-     */
-    public void applyMidTimestepTorque(final double torque){
-        applyMidTimestepTorque(torque, FORCE_SOURCE.MANUAL);
-    }
 
     /**
      * Applies appropriate forces for when this hit something static

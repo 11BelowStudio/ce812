@@ -61,6 +61,10 @@ public interface I_CrappyBody_CrappyWorld_Interface extends I_CrappyBody, I_View
      */
     void first_euler_sub_update(final double deltaT, final I_Vect2D gravity, final double subDelta);
 
+    /**
+     * Handles the individual euler-substep stuff
+     * @param subDelta substep deltaT
+     */
     void euler_substep(final double subDelta);
 
     void clearAllPendingForces();

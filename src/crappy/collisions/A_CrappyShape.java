@@ -56,8 +56,6 @@ public abstract class A_CrappyShape implements CrappyShape_QuadTree_Interface, I
      */
     public boolean renderable = true;
 
-    // TODO: collision method
-
     /**
      * CONSTRUCTOR FOR CIRCLES
      * @param shapeType shapeType (MUST BE CIRCLE!)
